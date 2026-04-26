@@ -23,6 +23,7 @@ export const UNAUTHORIZED_STATUSES = [401, 403];
 
 // Image Dimensions
 export const IMAGE_RENDER_DIMENSION = 1024;
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10MB
 
 export const ROOMIFY_RENDER_PROMPT = `
 TASK: Convert the input 2D floor plan into a **photorealistic, top‑down 3D architectural render**.
