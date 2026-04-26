@@ -2,10 +2,8 @@ import React from 'react'
 import {useLocation, useParams} from "react-router";
 
 const VisualizerId = () => {
-    const {id} = useParams();
     const location = useLocation();
     const {initialImage, name} = location.state || {};
-    console.log(location.state);
     return (
 
         // <div className="visualizer">

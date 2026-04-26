@@ -1,8 +1,15 @@
 export const HOSTING_CONFIG_KEY = "roomify_hosting_config";
 export const HOSTING_DOMAIN_SUFFIX = ".puter.site";
 
-export const isHostedUrl = (value: unknown): value is string =>
-    typeof value === "string" && value.includes(HOSTING_DOMAIN_SUFFIX);
+export const isHostedUrl = (value: unknown): value is string => {
+    if (typeof value !== "string") return false;
+    try {
+        const u = new URL(value);
+        return u.hostname.endsWith(HOSTING_DOMAIN_SUFFIX);
+    } catch {
+        return false;
+    }
+};
 
 export const createHostingSlug = () =>
     `roomify-${Date.now().toString(36)}-${Math.random()
@@ -59,9 +66,23 @@ export const dataUrlToBlob = (
         const raw = isBase64
             ? atob(data.replace(/\s/g, ""))
             : decodeURIComponent(data);
-        const bytes = new Uint8Array(raw.length);
-        for (let i = 0; i < raw.length; i += 1) {
-            bytes[i] = raw.charCodeAt(i);
+
+        let bytes: Uint8Array;
+        if (isBase64) {
+            bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i += 1) {
+                bytes[i] = raw.charCodeAt(i);
+            }
+        } else {
+            if (contentType.startsWith("image/")) {
+                return null;
+            }
+            // Properly decode percent-encoded byte sequences for text cases
+            const binaryString = unescape(encodeURIComponent(raw));
+            bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
         }
         return {blob: new Blob([bytes], {type: contentType}), contentType};
     } catch {
