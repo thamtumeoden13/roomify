@@ -1,89 +1,72 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {useOutletContext} from "react-router";
-import {CheckCircleIcon, ImageIcon, UploadIcon} from "lucide-react";
-import {MAX_UPLOAD_BYTES, PROGRESS_INTERVAL_MS, PROGRESS_STEP, REDIRECT_DELAY_MS} from "../lib/constants";
+import {CheckCircle2, ImageIcon, UploadIcon} from "lucide-react";
+import {PROGRESS_INCREMENT, REDIRECT_DELAY_MS, PROGRESS_INTERVAL_MS} from "../lib/constants";
 
 interface UploadProps {
-    onComplete?: (data: string) => void;
-    onError?: (error: string) => void;
+    onComplete?: (base64Data: string) => void;
 }
 
-const Upload = ({onComplete, onError}: UploadProps) => {
+const Upload = ({onComplete}: UploadProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [error, setError] = useState<string | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const isMounted = useRef(true);
-
-    useEffect(() => {
-        isMounted.current = true;
-        return () => {
-            isMounted.current = false;
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        };
-    }, []);
 
     const {isSignedIn} = useOutletContext<AuthContext>();
 
-    const clearTimers = () => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-        }
-    };
+    useEffect(() => {
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
+        };
+    }, []);
 
-    const processFile = (file: File) => {
-        if (file.size > MAX_UPLOAD_BYTES) {
-            const errorMsg = `File is too large. Maximum size is ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB.`;
-            setError(errorMsg);
-            onError?.(errorMsg);
-            return;
-        }
+    const processFile = useCallback((file: File) => {
+        if (!isSignedIn) return;
 
-        clearTimers();
-        setError(null);
         setFile(file);
         setProgress(0);
 
         const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64Data = e.target?.result as string;
+        reader.onerror = () => {
+            setFile(null);
+            setProgress(0);
+        };
+        reader.onloadend = () => {
+            const base64Data = reader.result as string;
 
             intervalRef.current = setInterval(() => {
-                if (!isMounted.current) {
-                    clearTimers();
-                    return;
-                }
-
                 setProgress((prev) => {
-                    if (prev >= 100) {
+                    const next = prev + PROGRESS_INCREMENT;
+                    if (next >= 100) {
                         if (intervalRef.current) {
                             clearInterval(intervalRef.current);
                             intervalRef.current = null;
                         }
                         timeoutRef.current = setTimeout(() => {
-                            if (isMounted.current) {
-                                onComplete?.(base64Data);
-                            }
+                            onComplete?.(base64Data);
+                            timeoutRef.current = null;
                         }, REDIRECT_DELAY_MS);
                         return 100;
                     }
-                    return prev + PROGRESS_STEP;
+                    return next;
                 });
             }, PROGRESS_INTERVAL_MS);
         };
         reader.readAsDataURL(file);
-    };
+    }, [isSignedIn, onComplete]);
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
+        if (!isSignedIn) return;
         setIsDragging(true);
     };
 
@@ -98,93 +81,73 @@ const Upload = ({onComplete, onError}: UploadProps) => {
         if (!isSignedIn) return;
 
         const droppedFile = e.dataTransfer.files[0];
-        if (droppedFile && droppedFile.type.startsWith('image/')) {
-            if (droppedFile.size > MAX_UPLOAD_BYTES) {
-                const errorMsg = `File is too large. Maximum size is ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB.`;
-                setError(errorMsg);
-                onError?.(errorMsg);
-                return;
-            }
+        const allowedTypes = ['image/jpeg', 'image/png'];
+        if (droppedFile && allowedTypes.includes(droppedFile.type)) {
             processFile(droppedFile);
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!isSignedIn) {
-            e.target.value = '';
-            return;
-        }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!isSignedIn) return;
 
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
-            if (selectedFile.size > MAX_UPLOAD_BYTES) {
-                const errorMsg = `File is too large. Maximum size is ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB.`;
-                setError(errorMsg);
-                onError?.(errorMsg);
-                e.target.value = '';
-                return;
-            }
             processFile(selectedFile);
         }
-        e.target.value = '';
     };
 
     return (
-        <div className={"upload"}>
+        <div className="upload">
             {!file ? (
-                    <div
-                        className={`dropzone ${isDragging ? 'is-dragging' : ''}`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                    >
-                        <input
-                            type="file"
-                            className="drop-input"
-                            accept=".jpg, .jpeg, .png"
-                            disabled={!isSignedIn}
-                            onChange={handleFileChange}
-                        />
+                <div
+                    className={`dropzone ${isDragging ? 'is-dragging' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                >
+                    <input
+                        type="file"
+                        className="drop-input"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        disabled={!isSignedIn}
+                        onChange={handleChange}
+                    />
 
-                        <div className="drop-content">
-                            <div className="drop-icon">
-                                <UploadIcon size={20}/>
-                            </div>
-
-                            <p>
-                                {isSignedIn
-                                    ? "Click to upload or just drag and drop"
-                                    : "Please sign in to upload your floor plan"
-                                }
-                            </p>
-                            <p className={"help"}>Maximum file size: {MAX_UPLOAD_BYTES / (1024 * 1024)}MB</p>
-                            {error && <p className="error-text"
-                                         style={{color: 'red', fontSize: '12px', marginTop: '4px'}}>{error}</p>}
+                    <div className="drop-content">
+                        <div className="drop-icon">
+                            <UploadIcon size={20}/>
                         </div>
+                        <p>
+                            {isSignedIn ? (
+                                "Click to upload or just drag and drop"
+                            ) : ("Sign in or sign up with Puter to upload")}
+                        </p>
+                        <p className="help">Maximum file size 50 MB.</p>
                     </div>
-                ) :
+                </div>
+            ) : (
                 <div className="upload-status">
                     <div className="status-content">
                         <div className="status-icon">
                             {progress === 100 ? (
-                                <CheckCircleIcon className={"check"}/>
+                                <CheckCircle2 className="check"/>
                             ) : (
-                                <ImageIcon className={"image"}/>
+                                <ImageIcon className="image"/>
                             )}
                         </div>
-                    </div>
 
-                    <h3>{file.name}</h3>
+                        <h3>{file.name}</h3>
 
-                    <div className="progress">
-                        <div className="bar" style={{width: `${progress}%`}}/>
+                        <div className='progress'>
+                            <div className="bar" style={{width: `${progress}%`}}/>
 
-                        <p className="status-text">
-                            {progress < 100 ? "Analyzing Floor Plan..." : "Redirecting..."}
-                        </p>
+                            <p className="status-text">
+                                {progress < 100 ? 'Analyzing Floor Plan...' : 'Redirecting...'}
+                            </p>
+                        </div>
                     </div>
                 </div>
-            }
+            )}
         </div>
     )
 }
