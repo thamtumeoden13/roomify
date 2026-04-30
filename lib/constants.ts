@@ -16,41 +16,51 @@ export const UNAUTHORIZED_STATUSES = [401, 403];
 export const IMAGE_RENDER_DIMENSION = 1024;
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10MB
 
+// export const ROOMIFY_RENDER_PROMPT = `
+// Professional architectural 3D plan visualization, bird's-eye view, top-down orthographic render.
+// The output must be a clean, photorealistic 3D floor plan based exactly on the provided 2D layout.
+//
+// GEOMETRY & STRUCTURE:
+// - Precisely extrude walls from the 2D plan lines with consistent height.
+// - Realistic glass material for windows and clear openings for doors.
+// - Perfectly aligned architectural elements, matching every dimension of the input floor plan.
+//
+// INTERIOR MAPPING & MATERIALS:
+// - Floor: High-quality hardwood, polished marble, and ceramic tile textures.
+// - Furniture: Replace 2D icons with realistic 3D assets: soft fabric sofas, wooden dining sets, modern kitchen cabinetry, sleek bathroom fixtures, and cozy beds with realistic linens.
+// - Surfaces: Clean, matte-finished walls with subtle ambient occlusion shadows in corners.
+//
+// STYLE & LIGHTING:
+// - Lighting: Bright, diffused natural daylight, soft shadows, high-end Octane render style, Unreal Engine 5 aesthetic.
+// - Clarity: Sharp edges, 8k resolution, cinematic architectural photography, masterpiece, ultra-detailed.
+//
+// ENVIRONMENT:
+// - Clean continuous surfaces, clutter-free, professional real estate presentation.
+// `.trim();
+
 export const ROOMIFY_RENDER_PROMPT = `
-TASK: Convert the input 2D floor plan into a **photorealistic, top‑down 3D architectural render**.
+Professional 3D architectural visualization, bird's-eye view, top-down orthographic plan. 
+Photorealistic 3D floor plan, clean continuous surfaces, architectural masterpiece.
 
-STRICT REQUIREMENTS (do not violate):
-1) **REMOVE ALL TEXT**: Do not render any letters, numbers, labels, dimensions, or annotations. Floors must be continuous where text used to be.
-2) **GEOMETRY MUST MATCH**: Walls, rooms, doors, and windows must follow the exact lines and positions in the plan. Do not shift or resize.
-3) **PRESERVE SCALE & RATIO**: The output image must maintain the exact aspect ratio and spatial proportions of the input floor plan.
-4) **TOP‑DOWN ONLY**: Orthographic top‑down view. No perspective tilt.
-5) **CLEAN, REALISTIC OUTPUT**: Crisp edges, balanced lighting, and realistic materials. No sketch/hand‑drawn look.
-6) **NO EXTRA CONTENT**: Do not add rooms, furniture, or objects that are not clearly indicated by the plan.
+STRUCTURE & SURFACE CLEANUP:
+- Precise wall extrusion from plan lines, consistent height, realistic materials.
+- Seamless and continuous floor textures, clean empty floor spaces where labels used to be, strictly no 3D letters.
+- Smooth polished flooring across the entire layout, ignoring all text and annotations from the input.
 
-STRUCTURE & DETAILS:
-- **Walls**: Extrude precisely from the plan lines. Consistent wall height and thickness.
-- **Doors**: Convert door swing arcs into open doors, aligned to the plan.
-- **Windows**: Convert thin perimeter lines into realistic glass windows.
-
-FURNITURE & ROOM MAPPING (only where icons/fixtures are clearly shown):
-- Bed icon → realistic bed with duvet and pillows.
-- Sofa icon → modern sectional or sofa.
-- Dining table icon → table with chairs.
-- Kitchen icon → counters with sink and stove.
-- Bathroom icon → toilet, sink, and tub/shower.
-- Office/study icon → desk, chair, and minimal shelving.
-- Porch/patio/balcony icon → outdoor seating or simple furniture (keep minimal).
-- Utility/laundry icon → washer/dryer and minimal cabinetry.
+FURNITURE MAPPING:
+- Realistic beds with linens, modern sofas, dining sets, full kitchen cabinetry.
+- Porcelain bathroom fixtures, office desks, and minimal outdoor patio furniture.
 
 STYLE & LIGHTING:
-- Lighting: bright, neutral daylight. High clarity and balanced contrast.
-- Materials: realistic wood/tile floors, clean walls, subtle shadows.
-- Finish: professional architectural visualization; no text, no watermarks, no logos.
+- Bright natural daylight, soft ambient occlusion shadows.
+- High-end Octane render, Unreal Engine 5 aesthetic, 8k resolution, sharp details.
+- Materials: Polished hardwood, marble tiles, matte white walls.
 `.trim();
 
 export const ROOMIFY_NEGATIVE_PROMPT = `
-text, letters, numbers, dimensions, labels, annotations, floor plan symbols, 
-sketch, hand-drawn, blurry, distorted, low quality, watermark, logo, 
-perspective tilt, camera angle, messy, extra rooms, 3d people, 
-grid lines, blueprints, paper texture.
+text, watermark, logo, letters, numbers, digits, dimensions, labels, 
+3D typography, alphabet-shaped furniture, word-shaped objects, 
+annotations, measurements, symbols, sketch, drawing, blurry, 
+low quality, distorted, messy, perspective tilt, hand-drawn, 
+paper texture, blueprints, black and white lines on floor.
 `.trim();

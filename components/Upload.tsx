@@ -52,10 +52,13 @@ const Upload = ({onComplete}: UploadProps) => {
                 });
             }, PROGRESS_INTERVAL_MS);
 
-            // Upload to Vercel Blob via our API route
+            // Upload to Supabase via our API route
+            const formData = new FormData();
+            formData.append('file', file);
+
             const response = await fetch(`/api/upload?filename=${file.name}`, {
                 method: 'POST',
-                body: file,
+                body: formData,
             });
 
             if (!response.ok) {

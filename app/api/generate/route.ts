@@ -1,6 +1,7 @@
 import Replicate from "replicate";
 import {NextResponse} from "next/server";
 import {ROOMIFY_NEGATIVE_PROMPT, ROOMIFY_RENDER_PROMPT} from "@/lib/constants";
+import {supabase} from "@/lib/supabase";
 
 const replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN,
@@ -8,25 +9,27 @@ const replicate = new Replicate({
 
 export async function POST(req: Request) {
     try {
-        const {image, prompt} = await req.json();
+        const {image, prompt, projectName} = await req.json();
 
         if (!image) {
             return NextResponse.json({error: "Image is required"}, {status: 400});
         }
+
+        const finalPrompt = prompt || ROOMIFY_RENDER_PROMPT;
 
         // Khởi tạo prediction
         const prediction = await replicate.predictions.create({
             // Sử dụng chính xác Version ID của lucataco/sdxl-controlnet
             version: "06d6fae3b75ab68a28cd2900afa6033166910dd09fd9751047043a5bbb4c184b",
             input: {
-                image: image, // URL từ Vercel Blob
-                prompt: prompt || ROOMIFY_RENDER_PROMPT,
+                image: image, // Supabase public URL
+                prompt: finalPrompt,
                 negative_prompt: ROOMIFY_NEGATIVE_PROMPT,
                 condition_scale: 0.5,
                 num_inference_steps: 50,
-                guidance_scale: 7.5,
-                scheduler: "K_EULER_ANCESTRAL", // Thêm scheduler phổ biến cho kiến trúc
-                seed: Math.floor(Math.random() * 1000000), // Random seed để mỗi lần ra 1 kết quả khác nhau
+                guidance_scale: 12,
+                scheduler: "K_EULER_ANCESTRAL",
+                seed: Math.floor(Math.random() * 1000000),
             },
         });
 
@@ -34,6 +37,20 @@ export async function POST(req: Request) {
         if (prediction?.error) {
             console.error("Replicate internal error:", prediction.error);
             return NextResponse.json({error: prediction.error}, {status: 500});
+        }
+
+        // Save to Supabase
+        const {error: supabaseError} = await supabase.from("renders").insert({
+            prediction_id: prediction.id,
+            project_name: projectName || "Untitled Project",
+            source_image_url: image,
+            status: prediction.status,
+            prompt: finalPrompt,
+        });
+
+        if (supabaseError) {
+            console.error("Supabase error:", supabaseError);
+            // We continue even if Supabase fails, but we might want to handle it
         }
 
         return NextResponse.json(prediction, {status: 201});

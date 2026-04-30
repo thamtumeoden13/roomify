@@ -6,25 +6,36 @@ import Button from "@/components/ui/Button";
 import Upload from "@/components/Upload";
 import {useRouter} from "next/navigation";
 import {MAX_UPLOAD_BYTES} from "@/lib/constants";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {supabase} from "@/lib/supabase";
 
 export default function Home() {
     const router = useRouter();
     const [projects, setProjects] = useState<any[]>([]);
 
+    useEffect(() => {
+        async function fetchProjects() {
+            const {data, error} = await supabase
+                .from("renders")
+                .select("*")
+                .order("created_at", {ascending: false});
+
+            if (error) {
+                console.error("Error fetching projects:", error);
+            } else if (data) {
+                setProjects(data);
+            }
+        }
+
+        fetchProjects();
+    }, []);
+
     const handleUploadComplete = async (imageUrl: string) => {
-        const newId = Date.now().toString();
-        const name = `Residence ${newId}`;
+        const tempId = Date.now().toString();
+        const name = `Residence ${tempId}`;
 
-        const newItem = {
-            id: newId,
-            name,
-            sourceImage: imageUrl,
-            timestamp: Date.now(),
-        };
-
-        setProjects((prev) => [newItem, ...prev]);
-        router.push(`/visualizer/${newId}?image=${encodeURIComponent(imageUrl)}&name=${encodeURIComponent(name)}`);
+        // Just redirect, the visualizer will handle the generation and Supabase storage
+        router.push(`/visualizer/${tempId}?image=${encodeURIComponent(imageUrl)}&name=${encodeURIComponent(name)}`);
     };
 
     return (
@@ -85,24 +96,25 @@ export default function Home() {
                         </div>
                     </div>
                     <div className={"projects-grid"}>
-                        {projects.map(({id, name, renderedImage, sourceImage, timestamp}: any) => (
-                            <div key={id} className={"project-card group"}
-                                 onClick={() => router.push(`/visualizer/${id}?image=${encodeURIComponent(sourceImage)}&name=${encodeURIComponent(name || "")}`)}>
+                        {projects.map((project: any) => (
+                            <div key={project.id} className={"project-card group"}
+                                 onClick={() => router.push(`/visualizer/${project.id}?image=${encodeURIComponent(project.source_image_url)}&name=${encodeURIComponent(project.project_name || "")}`)}>
                                 <div className="preview">
-                                    <img src={renderedImage || sourceImage} alt="project preview"/>
+                                    <img src={project.rendered_image_url || project.source_image_url}
+                                         alt="project preview"/>
 
                                     <div id="badge">
-                                        <span>Community</span>
+                                        <span>{project.status === "succeeded" ? "Rendered" : "Processing"}</span>
                                     </div>
                                 </div>
 
                                 <div className="card-body">
                                     <div>
-                                        <h3>{name}</h3>
+                                        <h3>{project.project_name}</h3>
                                         <div className="meta">
                                             <Clock size={12}/>
-                                            <span>{new Date(timestamp).toLocaleDateString()}</span>
-                                            <span>By BlackCat 13</span>
+                                            <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                                            <span>By You</span>
                                         </div>
                                     </div>
                                     <div className={"arrow"}>
