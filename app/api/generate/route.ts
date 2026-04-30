@@ -9,13 +9,16 @@ const replicate = new Replicate({
 
 export async function POST(req: Request) {
     try {
-        const {image, prompt, projectName} = await req.json();
+        const {image, prompt, projectName, styleKeywords} = await req.json();
 
         if (!image) {
             return NextResponse.json({error: "Image is required"}, {status: 400});
         }
 
-        const finalPrompt = prompt || ROOMIFY_RENDER_PROMPT;
+        let finalPrompt = prompt || ROOMIFY_RENDER_PROMPT;
+        if (styleKeywords) {
+            finalPrompt = `${finalPrompt}\n\nSTYLE INSTRUCTIONS: ${styleKeywords}`;
+        }
 
         // Khởi tạo prediction
         const prediction = await replicate.predictions.create({
@@ -40,12 +43,15 @@ export async function POST(req: Request) {
         }
 
         // Save to Supabase
+        const {data: {user}} = await (await import("@/lib/supabase-server")).getServerUser();
+
         const {error: supabaseError} = await supabase.from("renders").insert({
             prediction_id: prediction.id,
             project_name: projectName || "Untitled Project",
             source_image_url: image,
             status: prediction.status,
             prompt: finalPrompt,
+            user_id: user?.id
         });
 
         if (supabaseError) {

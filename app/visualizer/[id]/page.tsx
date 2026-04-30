@@ -2,10 +2,11 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
-import {Box, Download, RefreshCcw, Share2, X} from "lucide-react";
+import {Box, Download, RefreshCcw, Share2, X, Palette} from "lucide-react";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
+import {ROOM_STYLES} from "@/lib/constants";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -20,6 +21,7 @@ export default function VisualizerPage() {
     const [currentImage, setCurrentImage] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [prediction, setPrediction] = useState<any>(null);
+    const [selectedStyle, setSelectedStyle] = useState(ROOM_STYLES[0]);
 
     const handleBack = () => router.push("/");
 
@@ -64,8 +66,10 @@ export default function VisualizerPage() {
         }
     };
 
-    const runGeneration = async () => {
+    const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0]) => {
         if (!sourceImage) return;
+
+        const styleToUse = styleOverride || selectedStyle;
 
         try {
             setIsProcessing(true);
@@ -74,7 +78,8 @@ export default function VisualizerPage() {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     image: sourceImage,
-                    projectName: projectName
+                    projectName: projectName,
+                    styleKeywords: styleToUse.keywords
                 }),
             });
 
@@ -210,6 +215,31 @@ export default function VisualizerPage() {
                         </div>
 
                         <div className="panel-actions">
+                            <div className="style-selector">
+                                <Palette className="w-4 h-4 mr-2 opacity-50"/>
+                                <select
+                                    value={selectedStyle.id}
+                                    onChange={(e) => {
+                                        const style = ROOM_STYLES.find(s => s.id === e.target.value);
+                                        if (style) setSelectedStyle(style);
+                                    }}
+                                    className="style-select"
+                                    disabled={isProcessing}
+                                >
+                                    {ROOM_STYLES.map(style => (
+                                        <option key={style.id} value={style.id}>{style.name}</option>
+                                    ))}
+                                </select>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => runGeneration()}
+                                    disabled={isProcessing}
+                                    className="ml-2"
+                                >
+                                    Re-render
+                                </Button>
+                            </div>
                             <Button
                                 size="sm"
                                 onClick={handleExport}

@@ -1,6 +1,7 @@
 -- Create the renders table
 CREATE TABLE IF NOT EXISTS renders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id),
     project_name TEXT,
     source_image_url TEXT NOT NULL,
     rendered_image_url TEXT,
@@ -11,14 +12,13 @@ CREATE TABLE IF NOT EXISTS renders (
 );
 
 -- Set up Row Level Security (RLS)
--- For development, we can allow all access, but in production you'd want to restrict this.
 ALTER TABLE renders ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read access" ON renders
-    FOR SELECT USING (true);
+CREATE POLICY "Users can view their own renders" ON renders
+    FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Allow public insert access" ON renders
-    FOR INSERT WITH CHECK (true);
+CREATE POLICY "Users can insert their own renders" ON renders
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Allow public update access" ON renders
-    FOR UPDATE USING (true);
+CREATE POLICY "Users can update their own renders" ON renders
+    FOR UPDATE USING (auth.uid() = user_id);

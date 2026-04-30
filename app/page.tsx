@@ -15,10 +15,21 @@ export default function Home() {
 
     useEffect(() => {
         async function fetchProjects() {
-            const {data, error} = await supabase
+            const {data: {user}} = await supabase.auth.getUser();
+
+            let query = supabase
                 .from("renders")
                 .select("*")
                 .order("created_at", {ascending: false});
+
+            if (user) {
+                query = query.eq("user_id", user.id);
+            } else {
+                // If not logged in, maybe show public projects or just few?
+                // For now, let's keep it as is, RLS will handle visibility if configured.
+            }
+
+            const {data, error} = await query;
 
             if (error) {
                 console.error("Error fetching projects:", error);
