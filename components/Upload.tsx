@@ -31,39 +31,63 @@ const Upload = ({onComplete}: UploadProps) => {
         };
     }, []);
 
-    const processFile = useCallback((file: File) => {
+    const processFile = useCallback(async (file: File) => {
         if (!isSignedIn) return;
 
         setFile(file);
         setProgress(0);
 
-        const reader = new FileReader();
-        reader.onerror = () => {
-            setFile(null);
-            setProgress(0);
-        };
-        reader.onloadend = () => {
-            const base64Data = reader.result as string;
-
+        try {
+            // Start progress animation
             intervalRef.current = setInterval(() => {
                 setProgress((prev) => {
-                    const next = prev + PROGRESS_INCREMENT;
-                    if (next >= 100) {
+                    if (prev >= 90) {
                         if (intervalRef.current) {
                             clearInterval(intervalRef.current);
                             intervalRef.current = null;
                         }
-                        timeoutRef.current = setTimeout(() => {
-                            onComplete?.(base64Data);
-                            timeoutRef.current = null;
-                        }, REDIRECT_DELAY_MS);
-                        return 100;
+                        return 90;
                     }
-                    return next;
+                    return prev + PROGRESS_INCREMENT;
                 });
             }, PROGRESS_INTERVAL_MS);
-        };
-        reader.readAsDataURL(file);
+
+            // Upload to Vercel Blob via our API route
+            const response = await fetch(`/api/upload?filename=${file.name}`, {
+                method: 'POST',
+                body: file,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const blob = await response.json();
+            const imageUrl = blob.url;
+
+            // Complete progress
+            setProgress(100);
+
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+
+            timeoutRef.current = setTimeout(() => {
+                onComplete?.(imageUrl);
+                timeoutRef.current = null;
+            }, REDIRECT_DELAY_MS);
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            setFile(null);
+            setProgress(0);
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+            alert('Failed to upload image. Please try again.');
+        }
     }, [isSignedIn, onComplete]);
 
     const handleDragOver = (e: React.DragEvent) => {

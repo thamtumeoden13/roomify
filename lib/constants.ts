@@ -47,3 +47,10 @@ STYLE & LIGHTING:
 - Materials: realistic wood/tile floors, clean walls, subtle shadows.
 - Finish: professional architectural visualization; no text, no watermarks, no logos.
 `.trim();
+
+export const ROOMIFY_NEGATIVE_PROMPT = `
+text, letters, numbers, dimensions, labels, annotations, floor plan symbols, 
+sketch, hand-drawn, blurry, distorted, low quality, watermark, logo, 
+perspective tilt, camera angle, messy, extra rooms, 3d people, 
+grid lines, blueprints, paper texture.
+`.trim();

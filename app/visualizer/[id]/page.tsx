@@ -52,10 +52,34 @@ export default function VisualizerPage() {
                 body: JSON.stringify({image: sourceImage}),
             });
 
-            let prediction = await response.json();
+            const prediction = await response.json();
             if (response.status !== 201) {
                 throw new Error(prediction.error);
             }
+
+            // Update URL with predictionId
+            const params = new URLSearchParams(window.location.search);
+            params.set("predictionId", prediction.id);
+            window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+
+            await resumePrediction(prediction.id);
+        } catch (error) {
+            console.error("Generation failed:", error);
+            alert("Failed to generate 3D view. Please try again.");
+            setIsProcessing(false);
+        }
+    };
+
+    const resumePrediction = async (predictionId: string) => {
+        try {
+            setIsProcessing(true);
+            let predictionResponse = await fetch("/api/predictions/" + predictionId);
+            let prediction = await predictionResponse.json();
+
+            if (predictionResponse.status !== 200) {
+                throw new Error(prediction.error);
+            }
+
             setPrediction(prediction);
 
             // Polling mechanism
@@ -78,8 +102,8 @@ export default function VisualizerPage() {
                 throw new Error("Prediction failed");
             }
         } catch (error) {
-            console.error("Generation failed:", error);
-            alert("Failed to generate 3D view. Please try again.");
+            console.error("Resuming prediction failed:", error);
+            alert("Failed to resume 3D view. Please try again.");
         } finally {
             setIsProcessing(false);
         }
@@ -88,8 +112,14 @@ export default function VisualizerPage() {
     useEffect(() => {
         if (hasInitialGenerated.current || !sourceImage) return;
         hasInitialGenerated.current = true;
-        runGeneration();
-    }, [sourceImage]);
+
+        const predictionId = searchParams.get("predictionId");
+        if (predictionId) {
+            resumePrediction(predictionId);
+        } else {
+            runGeneration();
+        }
+    }, [sourceImage, searchParams]);
 
     return (
         <div className="visualizer">
