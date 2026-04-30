@@ -35,7 +35,9 @@ export default function Home() {
                 timestamp: Date.now(),
             }
 
+            console.log("Saving project...");
             const saved = await createProject({item: newItem, visibility: 'public'});
+            console.log("Project saved:", saved);
 
             if (!saved) {
                 console.error("Failed to save project");

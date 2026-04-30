@@ -26,12 +26,27 @@ export const generate3DView = async ({sourceImage}: Generate3DViewParams) => {
 
     if (!mimeType || !base64Data) throw new Error("Invalid image data");
 
+    // Lấy kích thước ảnh đầu vào để tính ratio
+    let ratio = {w: 1, h: 1};
+    try {
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = dataUrl;
+        });
+        ratio = {w: img.width, h: img.height};
+        console.log(`Detected input image ratio: ${img.width}x${img.height}`);
+    } catch (e) {
+        console.warn("Failed to detect image dimensions, falling back to 1:1", e);
+    }
+
     const response = await puter.ai.txt2img(ROOMIFY_RENDER_PROMPT, {
         provider: 'gemini',
         model: 'gemini-2.5-flash-image-preview',
         input_image: base64Data,
         input_image_mime_type: mimeType,
-        ratio: {w: 1024, h: 1024}
+        ratio: ratio
     });
 
     const rawImageUrl = (response as HTMLImageElement).src ?? null;
