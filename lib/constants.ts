@@ -64,3 +64,26 @@ annotations, measurements, symbols, sketch, drawing, blurry,
 low quality, distorted, messy, perspective tilt, hand-drawn, 
 paper texture, blueprints, black and white lines on floor.
 `.trim();
+
+export const ROOM_STYLES = [
+    {
+        id: "modern",
+        name: "Modern",
+        keywords: "modern minimalist interior, sleek lines, contemporary furniture, neutral color palette with bold accents, large windows, open space."
+    },
+    {
+        id: "vintage",
+        name: "Vintage",
+        keywords: "vintage interior design, antique furniture, retro textures, warm color tones, ornate details, classic mid-century modern elements."
+    },
+    {
+        id: "japandi",
+        name: "Japandi",
+        keywords: "japandi style, blend of Japanese minimalism and Scandinavian functionality, natural materials, light wood, clean lines, serene and calm atmosphere."
+    },
+    {
+        id: "industrial",
+        name: "Industrial",
+        keywords: "industrial loft style, exposed brick, metal accents, concrete floors, large industrial windows, raw and unfinished look."
+    }
+];

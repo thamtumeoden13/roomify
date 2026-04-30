@@ -1,10 +1,28 @@
 "use client";
 
-import React from 'react'
-import {Box} from 'lucide-react'
+import React, {useEffect, useState} from 'react'
+import {Box, User} from 'lucide-react'
 import Link from "next/link";
+import {supabase} from "@/lib/supabase";
+import {useRouter} from "next/navigation";
 
 function Navbar() {
+    const [user, setUser] = useState<any>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        const {data: {subscription}} = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push("/");
+    };
+
     return (
         <header className={"navbar"}>
             <nav className={"inner"}>
@@ -18,17 +36,28 @@ function Navbar() {
 
                     <ul className={"links"}>
                         <Link href="/#upload">Product</Link>
-                        <Link href="#">Pricing</Link>
+                        {user && <Link href="/history">History</Link>}
                         <Link href="/#projects">Community</Link>
-                        <Link href="#">Enterprise</Link>
+                        <Link href="#">Pricing</Link>
                     </ul>
                 </div>
 
                 <div className={"actions"}>
-                    <button className={"btn btn--ghost btn--sm"}>
-                        Log In
-                    </button>
-                    <a href="#upload" className={"cta"}>Get Started</a>
+                    {user ? (
+                        <div className="user-profile">
+                            <span className="email">{user.email}</span>
+                            <button className={"btn btn--ghost btn--sm"} onClick={handleLogout}>
+                                Log Out
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <Link href="/login" className={"btn btn--ghost btn--sm"}>
+                                Log In
+                            </Link>
+                            <a href="#upload" className={"cta"}>Get Started</a>
+                        </>
+                    )}
                 </div>
             </nav>
         </header>
