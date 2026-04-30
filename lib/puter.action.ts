@@ -27,6 +27,7 @@ export const createProject = async ({
     const projectId = item.id;
 
     const hosting = await getOrCreateHostingConfig();
+    console.log("Hosting config:", hosting);
 
     const hostedSource = projectId ? await uploadImageToHosting({
         hosting,
@@ -34,6 +35,7 @@ export const createProject = async ({
         projectId,
         label: "source"
     }) : null;
+    console.log("Hosted source:", hostedSource);
 
     const hostedRender = projectId && item.renderedImage
         ? await uploadImageToHosting({
@@ -123,6 +125,34 @@ export const getProjects = async () => {
         return [];
     }
 
+}
+
+export const shareProject = async ({id, visibility}: {
+    id: string,
+    visibility: "public" | "private"
+}): Promise<DesignItem | null> => {
+    if (!PUTER_WORKER_URL) return null;
+
+    try {
+        const response = await puter.workers.exec(`${PUTER_WORKER_URL}/api/projects/share`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id, visibility}),
+        });
+
+        if (!response.ok) {
+            console.error(`Failed to share project: ${response.statusText}`);
+            return null;
+        }
+
+        const data = (await response.json()) as { project?: DesignItem | null };
+        return data?.project ?? null;
+    } catch (e) {
+        console.error(`Failed to share project: ${e}`);
+        return null;
+    }
 }
 
 export const getProjectById = async ({id}: { id: string }) => {

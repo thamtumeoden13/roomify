@@ -31,9 +31,10 @@ TASK: Convert the input 2D floor plan into a **photorealistic, top‑down 3D arc
 STRICT REQUIREMENTS (do not violate):
 1) **REMOVE ALL TEXT**: Do not render any letters, numbers, labels, dimensions, or annotations. Floors must be continuous where text used to be.
 2) **GEOMETRY MUST MATCH**: Walls, rooms, doors, and windows must follow the exact lines and positions in the plan. Do not shift or resize.
-3) **TOP‑DOWN ONLY**: Orthographic top‑down view. No perspective tilt.
-4) **CLEAN, REALISTIC OUTPUT**: Crisp edges, balanced lighting, and realistic materials. No sketch/hand‑drawn look.
-5) **NO EXTRA CONTENT**: Do not add rooms, furniture, or objects that are not clearly indicated by the plan.
+3) **PRESERVE SCALE & RATIO**: The output image must maintain the exact aspect ratio and spatial proportions of the input floor plan.
+4) **TOP‑DOWN ONLY**: Orthographic top‑down view. No perspective tilt.
+5) **CLEAN, REALISTIC OUTPUT**: Crisp edges, balanced lighting, and realistic materials. No sketch/hand‑drawn look.
+6) **NO EXTRA CONTENT**: Do not add rooms, furniture, or objects that are not clearly indicated by the plan.
 
 STRUCTURE & DETAILS:
 - **Walls**: Extrude precisely from the plan lines. Consistent wall height and thickness.
