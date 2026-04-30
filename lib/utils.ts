@@ -84,7 +84,7 @@ export const dataUrlToBlob = (
                 bytes[i] = binaryString.charCodeAt(i);
             }
         }
-        return {blob: new Blob([bytes], {type: contentType}), contentType};
+        return {blob: new Blob([bytes.buffer as ArrayBuffer], {type: contentType}), contentType};
     } catch {
         return null;
     }

@@ -1,0 +1,9 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/generate/route": "/api/generate",
+  "/api/predictions/[id]/route": "/api/predictions/[id]",
+  "/api/upload/route": "/api/upload",
+  "/page": "/",
+  "/visualizer/[id]/page": "/visualizer/[id]"
+}

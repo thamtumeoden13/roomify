@@ -3,30 +3,32 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
-    "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "@heyputer/puter.js": "^2.2.15",
-    "@react-router/node": "7.14.0",
-    "@react-router/serve": "7.14.0",
+    "@vercel/blob": "^2.3.3",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
     "isbot": "^5.1.36",
     "lucide-react": "^1.11.0",
+    "next": "^16.2.4",
     "react": "^19.2.4",
     "react-compare-slider": "^4.0.0",
     "react-dom": "^19.2.4",
-    "react-router": "7.14.0"
+    "replicate": "^1.4.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@react-router/dev": "7.14.0",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.4",
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.12",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3",
-    "vite": "^8.0.3"
+    "typescript": "^5.9.3"
   }
 }
