@@ -5,6 +5,7 @@ import {useEffect, useRef, useState} from "react";
 import {Box, Download, RefreshCcw, Share2, X} from "lucide-react";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
+import {supabase} from "@/lib/supabase";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -21,6 +22,28 @@ export default function VisualizerPage() {
     const [prediction, setPrediction] = useState<any>(null);
 
     const handleBack = () => router.push("/");
+
+    const checkExistingRender = async (projectId: string) => {
+        // Try to find by UUID first, then by predictionId as fallback if id is not UUID
+        const {data, error} = await supabase
+            .from("renders")
+            .select("*")
+            .eq("id", projectId)
+            .maybeSingle();
+
+        if (error) {
+            console.warn("Error fetching from Supabase by ID (might not be a UUID):", error);
+            // Fallback: search by prediction_id if the URL id was actually a prediction ID
+            const {data: predData} = await supabase
+                .from("renders")
+                .select("*")
+                .eq("prediction_id", projectId)
+                .maybeSingle();
+            return predData;
+        }
+
+        return data;
+    };
 
     const handleExport = async () => {
         if (!currentImage) return;
@@ -49,7 +72,10 @@ export default function VisualizerPage() {
             const response = await fetch("/api/generate", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({image: sourceImage}),
+                body: JSON.stringify({
+                    image: sourceImage,
+                    projectName: projectName
+                }),
             });
 
             const prediction = await response.json();
@@ -60,7 +86,17 @@ export default function VisualizerPage() {
             // Update URL with predictionId
             const params = new URLSearchParams(window.location.search);
             params.set("predictionId", prediction.id);
-            window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+
+            // Fetch the newly created record from Supabase to get the actual UUID
+            const {data: newRecord} = await supabase
+                .from("renders")
+                .select("id")
+                .eq("prediction_id", prediction.id)
+                .single();
+
+            const finalId = newRecord?.id || id;
+
+            window.history.replaceState({}, "", `/visualizer/${finalId}?${params.toString()}`);
 
             await resumePrediction(prediction.id);
         } catch (error) {
@@ -94,10 +130,24 @@ export default function VisualizerPage() {
             }
 
             if (prediction.status === "succeeded") {
-                // Replicate SDXL Canny output is usually an array of strings [canny_edge, final_image]
-                const output = prediction.output;
-                const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
-                setCurrentImage(renderedUrl);
+                // If the backend updated the URL to Supabase storage, we should fetch the record again
+                // to get that permanent URL, or the backend should return it in the prediction response.
+                // Since our /api/predictions/[id] returns the Replicate prediction object, we'll
+                // fetch the record from our database to get the permanent URL.
+                const {data: updatedRecord} = await supabase
+                    .from("renders")
+                    .select("rendered_image_url")
+                    .eq("prediction_id", prediction.id)
+                    .single();
+
+                if (updatedRecord?.rendered_image_url) {
+                    setCurrentImage(updatedRecord.rendered_image_url);
+                } else {
+                    // Fallback to Replicate URL if database update isn't reflected yet
+                    const output = prediction.output;
+                    const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
+                    setCurrentImage(renderedUrl);
+                }
             } else {
                 throw new Error("Prediction failed");
             }
@@ -113,13 +163,30 @@ export default function VisualizerPage() {
         if (hasInitialGenerated.current || !sourceImage) return;
         hasInitialGenerated.current = true;
 
-        const predictionId = searchParams.get("predictionId");
-        if (predictionId) {
-            resumePrediction(predictionId);
-        } else {
-            runGeneration();
-        }
-    }, [sourceImage, searchParams]);
+        const init = async () => {
+            if (id) {
+                const existing = await checkExistingRender(id as string);
+                if (existing) {
+                    if (existing.status === "succeeded" && existing.rendered_image_url) {
+                        setCurrentImage(existing.rendered_image_url);
+                        return;
+                    } else if (existing.status === "processing" || existing.status === "starting") {
+                        resumePrediction(existing.prediction_id);
+                        return;
+                    }
+                }
+            }
+
+            const predictionId = searchParams.get("predictionId");
+            if (predictionId) {
+                resumePrediction(predictionId);
+            } else {
+                runGeneration();
+            }
+        };
+
+        init();
+    }, [sourceImage, searchParams, id]);
 
     return (
         <div className="visualizer">
@@ -195,10 +262,9 @@ export default function VisualizerPage() {
 
                     <div className="compare-stage">
                         {sourceImage && currentImage ? (
-                            <div style={{position: "relative", width: "100%", aspectRatio: "1/1"}}>
+                            <div style={{position: "relative", width: "100%", height: "auto"}}>
                                 <ReactCompareSlider
                                     defaultValue={50}
-                                    style={{width: "100%", height: "100%", position: "absolute", top: 0, left: 0}}
                                     itemOne={<ReactCompareSliderImage src={sourceImage} alt="before"
                                                                       className="compare-img"/>}
                                     itemTwo={<ReactCompareSliderImage src={currentImage} alt="after"
@@ -208,8 +274,7 @@ export default function VisualizerPage() {
                         ) : (
                             <div className="compare-fallback">
                                 {sourceImage && (
-                                    <img src={sourceImage} alt="Before" className="compare-img"
-                                         style={{aspectRatio: "1/1"}}/>
+                                    <img src={sourceImage} alt="Before" className="compare-img object-cover"/>
                                 )}
                             </div>
                         )}

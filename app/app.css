@@ -385,10 +385,7 @@
                 }
 
                 .compare-stage {
-                    @apply relative bg-zinc-100 overflow-hidden;
-                    /* Đảm bảo container giữ tỷ lệ của ảnh gốc nếu có thể */
-                    display: grid;
-                    place-items: center;
+                    @apply relative bg-zinc-100 overflow-hidden flex items-center justify-center;
                 }
 
                 .compare-fallback {
@@ -396,7 +393,7 @@
                 }
 
                 .compare-img {
-                    @apply w-full h-full object-cover block;
+                    @apply w-full h-auto block;
                 }
             }
         }
