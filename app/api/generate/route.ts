@@ -9,10 +9,33 @@ const replicate = new Replicate({
 
 export async function POST(req: Request) {
     try {
-        const {image, prompt, projectName, styleKeywords} = await req.json();
+        const {image, prompt, projectName, styleKeywords, styleId, forceNew} = await req.json();
 
         if (!image) {
             return NextResponse.json({error: "Image is required"}, {status: 400});
+        }
+
+        // 1. Check Before Render: Check if an exact match exists (unless forced new)
+        if (!forceNew) {
+            const {data: existingRender} = await supabase
+                .from("renders")
+                .select("*")
+                .eq("source_image_url", image)
+                .eq("style_id", styleId || "")
+                .eq("status", "succeeded")
+                .order("created_at", {ascending: false})
+                .limit(1)
+                .maybeSingle();
+
+            if (existingRender) {
+                // Cache Hit: Return existing record directly
+                return NextResponse.json({
+                    ...existingRender,
+                    id: existingRender.prediction_id, // Keep compatibility with frontend
+                    output: existingRender.rendered_image_url,
+                    isCacheHit: true
+                }, {status: 200});
+            }
         }
 
         let finalPrompt = prompt || ROOMIFY_RENDER_PROMPT;
@@ -51,6 +74,7 @@ export async function POST(req: Request) {
             source_image_url: image,
             status: prediction.status,
             prompt: finalPrompt,
+            style_id: styleId,
             user_id: user?.id
         });
 

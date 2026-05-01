@@ -319,14 +319,22 @@
                 }
 
                 .panel-actions {
-                    @apply flex flex-wrap items-center gap-3;
+                    @apply flex flex-wrap items-center gap-3 mt-4 md:mt-0;
 
                     .export {
-                        @apply bg-primary text-white hover:bg-orange-600 h-9 border-none shadow-sm;
+                        @apply bg-primary text-white hover:bg-orange-600 h-9 border-none shadow-sm rounded-md px-4;
                     }
 
                     .share {
-                        @apply bg-black text-white h-9 shadow-sm hover:bg-zinc-800;
+                        @apply bg-black text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-4;
+                    }
+
+                    .style-selector {
+                        @apply flex items-center bg-zinc-50 border border-zinc-200 rounded-md px-3 h-9 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary;
+
+                        .style-select {
+                            @apply bg-transparent border-none text-xs font-bold uppercase tracking-wide text-zinc-900 focus:ring-0 cursor-pointer outline-none pr-2;
+                        }
                     }
                 }
             }

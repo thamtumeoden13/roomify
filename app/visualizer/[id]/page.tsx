@@ -21,6 +21,8 @@ export default function VisualizerPage() {
     const [currentImage, setCurrentImage] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [prediction, setPrediction] = useState<any>(null);
+    const [isUpscaling, setIsUpscaling] = useState(false);
+    const [upscalePrediction, setUpscalePrediction] = useState<any>(null);
     const [selectedStyle, setSelectedStyle] = useState(ROOM_STYLES[0]);
 
     const handleBack = () => router.push("/");
@@ -47,6 +49,91 @@ export default function VisualizerPage() {
         return data;
     };
 
+    const handleUpscale = async () => {
+        if (!currentImage || !id) return;
+
+        try {
+            setIsUpscaling(true);
+            const response = await fetch("/api/upscale", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    image: currentImage,
+                    renderId: id
+                }),
+            });
+
+            const data = await response.json();
+            if (response.status !== 200 && response.status !== 201) {
+                throw new Error(data.error);
+            }
+
+            if (data.alreadyExists) {
+                setCurrentImage(data.output);
+                alert("This image has already been upscaled!");
+                setIsUpscaling(false);
+                return;
+            }
+
+            await resumeUpscale(data.id);
+        } catch (error: any) {
+            console.error("Upscale failed:", error);
+            alert(`Upscale failed: ${error.message}`);
+            setIsUpscaling(false);
+        }
+    };
+
+    const resumeUpscale = async (predictionId: string) => {
+        try {
+            setIsUpscaling(true);
+            let predictionResponse = await fetch("/api/predictions/" + predictionId);
+            let prediction = await predictionResponse.json();
+
+            if (predictionResponse.status !== 200) {
+                throw new Error(prediction.error);
+            }
+
+            setUpscalePrediction(prediction);
+
+            // Polling mechanism
+            while (prediction.status !== "succeeded" && prediction.status !== "failed") {
+                await sleep(2000);
+                const response = await fetch("/api/predictions/" + prediction.id);
+                prediction = await response.json();
+                if (response.status !== 200) {
+                    throw new Error(prediction.error);
+                }
+                setUpscalePrediction(prediction);
+            }
+
+            if (prediction.status === "succeeded") {
+                // Fetch the updated record to get the permanent Supabase URL
+                const {data: updatedRecord} = await supabase
+                    .from("renders")
+                    .select("upscaled_image_url")
+                    .eq("upscale_prediction_id", prediction.id)
+                    .single();
+
+                if (updatedRecord?.upscaled_image_url) {
+                    setCurrentImage(updatedRecord.upscaled_image_url);
+                } else {
+                    const output = prediction.output;
+                    const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
+                    setCurrentImage(renderedUrl);
+                }
+                alert("Image successfully upscaled to 4K!");
+            } else {
+                throw new Error("Upscale prediction failed");
+            }
+        } catch (error: any) {
+            console.error("Resuming upscale failed:", error);
+            alert(`Upscale failed: ${error.message}`);
+        } finally {
+            setIsUpscaling(false);
+            setUpscalePrediction(null);
+        }
+    };
+
     const handleExport = async () => {
         if (!currentImage) return;
         try {
@@ -66,7 +153,7 @@ export default function VisualizerPage() {
         }
     };
 
-    const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0]) => {
+    const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0], forceNew = false) => {
         if (!sourceImage) return;
 
         const styleToUse = styleOverride || selectedStyle;
@@ -79,13 +166,22 @@ export default function VisualizerPage() {
                 body: JSON.stringify({
                     image: sourceImage,
                     projectName: projectName,
-                    styleKeywords: styleToUse.keywords
+                    styleKeywords: styleToUse.keywords,
+                    styleId: styleToUse.id,
+                    forceNew
                 }),
             });
 
             const prediction = await response.json();
-            if (response.status !== 201) {
+            if (response.status !== 200 && response.status !== 201) {
                 throw new Error(prediction.error);
+            }
+
+            if (prediction.isCacheHit) {
+                setCurrentImage(prediction.output);
+                setPrediction(prediction);
+                setIsProcessing(false);
+                return;
             }
 
             // Update URL with predictionId
@@ -172,8 +268,8 @@ export default function VisualizerPage() {
             if (id) {
                 const existing = await checkExistingRender(id as string);
                 if (existing) {
-                    if (existing.status === "succeeded" && existing.rendered_image_url) {
-                        setCurrentImage(existing.rendered_image_url);
+                    if (existing.status === "succeeded" && (existing.upscaled_image_url || existing.rendered_image_url)) {
+                        setCurrentImage(existing.upscaled_image_url || existing.rendered_image_url);
                         return;
                     } else if (existing.status === "processing" || existing.status === "starting") {
                         resumePrediction(existing.prediction_id);
@@ -214,37 +310,49 @@ export default function VisualizerPage() {
                             <p className="note">Created by You</p>
                         </div>
 
-                        <div className="panel-actions">
+                        <div className="panel-actions flex-wrap">
                             <div className="style-selector">
-                                <Palette className="w-4 h-4 mr-2 opacity-50"/>
+                                <Palette className="w-3 h-3 mr-2 text-zinc-400"/>
                                 <select
                                     value={selectedStyle.id}
                                     onChange={(e) => {
                                         const style = ROOM_STYLES.find(s => s.id === e.target.value);
-                                        if (style) setSelectedStyle(style);
+                                        if (style) {
+                                            setSelectedStyle(style);
+                                            runGeneration(style);
+                                        }
                                     }}
                                     className="style-select"
-                                    disabled={isProcessing}
+                                    disabled={isProcessing || isUpscaling}
                                 >
                                     {ROOM_STYLES.map(style => (
                                         <option key={style.id} value={style.id}>{style.name}</option>
                                     ))}
                                 </select>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => runGeneration()}
-                                    disabled={isProcessing}
-                                    className="ml-2"
-                                >
-                                    Re-render
-                                </Button>
                             </div>
+                            <Button
+                                size="sm"
+                                onClick={() => runGeneration(undefined, true)}
+                                disabled={isProcessing || isUpscaling}
+                                className="share"
+                            >
+                                <RefreshCcw className={`w-4 h-4 mr-2 ${isProcessing ? "animate-spin" : ""}`}/>
+                                New Variant
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={handleUpscale}
+                                disabled={isProcessing || isUpscaling || !currentImage}
+                                className="share"
+                            >
+                                <RefreshCcw className={`w-4 h-4 mr-2 ${isUpscaling ? "animate-spin" : ""}`}/>
+                                {isUpscaling ? "Enhancing..." : "Upscale to 4K"}
+                            </Button>
                             <Button
                                 size="sm"
                                 onClick={handleExport}
                                 className="export"
-                                disabled={!currentImage}
+                                disabled={!currentImage || isUpscaling}
                             >
                                 <Download className="w-4 h-4 mr-2"/> Export
                             </Button>
@@ -254,7 +362,7 @@ export default function VisualizerPage() {
                         </div>
                     </div>
 
-                    <div className={`render-area ${isProcessing ? "is-processing" : ""}`}>
+                    <div className={`render-area ${(isProcessing || isUpscaling) ? "is-processing" : ""}`}>
                         {currentImage ? (
                             <img src={currentImage} alt="AI Render" className="render-img"/>
                         ) : (
@@ -274,6 +382,20 @@ export default function VisualizerPage() {
                     {prediction?.status === "starting" ? "Starting Replicate engine..." :
                         prediction?.status === "processing" ? "AI is imagining your room..." :
                             "Generating your 3D visualization"}
+                  </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {isUpscaling && (
+                            <div className="render-overlay">
+                                <div className="rendering-card">
+                                    <RefreshCcw className="spinner"/>
+                                    <span className="title">Enhancing details...</span>
+                                    <span className="subtitle">
+                    {upscalePrediction?.status === "starting" ? "Preparing AI Upscaler..." :
+                        upscalePrediction?.status === "processing" ? "Adding 4K textures and details..." :
+                            "Upscaling your render to 4K"}
                   </span>
                                 </div>
                             </div>
