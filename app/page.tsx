@@ -18,15 +18,12 @@ export default function Home() {
             const {data: {user}} = await supabase.auth.getUser();
 
             let query = supabase
-                .from("renders")
+                .from("projects")
                 .select("*")
                 .order("created_at", {ascending: false});
 
             if (user) {
                 query = query.eq("user_id", user.id);
-            } else {
-                // If not logged in, maybe show public projects or just few?
-                // For now, let's keep it as is, RLS will handle visibility if configured.
             }
 
             const {data, error} = await query;
@@ -42,11 +39,28 @@ export default function Home() {
     }, []);
 
     const handleUploadComplete = async (imageUrl: string) => {
-        const tempId = Date.now().toString();
-        const name = `Residence ${tempId}`;
+        const {data: {user}} = await supabase.auth.getUser();
 
-        // Just redirect, the visualizer will handle the generation and Supabase storage
-        router.push(`/visualizer/${tempId}?image=${encodeURIComponent(imageUrl)}&name=${encodeURIComponent(name)}`);
+        const name = `Residence ${Date.now().toString().slice(-4)}`;
+
+        const {data: project, error} = await supabase
+            .from("projects")
+            .insert({
+                name,
+                source_image_url: imageUrl,
+                user_id: user?.id
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Error creating project:", error);
+            alert("Failed to create project. Please try again.");
+            return;
+        }
+
+        // Redirect using the real project_id
+        router.push(`/visualizer/${project.id}`);
     };
 
     return (
@@ -109,19 +123,19 @@ export default function Home() {
                     <div className={"projects-grid"}>
                         {projects.map((project: any) => (
                             <div key={project.id} className={"project-card group"}
-                                 onClick={() => router.push(`/visualizer/${project.id}?image=${encodeURIComponent(project.source_image_url)}&name=${encodeURIComponent(project.project_name || "")}`)}>
+                                 onClick={() => router.push(`/visualizer/${project.id}`)}>
                                 <div className="preview">
                                     <img src={project.rendered_image_url || project.source_image_url}
                                          alt="project preview"/>
 
                                     <div id="badge">
-                                        <span>{project.status === "succeeded" ? "Rendered" : "Processing"}</span>
+                                        <span>{project.rendered_image_url ? "Rendered" : "Original"}</span>
                                     </div>
                                 </div>
 
                                 <div className="card-body">
                                     <div>
-                                        <h3>{project.project_name}</h3>
+                                        <h3>{project.name}</h3>
                                         <div className="meta">
                                             <Clock size={12}/>
                                             <span>{new Date(project.created_at).toLocaleDateString()}</span>

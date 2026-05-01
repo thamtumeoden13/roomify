@@ -86,6 +86,7 @@ export default function VisualizerToolbar({
                         options={contextOptions}
                         icon={contextIcons[selectedContext.id]}
                         disabled={isProcessing || isUpscaling}
+                        position="top"
                     />
                     <Select
                         label="Theme"
@@ -97,6 +98,7 @@ export default function VisualizerToolbar({
                         options={styleOptions}
                         icon={<Palette className="w-4 h-4"/>}
                         disabled={isProcessing || isUpscaling}
+                        position="top"
                     />
                 </div>
 

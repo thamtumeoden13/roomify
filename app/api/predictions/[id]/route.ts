@@ -69,24 +69,42 @@ export async function GET(
                 const permanentUrl = await uploadToSupabase(renderedUrl, id, 'outputs/upscaled');
                 const finalUrl = permanentUrl || renderedUrl;
 
-                await supabase
+                const {data: updatedRender} = await supabase
                     .from("renders")
                     .update({
                         upscaled_image_url: finalUrl,
                     })
-                    .eq("upscale_prediction_id", id);
+                    .eq("upscale_prediction_id", id)
+                    .select("project_id")
+                    .maybeSingle();
+
+                if (updatedRender?.project_id) {
+                    await supabase
+                        .from("projects")
+                        .update({rendered_image_url: finalUrl})
+                        .eq("id", updatedRender.project_id);
+                }
             } else {
                 // Handle normal render success
                 const permanentUrl = await uploadToSupabase(renderedUrl, id);
                 const finalUrl = permanentUrl || renderedUrl;
 
-                await supabase
+                const {data: updatedRender} = await supabase
                     .from("renders")
                     .update({
                         status: prediction.status,
                         rendered_image_url: finalUrl,
                     })
-                    .eq("prediction_id", id);
+                    .eq("prediction_id", id)
+                    .select("project_id")
+                    .maybeSingle();
+
+                if (updatedRender?.project_id) {
+                    await supabase
+                        .from("projects")
+                        .update({rendered_image_url: finalUrl})
+                        .eq("id", updatedRender.project_id);
+                }
             }
         } else if (prediction.status === "failed") {
             await supabase
