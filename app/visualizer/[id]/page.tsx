@@ -2,11 +2,12 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
-import {Box, Download, RefreshCcw, Share2, X, Palette} from "lucide-react";
+import {Box, X} from "lucide-react";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
-import {ROOM_STYLES} from "@/lib/constants";
+import {ROOM_STYLES, PROJECT_CONTEXTS} from "@/lib/constants";
+import VisualizerToolbar from "@/components/VisualizerToolbar";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -24,29 +25,32 @@ export default function VisualizerPage() {
     const [isUpscaling, setIsUpscaling] = useState(false);
     const [upscalePrediction, setUpscalePrediction] = useState<any>(null);
     const [selectedStyle, setSelectedStyle] = useState(ROOM_STYLES[0]);
+    const [selectedContext, setSelectedContext] = useState(PROJECT_CONTEXTS[0]);
+    const [variants, setVariants] = useState<any[]>([]);
+    const [leftImage, setLeftImage] = useState<string | null>(null);
+    const [rightImage, setRightImage] = useState<string | null>(null);
 
     const handleBack = () => router.push("/");
 
-    const checkExistingRender = async (projectId: string) => {
-        // Try to find by UUID first, then by predictionId as fallback if id is not UUID
+    const fetchVariants = async (projectId: string) => {
+        if (!sourceImage) return;
+
         const {data, error} = await supabase
             .from("renders")
             .select("*")
-            .eq("id", projectId)
-            .maybeSingle();
+            .eq("source_image_url", sourceImage)
+            .eq("status", "succeeded")
+            .order("created_at", {ascending: true});
 
         if (error) {
-            console.warn("Error fetching from Supabase by ID (might not be a UUID):", error);
-            // Fallback: search by prediction_id if the URL id was actually a prediction ID
-            const {data: predData} = await supabase
-                .from("renders")
-                .select("*")
-                .eq("prediction_id", projectId)
-                .maybeSingle();
-            return predData;
+            console.error("Error fetching variants:", error);
+            return;
         }
 
-        return data;
+        if (data) {
+            console.log("Fetched variants:", data.length);
+            setVariants(data);
+        }
     };
 
     const handleUpscale = async () => {
@@ -107,6 +111,9 @@ export default function VisualizerPage() {
             }
 
             if (prediction.status === "succeeded") {
+                // Refresh variants
+                if (id) fetchVariants(id as string);
+
                 // Fetch the updated record to get the permanent Supabase URL
                 const {data: updatedRecord} = await supabase
                     .from("renders")
@@ -153,10 +160,11 @@ export default function VisualizerPage() {
         }
     };
 
-    const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0], forceNew = false) => {
+    const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0], contextOverride?: typeof PROJECT_CONTEXTS[0], forceNew = false) => {
         if (!sourceImage) return;
 
         const styleToUse = styleOverride || selectedStyle;
+        const contextToUse = contextOverride || selectedContext;
 
         try {
             setIsProcessing(true);
@@ -168,6 +176,8 @@ export default function VisualizerPage() {
                     projectName: projectName,
                     styleKeywords: styleToUse.keywords,
                     styleId: styleToUse.id,
+                    projectContext: contextToUse.name,
+                    contextId: contextToUse.id,
                     forceNew
                 }),
             });
@@ -188,16 +198,7 @@ export default function VisualizerPage() {
             const params = new URLSearchParams(window.location.search);
             params.set("predictionId", prediction.id);
 
-            // Fetch the newly created record from Supabase to get the actual UUID
-            const {data: newRecord} = await supabase
-                .from("renders")
-                .select("id")
-                .eq("prediction_id", prediction.id)
-                .single();
-
-            const finalId = newRecord?.id || id;
-
-            window.history.replaceState({}, "", `/visualizer/${finalId}?${params.toString()}`);
+            window.history.replaceState({}, "", `/visualizer/${id}?${params.toString()}`);
 
             await resumePrediction(prediction.id);
         } catch (error) {
@@ -231,6 +232,9 @@ export default function VisualizerPage() {
             }
 
             if (prediction.status === "succeeded") {
+                // Refresh variants
+                if (id) fetchVariants(id as string);
+
                 // If the backend updated the URL to Supabase storage, we should fetch the record again
                 // to get that permanent URL, or the backend should return it in the prediction response.
                 // Since our /api/predictions/[id] returns the Replicate prediction object, we'll
@@ -261,12 +265,35 @@ export default function VisualizerPage() {
     };
 
     useEffect(() => {
+        if (id) {
+            fetchVariants(id as string);
+        }
+    }, [id, currentImage]);
+
+    useEffect(() => {
+        if (sourceImage) {
+            setLeftImage(sourceImage);
+        }
+        if (variants.length > 0) {
+            const latest = variants[variants.length - 1];
+            setRightImage(latest.upscaled_image_url || latest.rendered_image_url);
+        } else if (currentImage) {
+            setRightImage(currentImage);
+        }
+    }, [sourceImage, variants]);
+
+    useEffect(() => {
         if (hasInitialGenerated.current || !sourceImage) return;
         hasInitialGenerated.current = true;
 
         const init = async () => {
             if (id) {
-                const existing = await checkExistingRender(id as string);
+                const {data: existing} = await supabase
+                    .from("renders")
+                    .select("*")
+                    .eq("id", id)
+                    .maybeSingle();
+
                 if (existing) {
                     if (existing.status === "succeeded" && (existing.upscaled_image_url || existing.rendered_image_url)) {
                         setCurrentImage(existing.upscaled_image_url || existing.rendered_image_url);
@@ -301,64 +328,13 @@ export default function VisualizerPage() {
                 </Button>
             </nav>
 
-            <section className="content">
+            <section className="content pb-32">
                 <div className="panel">
                     <div className="panel-header">
                         <div className="panel-meta">
                             <p>Project</p>
                             <h2>{projectName}</h2>
                             <p className="note">Created by You</p>
-                        </div>
-
-                        <div className="panel-actions flex-wrap">
-                            <div className="style-selector">
-                                <Palette className="w-3 h-3 mr-2"/>
-                                <select
-                                    value={selectedStyle.id}
-                                    onChange={(e) => {
-                                        const style = ROOM_STYLES.find(s => s.id === e.target.value);
-                                        if (style) {
-                                            setSelectedStyle(style);
-                                            runGeneration(style);
-                                        }
-                                    }}
-                                    className="style-select"
-                                    disabled={isProcessing || isUpscaling}
-                                >
-                                    {ROOM_STYLES.map(style => (
-                                        <option key={style.id} value={style.id}>{style.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <Button
-                                size="sm"
-                                onClick={() => runGeneration(undefined, true)}
-                                disabled={isProcessing || isUpscaling}
-                                className="btn-variant"
-                            >
-                                <RefreshCcw className={`w-4 h-4 mr-2 ${isProcessing ? "animate-spin" : ""}`}/>
-                                New Variant
-                            </Button>
-                            <Button
-                                size="sm"
-                                onClick={handleUpscale}
-                                disabled={isProcessing || isUpscaling || !currentImage}
-                                className="btn-upscale"
-                            >
-                                <RefreshCcw className={`w-4 h-4 mr-2 ${isUpscaling ? "animate-spin" : ""}`}/>
-                                {isUpscaling ? "Enhancing..." : "Upscale to 4K"}
-                            </Button>
-                            <Button
-                                size="sm"
-                                onClick={handleExport}
-                                className="btn-export"
-                                disabled={!currentImage || isUpscaling}
-                            >
-                                <Download className="w-4 h-4 mr-2"/> Export
-                            </Button>
-                            <Button size="sm" className="btn-share" disabled>
-                                <Share2 className="w-4 h-4 mr-2"/> Share
-                            </Button>
                         </div>
                     </div>
 
@@ -404,22 +380,59 @@ export default function VisualizerPage() {
                 </div>
 
                 <div className="panel compare">
-                    <div className="panel-header">
+                    <div className="panel-header flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="panel-meta">
                             <p>Comparison</p>
-                            <h3>Before and After</h3>
+                            <h3>Side by Side</h3>
                         </div>
-                        <div className="hint">Drag to compare</div>
+                        <div className="flex items-center gap-4">
+                            <div
+                                className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
+                                <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Left Side</span>
+                                <select
+                                    className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                    value={leftImage || ""}
+                                    onChange={(e) => setLeftImage(e.target.value)}
+                                >
+                                    {sourceImage && <option value={sourceImage} className="bg-white text-black">Original
+                                        2D</option>}
+                                    {variants.map((v, i) => (
+                                        <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
+                                                className="bg-white text-black">
+                                            Variant {i + 1}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div
+                                className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
+                                <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Right Side</span>
+                                <select
+                                    className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                    value={rightImage || ""}
+                                    onChange={(e) => setRightImage(e.target.value)}
+                                >
+                                    {sourceImage && <option value={sourceImage} className="bg-white text-black">Original
+                                        2D</option>}
+                                    {variants.map((v, i) => (
+                                        <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
+                                                className="bg-white text-black">
+                                            Variant {i + 1}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="compare-stage">
-                        {sourceImage && currentImage ? (
+                        {leftImage && rightImage ? (
                             <div style={{position: "relative", width: "100%", height: "auto"}}>
                                 <ReactCompareSlider
                                     defaultValue={50}
-                                    itemOne={<ReactCompareSliderImage src={sourceImage} alt="before"
+                                    itemOne={<ReactCompareSliderImage src={leftImage} alt="Left"
                                                                       className="compare-img"/>}
-                                    itemTwo={<ReactCompareSliderImage src={currentImage} alt="after"
+                                    itemTwo={<ReactCompareSliderImage src={rightImage} alt="Right"
                                                                       className="compare-img"/>}
                                 />
                             </div>
@@ -431,8 +444,70 @@ export default function VisualizerPage() {
                             </div>
                         )}
                     </div>
+
+                    {variants.length > 0 && (
+                        <div className="mt-6">
+                            <p className="text-xs uppercase opacity-50 font-bold mb-2">Available Variants</p>
+                            <div className="flex gap-2 overflow-x-auto pb-2">
+                                {sourceImage && (
+                                    <div
+                                        className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${leftImage === sourceImage || rightImage === sourceImage ? 'border-primary' : 'border-transparent'}`}
+                                        onClick={(e) => {
+                                            if (e.altKey) setLeftImage(sourceImage);
+                                            else setRightImage(sourceImage);
+                                        }}
+                                    >
+                                        <img src={sourceImage} alt="Original" className="w-full h-full object-cover"/>
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                            <span className="text-[10px] text-white font-bold">Original</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {variants.map((v, i) => {
+                                    const imgUrl = v.upscaled_image_url || v.rendered_image_url;
+                                    const isActive = leftImage === imgUrl || rightImage === imgUrl;
+                                    return (
+                                        <div
+                                            key={v.id}
+                                            className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${isActive ? 'border-primary' : 'border-transparent'}`}
+                                            onClick={(e) => {
+                                                if (e.altKey) setLeftImage(imgUrl);
+                                                else setRightImage(imgUrl);
+                                            }}
+                                        >
+                                            <img src={imgUrl} alt={`Variant ${i + 1}`}
+                                                 className="w-full h-full object-cover"/>
+                                            <div className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 px-1">
+                                                <span className="text-[10px] text-white">V{i + 1}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
+            <VisualizerToolbar
+                onGenerate={(style, context, isVariant) => {
+                    if (style) {
+                        setSelectedStyle(style);
+                        runGeneration(style);
+                    } else if (context) {
+                        setSelectedContext(context);
+                        runGeneration(undefined, context);
+                    } else if (isVariant) {
+                        runGeneration(undefined, undefined, true);
+                    }
+                }}
+                onUpscale={handleUpscale}
+                onExport={handleExport}
+                selectedStyle={selectedStyle}
+                selectedContext={selectedContext}
+                isProcessing={isProcessing}
+                isUpscaling={isUpscaling}
+                hasCurrentImage={!!currentImage}
+            />
         </div>
     );
 }

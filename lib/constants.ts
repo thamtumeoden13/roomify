@@ -41,6 +41,7 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10MB
 export const ROOMIFY_RENDER_PROMPT = `
 Professional 3D architectural visualization, bird's-eye view, top-down orthographic plan. 
 Photorealistic 3D floor plan, clean continuous surfaces, architectural masterpiece.
+Clean white walls, uniform flooring, professional studio lighting with soft shadows, minimal aesthetic.
 
 STRUCTURE & SURFACE CLEANUP:
 - Precise wall extrusion from plan lines, consistent height, realistic materials.
@@ -58,7 +59,8 @@ STYLE & LIGHTING:
 `.trim();
 
 export const ROOMIFY_NEGATIVE_PROMPT = `
-text, watermark, logo, letters, numbers, digits, dimensions, labels, 
+text, labels, letters, dimensions, architectural symbols, messy grass, distorted furniture,
+watermark, logo, numbers, digits, 
 3D typography, alphabet-shaped furniture, word-shaped objects, 
 annotations, measurements, symbols, sketch, drawing, blurry, 
 low quality, distorted, messy, perspective tilt, hand-drawn, 
@@ -85,5 +87,38 @@ export const ROOM_STYLES = [
         id: "industrial",
         name: "Industrial",
         keywords: "industrial loft style, exposed brick, metal accents, concrete floors, large industrial windows, raw and unfinished look."
+    }
+];
+
+export const PROJECT_CONTEXTS = [
+    {
+        id: "full-apartment",
+        name: "Full Apartment",
+        description: "Comprehensive layout of a complete apartment with multiple zones.",
+        icon: "Home"
+    },
+    {
+        id: "luxury-villa",
+        name: "Luxury Villa",
+        description: "Large-scale residential project with premium finishes and expansive spaces.",
+        icon: "Castle"
+    },
+    {
+        id: "studio-suite",
+        name: "Studio Suite",
+        description: "Compact integrated living space combining multiple functions.",
+        icon: "Layout"
+    },
+    {
+        id: "single-room",
+        name: "Single Room",
+        description: "Focused design for a specific individual room.",
+        icon: "Square"
+    },
+    {
+        id: "commercial-space",
+        name: "Commercial Space",
+        description: "Business or retail environment layout.",
+        icon: "Building"
     }
 ];

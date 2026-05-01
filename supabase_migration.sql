@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS renders (
     status TEXT NOT NULL,
     prompt TEXT,
     style_id TEXT,
+    project_context TEXT,
     upscaled_image_url TEXT,
     upscale_prediction_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
