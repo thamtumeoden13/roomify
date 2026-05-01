@@ -9,7 +9,16 @@ const replicate = new Replicate({
 
 export async function POST(req: Request) {
     try {
-        const {image, prompt, projectName, styleKeywords, styleId, forceNew} = await req.json();
+        const {
+            image,
+            prompt,
+            projectName,
+            styleKeywords,
+            styleId,
+            projectContext,
+            contextId,
+            forceNew
+        } = await req.json();
 
         if (!image) {
             return NextResponse.json({error: "Image is required"}, {status: 400});
@@ -22,6 +31,7 @@ export async function POST(req: Request) {
                 .select("*")
                 .eq("source_image_url", image)
                 .eq("style_id", styleId || "")
+                .eq("project_context", projectContext || "")
                 .eq("status", "succeeded")
                 .order("created_at", {ascending: false})
                 .limit(1)
@@ -39,6 +49,17 @@ export async function POST(req: Request) {
         }
 
         let finalPrompt = prompt || ROOMIFY_RENDER_PROMPT;
+
+        // Apply Project Context logic
+        if (projectContext) {
+            const contextInstruction = `This is a comprehensive ${projectContext} layout. Identify each specific zone (Bedroom, Kitchen, Living, Bath) based on the icons and architectural lines in the plan. Apply a consistent design aesthetic across all areas to ensure a unified design.`;
+            finalPrompt = `${finalPrompt}\n\nCONTEXT: ${contextInstruction}`;
+
+            if (contextId === "full-apartment") {
+                finalPrompt = `${finalPrompt}\nSMART MAPPING: Use consistent flooring (e.g., matching wood or tile) throughout the entire floor plan to create a flow between spaces.`;
+            }
+        }
+
         if (styleKeywords) {
             finalPrompt = `${finalPrompt}\n\nSTYLE INSTRUCTIONS: ${styleKeywords}`;
         }
@@ -51,9 +72,9 @@ export async function POST(req: Request) {
                 image: image, // Supabase public URL
                 prompt: finalPrompt,
                 negative_prompt: ROOMIFY_NEGATIVE_PROMPT,
-                condition_scale: 0.5,
+                condition_scale: 0.6,
                 num_inference_steps: 50,
-                guidance_scale: 12,
+                guidance_scale: 15,
                 scheduler: "K_EULER_ANCESTRAL",
                 seed: Math.floor(Math.random() * 1000000),
             },
@@ -75,6 +96,7 @@ export async function POST(req: Request) {
             status: prediction.status,
             prompt: finalPrompt,
             style_id: styleId,
+            project_context: projectContext,
             user_id: user?.id
         });
 
