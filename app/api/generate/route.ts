@@ -12,6 +12,7 @@ export async function POST(req: Request) {
         const {
             image,
             prompt,
+            project_id,
             projectName,
             styleKeywords,
             styleId,
@@ -26,13 +27,20 @@ export async function POST(req: Request) {
 
         // 1. Check Before Render: Check if an exact match exists (unless forced new)
         if (!forceNew) {
-            const {data: existingRender} = await supabase
+            const query = supabase
                 .from("renders")
                 .select("*")
-                .eq("source_image_url", image)
                 .eq("style_id", styleId || "")
                 .eq("project_context", projectContext || "")
-                .eq("status", "succeeded")
+                .eq("status", "succeeded");
+
+            if (project_id) {
+                query.eq("project_id", project_id);
+            } else {
+                query.eq("source_image_url", image);
+            }
+
+            const {data: existingRender} = await query
                 .order("created_at", {ascending: false})
                 .limit(1)
                 .maybeSingle();
@@ -91,6 +99,7 @@ export async function POST(req: Request) {
 
         const {error: supabaseError} = await supabase.from("renders").insert({
             prediction_id: prediction.id,
+            project_id: project_id,
             project_name: projectName || "Untitled Project",
             source_image_url: image,
             status: prediction.status,

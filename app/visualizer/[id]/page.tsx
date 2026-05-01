@@ -2,7 +2,7 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
-import {Box, X} from "lucide-react";
+import {Box, RefreshCcw, X} from "lucide-react";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
@@ -15,10 +15,9 @@ export default function VisualizerPage() {
     const {id} = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const sourceImage = searchParams.get("image");
-    const projectName = searchParams.get("name") || `Residence ${id}`;
 
     const hasInitialGenerated = useRef(false);
+    const [project, setProject] = useState<any>(null);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [prediction, setPrediction] = useState<any>(null);
@@ -33,12 +32,10 @@ export default function VisualizerPage() {
     const handleBack = () => router.push("/");
 
     const fetchVariants = async (projectId: string) => {
-        if (!sourceImage) return;
-
         const {data, error} = await supabase
             .from("renders")
             .select("*")
-            .eq("source_image_url", sourceImage)
+            .eq("project_id", projectId)
             .eq("status", "succeeded")
             .order("created_at", {ascending: true});
 
@@ -114,15 +111,21 @@ export default function VisualizerPage() {
                 // Refresh variants
                 if (id) fetchVariants(id as string);
 
-                // Fetch the updated record to get the permanent Supabase URL
+                // Update project thumbnail
                 const {data: updatedRecord} = await supabase
                     .from("renders")
-                    .select("upscaled_image_url")
+                    .select("upscaled_image_url, project_id")
                     .eq("upscale_prediction_id", prediction.id)
                     .single();
 
                 if (updatedRecord?.upscaled_image_url) {
                     setCurrentImage(updatedRecord.upscaled_image_url);
+                    if (updatedRecord.project_id) {
+                        await supabase
+                            .from("projects")
+                            .update({rendered_image_url: updatedRecord.upscaled_image_url})
+                            .eq("id", updatedRecord.project_id);
+                    }
                 } else {
                     const output = prediction.output;
                     const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
@@ -161,7 +164,7 @@ export default function VisualizerPage() {
     };
 
     const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0], contextOverride?: typeof PROJECT_CONTEXTS[0], forceNew = false) => {
-        if (!sourceImage) return;
+        if (!project?.source_image_url) return;
 
         const styleToUse = styleOverride || selectedStyle;
         const contextToUse = contextOverride || selectedContext;
@@ -172,8 +175,9 @@ export default function VisualizerPage() {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
-                    image: sourceImage,
-                    projectName: projectName,
+                    image: project.source_image_url,
+                    project_id: id,
+                    projectName: project.name,
                     styleKeywords: styleToUse.keywords,
                     styleId: styleToUse.id,
                     projectContext: contextToUse.name,
@@ -241,12 +245,18 @@ export default function VisualizerPage() {
                 // fetch the record from our database to get the permanent URL.
                 const {data: updatedRecord} = await supabase
                     .from("renders")
-                    .select("rendered_image_url")
+                    .select("rendered_image_url, project_id")
                     .eq("prediction_id", prediction.id)
                     .single();
 
                 if (updatedRecord?.rendered_image_url) {
                     setCurrentImage(updatedRecord.rendered_image_url);
+                    if (updatedRecord.project_id) {
+                        await supabase
+                            .from("projects")
+                            .update({rendered_image_url: updatedRecord.rendered_image_url})
+                            .eq("id", updatedRecord.project_id);
+                    }
                 } else {
                     // Fallback to Replicate URL if database update isn't reflected yet
                     const output = prediction.output;
@@ -271,8 +281,8 @@ export default function VisualizerPage() {
     }, [id, currentImage]);
 
     useEffect(() => {
-        if (sourceImage) {
-            setLeftImage(sourceImage);
+        if (project?.source_image_url) {
+            setLeftImage(project.source_image_url);
         }
         if (variants.length > 0) {
             const latest = variants[variants.length - 1];
@@ -280,28 +290,54 @@ export default function VisualizerPage() {
         } else if (currentImage) {
             setRightImage(currentImage);
         }
-    }, [sourceImage, variants]);
+    }, [project, variants, currentImage]);
 
     useEffect(() => {
-        if (hasInitialGenerated.current || !sourceImage) return;
+        if (!id) return;
+
+        const fetchProject = async () => {
+            const {data, error} = await supabase
+                .from("projects")
+                .select("*")
+                .eq("id", id)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Error fetching project:", error);
+                return;
+            }
+
+            if (!data) {
+                console.warn("Project not found, redirecting...");
+                router.push("/");
+                return;
+            }
+
+            setProject(data);
+        };
+
+        fetchProject();
+    }, [id]);
+
+    useEffect(() => {
+        if (hasInitialGenerated.current || !project) return;
         hasInitialGenerated.current = true;
 
         const init = async () => {
-            if (id) {
-                const {data: existing} = await supabase
-                    .from("renders")
-                    .select("*")
-                    .eq("id", id)
-                    .maybeSingle();
+            const {data: existingRenders} = await supabase
+                .from("renders")
+                .select("*")
+                .eq("project_id", id)
+                .order("created_at", {ascending: false});
 
-                if (existing) {
-                    if (existing.status === "succeeded" && (existing.upscaled_image_url || existing.rendered_image_url)) {
-                        setCurrentImage(existing.upscaled_image_url || existing.rendered_image_url);
-                        return;
-                    } else if (existing.status === "processing" || existing.status === "starting") {
-                        resumePrediction(existing.prediction_id);
-                        return;
-                    }
+            if (existingRenders && existingRenders.length > 0) {
+                const latest = existingRenders[0];
+                if (latest.status === "succeeded" && (latest.upscaled_image_url || latest.rendered_image_url)) {
+                    setCurrentImage(latest.upscaled_image_url || latest.rendered_image_url);
+                    return;
+                } else if (latest.status === "processing" || latest.status === "starting") {
+                    resumePrediction(latest.prediction_id);
+                    return;
                 }
             }
 
@@ -314,7 +350,7 @@ export default function VisualizerPage() {
         };
 
         init();
-    }, [sourceImage, searchParams, id]);
+    }, [project, searchParams, id]);
 
     return (
         <div className="visualizer">
@@ -333,7 +369,7 @@ export default function VisualizerPage() {
                     <div className="panel-header">
                         <div className="panel-meta">
                             <p>Project</p>
-                            <h2>{projectName}</h2>
+                            <h2>{project?.name || "Loading..."}</h2>
                             <p className="note">Created by You</p>
                         </div>
                     </div>
@@ -343,8 +379,8 @@ export default function VisualizerPage() {
                             <img src={currentImage} alt="AI Render" className="render-img"/>
                         ) : (
                             <div className="render-placeholder">
-                                {sourceImage && (
-                                    <img src={sourceImage} alt="Original" className="render-fallback"/>
+                                {project?.source_image_url && (
+                                    <img src={project.source_image_url} alt="Original" className="render-fallback"/>
                                 )}
                             </div>
                         )}
@@ -394,7 +430,8 @@ export default function VisualizerPage() {
                                     value={leftImage || ""}
                                     onChange={(e) => setLeftImage(e.target.value)}
                                 >
-                                    {sourceImage && <option value={sourceImage} className="bg-white text-black">Original
+                                    {project?.source_image_url && <option value={project.source_image_url}
+                                                                          className="bg-white text-black">Original
                                         2D</option>}
                                     {variants.map((v, i) => (
                                         <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
@@ -412,7 +449,8 @@ export default function VisualizerPage() {
                                     value={rightImage || ""}
                                     onChange={(e) => setRightImage(e.target.value)}
                                 >
-                                    {sourceImage && <option value={sourceImage} className="bg-white text-black">Original
+                                    {project?.source_image_url && <option value={project.source_image_url}
+                                                                          className="bg-white text-black">Original
                                         2D</option>}
                                     {variants.map((v, i) => (
                                         <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
@@ -438,8 +476,9 @@ export default function VisualizerPage() {
                             </div>
                         ) : (
                             <div className="compare-fallback">
-                                {sourceImage && (
-                                    <img src={sourceImage} alt="Before" className="compare-img object-cover"/>
+                                {project?.source_image_url && (
+                                    <img src={project.source_image_url} alt="Before"
+                                         className="compare-img object-cover"/>
                                 )}
                             </div>
                         )}
@@ -449,15 +488,16 @@ export default function VisualizerPage() {
                         <div className="mt-6">
                             <p className="text-xs uppercase opacity-50 font-bold mb-2">Available Variants</p>
                             <div className="flex gap-2 overflow-x-auto pb-2">
-                                {sourceImage && (
+                                {project?.source_image_url && (
                                     <div
-                                        className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${leftImage === sourceImage || rightImage === sourceImage ? 'border-primary' : 'border-transparent'}`}
+                                        className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${leftImage === project.source_image_url || rightImage === project.source_image_url ? 'border-primary' : 'border-transparent'}`}
                                         onClick={(e) => {
-                                            if (e.altKey) setLeftImage(sourceImage);
-                                            else setRightImage(sourceImage);
+                                            if (e.altKey) setLeftImage(project.source_image_url);
+                                            else setRightImage(project.source_image_url);
                                         }}
                                     >
-                                        <img src={sourceImage} alt="Original" className="w-full h-full object-cover"/>
+                                        <img src={project.source_image_url} alt="Original"
+                                             className="w-full h-full object-cover"/>
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                                             <span className="text-[10px] text-white font-bold">Original</span>
                                         </div>

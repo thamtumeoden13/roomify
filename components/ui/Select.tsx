@@ -14,9 +14,10 @@ interface SelectProps {
     label?: string;
     icon?: React.ReactNode;
     disabled?: boolean;
+    position?: 'top' | 'bottom';
 }
 
-export function Select({value, onValueChange, options, label, icon, disabled}: SelectProps) {
+export function Select({value, onValueChange, options, label, icon, disabled, position = 'bottom'}: SelectProps) {
     const [open, setOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedOption = options.find((opt) => opt.id === value);
@@ -54,7 +55,10 @@ export function Select({value, onValueChange, options, label, icon, disabled}: S
 
                 {open && (
                     <div
-                        className="absolute top-full left-0 mt-2 w-full min-w-[180px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1 z-50 animate-in fade-in zoom-in duration-200 origin-top">
+                        className={cn(
+                            "absolute left-0 w-full min-w-[180px] bg-white border border-slate-200 rounded-2xl shadow-xl py-1 z-50 animate-in fade-in zoom-in duration-200",
+                            position === 'top' ? "bottom-full mb-2 origin-bottom" : "top-full mt-2 origin-top"
+                        )}>
                         {options.map((option) => (
                             <button
                                 key={option.id}
