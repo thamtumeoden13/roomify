@@ -312,7 +312,7 @@ export default function VisualizerPage() {
 
                         <div className="panel-actions flex-wrap">
                             <div className="style-selector">
-                                <Palette className="w-3 h-3 mr-2 text-zinc-400"/>
+                                <Palette className="w-3 h-3 mr-2"/>
                                 <select
                                     value={selectedStyle.id}
                                     onChange={(e) => {
@@ -334,7 +334,7 @@ export default function VisualizerPage() {
                                 size="sm"
                                 onClick={() => runGeneration(undefined, true)}
                                 disabled={isProcessing || isUpscaling}
-                                className="share"
+                                className="btn-variant"
                             >
                                 <RefreshCcw className={`w-4 h-4 mr-2 ${isProcessing ? "animate-spin" : ""}`}/>
                                 New Variant
@@ -343,7 +343,7 @@ export default function VisualizerPage() {
                                 size="sm"
                                 onClick={handleUpscale}
                                 disabled={isProcessing || isUpscaling || !currentImage}
-                                className="share"
+                                className="btn-upscale"
                             >
                                 <RefreshCcw className={`w-4 h-4 mr-2 ${isUpscaling ? "animate-spin" : ""}`}/>
                                 {isUpscaling ? "Enhancing..." : "Upscale to 4K"}
@@ -351,12 +351,12 @@ export default function VisualizerPage() {
                             <Button
                                 size="sm"
                                 onClick={handleExport}
-                                className="export"
+                                className="btn-export"
                                 disabled={!currentImage || isUpscaling}
                             >
                                 <Download className="w-4 h-4 mr-2"/> Export
                             </Button>
-                            <Button size="sm" className="share" disabled>
+                            <Button size="sm" className="btn-share" disabled>
                                 <Share2 className="w-4 h-4 mr-2"/> Share
                             </Button>
                         </div>

@@ -321,19 +321,31 @@
                 .panel-actions {
                     @apply flex flex-wrap items-center gap-3 mt-4 md:mt-0;
 
-                    .export {
-                        @apply bg-primary text-white hover:bg-orange-600 h-9 border-none shadow-sm rounded-md px-4;
+                    .btn-variant {
+                        @apply bg-indigo-600 text-white hover:bg-indigo-700 h-9 shadow-sm rounded-md px-4 border-none;
                     }
 
-                    .share {
-                        @apply bg-black text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-4;
+                    .btn-upscale {
+                        @apply bg-emerald-600 text-white hover:bg-emerald-700 h-9 shadow-sm rounded-md px-4 border-none;
+                    }
+
+                    .btn-export {
+                        @apply bg-amber-500 text-white hover:bg-amber-600 h-9 border-none shadow-sm rounded-md px-4;
+                    }
+
+                    .btn-share {
+                        @apply bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-4 border-none;
                     }
 
                     .style-selector {
-                        @apply flex items-center bg-zinc-50 border border-zinc-200 rounded-md px-3 h-9 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary;
+                        @apply flex items-center bg-violet-600 text-white h-9 shadow-sm hover:bg-violet-700 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-violet-400/20 focus-within:border-violet-400 cursor-pointer;
 
                         .style-select {
-                            @apply bg-transparent border-none text-xs font-bold uppercase tracking-wide text-zinc-900 focus:ring-0 cursor-pointer outline-none pr-2;
+                            @apply bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none pr-2;
+
+                            option {
+                                @apply bg-white text-black;
+                            }
                         }
                     }
                 }
