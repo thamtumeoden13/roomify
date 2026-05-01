@@ -6,7 +6,7 @@ const replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN,
 });
 
-async function uploadToSupabase(url: string, predictionId: string) {
+async function uploadToSupabase(url: string, predictionId: string, folder: string = 'outputs') {
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -14,7 +14,7 @@ async function uploadToSupabase(url: string, predictionId: string) {
         const blob = await response.blob();
         const fileExt = url.split('.').pop()?.split('?')[0] || 'png';
         const fileName = `${predictionId}.${fileExt}`;
-        const filePath = `outputs/${fileName}`;
+        const filePath = `${folder}/${fileName}`;
 
         const {data, error} = await supabase.storage
             .from('roomify-assets')
@@ -57,20 +57,37 @@ export async function GET(
             const output = prediction.output;
             const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
 
-            let finalUrl = renderedUrl;
-            const permanentUrl = await uploadToSupabase(renderedUrl, id);
-
-            if (permanentUrl) {
-                finalUrl = permanentUrl;
-            }
-
-            await supabase
+            // Check if this is an upscale prediction
+            const {data: upscaleRecord} = await supabase
                 .from("renders")
-                .update({
-                    status: prediction.status,
-                    rendered_image_url: finalUrl,
-                })
-                .eq("prediction_id", id);
+                .select("id")
+                .eq("upscale_prediction_id", id)
+                .maybeSingle();
+
+            if (upscaleRecord) {
+                // Handle upscale success
+                const permanentUrl = await uploadToSupabase(renderedUrl, id, 'outputs/upscaled');
+                const finalUrl = permanentUrl || renderedUrl;
+
+                await supabase
+                    .from("renders")
+                    .update({
+                        upscaled_image_url: finalUrl,
+                    })
+                    .eq("upscale_prediction_id", id);
+            } else {
+                // Handle normal render success
+                const permanentUrl = await uploadToSupabase(renderedUrl, id);
+                const finalUrl = permanentUrl || renderedUrl;
+
+                await supabase
+                    .from("renders")
+                    .update({
+                        status: prediction.status,
+                        rendered_image_url: finalUrl,
+                    })
+                    .eq("prediction_id", id);
+            }
         } else if (prediction.status === "failed") {
             await supabase
                 .from("renders")
