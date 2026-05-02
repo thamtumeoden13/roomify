@@ -11,8 +11,8 @@ import {
     LogIn,
     Menu,
     X,
-    Box
 } from "lucide-react";
+import RoomifyLogo from "@/components/RoomifyLogo";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {motion, AnimatePresence} from "framer-motion";
 import Link from "next/link";
@@ -138,7 +138,7 @@ export default function LandingPage() {
                 <div className="container mx-auto px-6 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 group">
                         <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
-                            <Box className="w-6 h-6 text-primary"/>
+                            <RoomifyLogo className="w-6 h-6 text-primary"/>
                         </div>
                         <span className="text-xl font-bold tracking-tight text-slate-900">Roomify</span>
                     </Link>
@@ -209,16 +209,27 @@ export default function LandingPage() {
 
             <main>
                 {/* Hero Section */}
-                <section className="relative pt-32 pb-20 md:pt-48 md:pb-40 overflow-hidden">
-                    {/* Subtle Grid Pattern */}
-                    <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-                        <div className="absolute inset-0" style={{
+                <section
+                    className="relative min-h-[90vh] flex items-center pt-32 pb-20 md:pt-48 md:pb-40 overflow-hidden">
+                    {/* Subtle Grid Pattern - Infinite Scroll */}
+                    <motion.div
+                        className="absolute inset-0 z-0 pointer-events-none opacity-40"
+                        style={{
                             backgroundImage: `linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)`,
-                            backgroundSize: '60px 60px'
-                        }}/>
+                            backgroundSize: '60px 60px',
+                        }}
+                        animate={{
+                            backgroundPositionY: [0, 60],
+                        }}
+                        transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "linear"
+                        }}
+                    >
                         <div
                             className="absolute inset-0 bg-gradient-to-b from-[#F9FAFB]/0 via-[#F9FAFB]/50 to-[#F9FAFB]"/>
-                    </div>
+                    </motion.div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden">
                         <div
@@ -272,27 +283,37 @@ export default function LandingPage() {
 
                         {/* Visual Slider with Light Glassmorphism */}
                         {mounted && (
-                            <motion.div
-                                initial={{opacity: 0, scale: 0.95}}
-                                animate={{opacity: 1, scale: 1}}
-                                transition={{duration: 1, delay: 0.2}}
-                                className="relative max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-2xl border border-slate-200 bg-white/40 backdrop-blur-md p-1"
-                            >
-                                <ReactCompareSlider
-                                    itemOne={<ReactCompareSliderImage src={showcaseImages[0].before}
-                                                                      alt="2D Floor Plan" loading="eager"/>}
-                                    itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after} alt="3D Render"
-                                                                      loading="eager"/>}
-                                    className="aspect-video"
-                                />
+                            <div className="relative mt-20">
+                                {/* Glowing Aura */}
                                 <div
-                                    className="absolute z-10 bottom-6 left-6 right-6 flex justify-between pointer-events-none">
-                                <span
-                                    className="px-3 py-1 rounded bg-white/70 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-slate-200 text-slate-900">Before</span>
+                                    className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
+
+                                <motion.div
+                                    style={{
+                                        y: typeof window !== 'undefined' ? (window.scrollY * 0.1) : 0
+                                    }}
+                                    initial={{opacity: 0, scale: 0.95}}
+                                    whileInView={{opacity: 1, scale: 1}}
+                                    viewport={{once: true}}
+                                    transition={{duration: 1}}
+                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-white/5 backdrop-blur-sm"
+                                >
+                                    <ReactCompareSlider
+                                        itemOne={<ReactCompareSliderImage src={showcaseImages[0].before}
+                                                                          alt="2D Floor Plan" loading="eager"/>}
+                                        itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after} alt="3D Render"
+                                                                          loading="eager"/>}
+                                        className="aspect-video"
+                                    />
+                                    <div
+                                        className="absolute z-10 bottom-8 left-8 right-8 flex justify-between pointer-events-none">
                                     <span
-                                        className="px-3 py-1 rounded bg-white/70 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-slate-200 text-slate-900">After</span>
-                                </div>
-                            </motion.div>
+                                        className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-white/20 text-white">Original Plan</span>
+                                        <span
+                                            className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white">AI Vision</span>
+                                    </div>
+                                </motion.div>
+                            </div>
                         )}
                     </div>
                 </section>
@@ -331,7 +352,7 @@ export default function LandingPage() {
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
                                         <div
-                                            className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-4">
+                                            className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-4">
                                         <span
                                             className="text-sm font-semibold tracking-wide uppercase text-white">{item.label}</span>
                                         </div>
@@ -343,14 +364,40 @@ export default function LandingPage() {
                 </section>
 
                 {/* How It Works */}
-                <section id="how-it-works" className="py-24 md:py-40 bg-white border-b border-slate-100">
-                    <div className="container mx-auto px-6">
-                        <div className="text-center mb-20 max-w-3xl mx-auto">
+                <section id="how-it-works"
+                         className="py-32 md:py-48 bg-white border-b border-slate-100 overflow-hidden">
+                    <div className="container mx-auto px-6 relative">
+                        <div className="text-center mb-24 max-w-3xl mx-auto">
                             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900">How It Works</h2>
                             <p className="text-lg text-slate-600">Professional architectural rendering made simple.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto">
+                        {/* Connection Line */}
+                        <div className="absolute top-[60%] left-[10%] right-[10%] h-[2px] hidden md:block z-0">
+                            <svg className="w-full h-24 overflow-visible">
+                                <motion.path
+                                    d="M 0 50 Q 250 -50 500 50 T 1000 50"
+                                    fill="transparent"
+                                    stroke="url(#gradient-line)"
+                                    strokeWidth="2"
+                                    strokeDasharray="8 8"
+                                    initial={{pathLength: 0}}
+                                    whileInView={{pathLength: 1}}
+                                    viewport={{once: true}}
+                                    transition={{duration: 2, ease: "easeInOut"}}
+                                />
+                                <defs>
+                                    <linearGradient id="gradient-line" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2"/>
+                                        <stop offset="50%" stopColor="#3b82f6" stopOpacity="1"/>
+                                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.2"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+
+                        <div
+                            className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-20 max-w-7xl mx-auto relative z-10">
                             {[
                                 {
                                     step: "01",
@@ -373,18 +420,30 @@ export default function LandingPage() {
                             ].map((item, i) => (
                                 <motion.div
                                     key={i}
-                                    {...fadeIn}
-                                    transition={{delay: i * 0.2}}
-                                    className="relative p-10 rounded-3xl bg-slate-50 border border-slate-200 hover:border-primary/30 transition-all group"
+                                    initial={{opacity: 0, y: 30}}
+                                    whileInView={{opacity: 1, y: 0}}
+                                    viewport={{once: true}}
+                                    transition={{delay: i * 0.3, duration: 0.6}}
+                                    className="relative p-10 rounded-[2.5rem] bg-slate-50 border border-slate-200 hover:border-primary/50 transition-all group overflow-hidden"
                                 >
                                     <div
-                                        className="w-16 h-16 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-primary mb-8 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                        {item.icon}
+                                        className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
+
+                                    <div className="relative z-10">
+                                        <div
+                                            className="w-20 h-20 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-primary mb-8 shadow-sm group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-500">
+                                            {item.icon}
+                                        </div>
+                                        <h3 className="text-2xl font-bold mb-4 text-slate-900">{item.title}</h3>
+                                        <p className="text-slate-600 leading-relaxed">{item.desc}</p>
                                     </div>
+
                                     <span
-                                        className="absolute top-8 right-10 text-6xl font-black text-slate-200/50 group-hover:text-primary/5 transition-colors pointer-events-none">{item.step}</span>
-                                    <h3 className="text-2xl font-bold mb-4 text-slate-900">{item.title}</h3>
-                                    <p className="text-slate-600 leading-relaxed">{item.desc}</p>
+                                        className="absolute -bottom-4 -right-2 text-[10rem] font-black text-slate-200/20 leading-none select-none transition-colors group-hover:text-primary/10"
+                                        style={{fontFamily: 'serif'}}
+                                    >
+                                        {item.step}
+                                    </span>
                                 </motion.div>
                             ))}
                         </div>
@@ -392,66 +451,123 @@ export default function LandingPage() {
                 </section>
 
                 {/* Features Grid */}
-                <section id="features" className="py-24 md:py-40 bg-slate-50">
-                    <div className="container mx-auto px-6">
-                        <div className="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
+                <section id="features" className="py-32 md:py-48 bg-slate-900 text-white overflow-hidden relative">
+                    <div className="absolute inset-0 bg-primary/5 mix-blend-overlay"/>
+                    <div className="container mx-auto px-6 relative z-10">
+                        <div className="flex flex-col md:flex-row items-end justify-between mb-24 gap-8">
                             <div className="max-w-2xl">
-                                <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900">Powerful
+                                <h2 className="text-3xl md:text-6xl font-bold mb-8 tracking-tight">Powerful
                                     Features</h2>
-                                <p className="text-lg text-slate-600">Everything you need to create professional-grade
-                                    architectural visualizations.</p>
+                                <p className="text-xl text-slate-400 leading-relaxed">Everything you need to create
+                                    professional-grade architectural visualizations.</p>
                             </div>
                             <Link href="/dashboard">
                                 <Button variant="outline"
-                                        className="border-slate-300 text-slate-900 hover:bg-white flex gap-2 items-center">Explore
-                                    All Features <ArrowRight
-                                        className="w-4 h-4"/></Button>
+                                        className="border-white/20 text-white hover:bg-white/10 flex gap-2 items-center rounded-full px-8 py-6">
+                                    Explore All Features <ArrowRight className="w-4 h-4"/>
+                                </Button>
                             </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {[
-                                {
-                                    title: "AI-Powered Precision",
-                                    desc: "Our advanced neural networks understand architectural spatial relationships.",
-                                    icon: <Zap className="w-6 h-6 text-orange-500"/>
-                                },
-                                {
-                                    title: "4K Upscaling",
-                                    desc: "Transform standard renders into crystal-clear 4K masterpieces ready for presentations.",
-                                    icon: <Maximize className="w-6 h-6 text-blue-500"/>
-                                },
-                                {
-                                    title: "Multiple Variants",
-                                    desc: "Generate dozens of interior styles from a single plan to explore every possibility.",
-                                    icon: <Layers className="w-6 h-6 text-purple-500"/>
-                                },
-                                {
-                                    title: "Secure Cloud Storage",
-                                    desc: "All your projects and renders are safely stored and accessible from any device.",
-                                    icon: <ShieldCheck className="w-6 h-6 text-green-500"/>
-                                }
-                            ].map((feature, i) => (
-                                <motion.div key={i} {...fadeIn} transition={{delay: i * 0.1}}>
-                                    <Card
-                                        className="h-full bg-white hover:shadow-xl transition-shadow duration-300 border-slate-200">
-                                        <CardHeader>
-                                            <div
-                                                className="p-3 w-fit rounded-xl bg-slate-50 mb-6 border border-slate-100">{feature.icon}</div>
-                                            <CardTitle className="text-xl text-slate-900">{feature.title}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            ))}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[300px]">
+                            {/* Feature 1: AI Precision (Large) */}
+                            <motion.div
+                                initial={{opacity: 0, y: 20}}
+                                whileInView={{opacity: 1, y: 0}}
+                                viewport={{once: true}}
+                                className="md:col-span-8 relative group overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl p-12 transition-all hover:border-primary/50"
+                            >
+                                <div
+                                    className="absolute top-0 right-0 p-12 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <Zap className="w-64 h-64 text-primary"/>
+                                </div>
+                                <div className="relative z-10 h-full flex flex-col justify-end">
+                                    <div
+                                        className="p-4 w-fit rounded-2xl bg-primary/20 mb-8 border border-primary/30 text-primary">
+                                        <Zap className="w-8 h-8"/>
+                                    </div>
+                                    <h3 className="text-3xl font-bold mb-4">AI-Powered Precision</h3>
+                                    <p className="text-slate-400 text-lg max-w-md leading-relaxed">
+                                        Our advanced neural networks understand complex architectural spatial
+                                        relationships, ensuring every render respects your original dimensions.
+                                    </p>
+                                </div>
+                            </motion.div>
+
+                            {/* Feature 2: 4K Upscaling (Tall) */}
+                            <motion.div
+                                initial={{opacity: 0, y: 20}}
+                                whileInView={{opacity: 1, y: 0}}
+                                viewport={{once: true}}
+                                transition={{delay: 0.1}}
+                                className="md:col-span-4 relative group overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl p-10 transition-all hover:border-blue-500/50"
+                            >
+                                <div
+                                    className="relative z-10 h-full flex flex-col items-center text-center justify-center">
+                                    <div
+                                        className="p-4 w-fit rounded-2xl bg-blue-500/20 mb-8 border border-blue-500/30 text-blue-400">
+                                        <Maximize className="w-8 h-8"/>
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4">4K Upscaling</h3>
+                                    <p className="text-slate-400 leading-relaxed mb-8">
+                                        Transform standard renders into crystal-clear 4K masterpieces ready for high-end
+                                        presentations and print.
+                                    </p>
+                                    <div
+                                        className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 animate-pulse">
+                                        <div className="w-2 h-2 rounded-full bg-blue-500"/>
+                                        <span className="text-xs font-mono uppercase tracking-widest">Enhancing Details...</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Feature 3: Multiple Variants (Small) */}
+                            <motion.div
+                                initial={{opacity: 0, y: 20}}
+                                whileInView={{opacity: 1, y: 0}}
+                                viewport={{once: true}}
+                                transition={{delay: 0.2}}
+                                className="md:col-span-6 relative group overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl p-10 transition-all hover:border-purple-500/50"
+                            >
+                                <div className="relative z-10 h-full flex flex-col">
+                                    <div
+                                        className="p-4 w-fit rounded-2xl bg-purple-500/20 mb-8 border border-purple-500/30 text-purple-400 group-hover:rotate-12 transition-transform">
+                                        <Layers className="w-8 h-8"/>
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4">Multiple Variants</h3>
+                                    <p className="text-slate-400 leading-relaxed">
+                                        Generate dozens of interior styles from a single plan to explore every
+                                        possibility in seconds.
+                                    </p>
+                                </div>
+                            </motion.div>
+
+                            {/* Feature 4: Cloud Storage (Small) */}
+                            <motion.div
+                                initial={{opacity: 0, y: 20}}
+                                whileInView={{opacity: 1, y: 0}}
+                                viewport={{once: true}}
+                                transition={{delay: 0.3}}
+                                className="md:col-span-6 relative group overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl p-10 transition-all hover:border-green-500/50"
+                            >
+                                <div className="relative z-10 h-full flex flex-col">
+                                    <div
+                                        className="p-4 w-fit rounded-2xl bg-green-500/20 mb-8 border border-green-500/30 text-green-400 group-hover:scale-110 transition-transform">
+                                        <ShieldCheck className="w-8 h-8"/>
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4">Secure Cloud Storage</h3>
+                                    <p className="text-slate-400 leading-relaxed">
+                                        All your projects and renders are safely stored and accessible from any device,
+                                        anywhere in the world.
+                                    </p>
+                                </div>
+                            </motion.div>
                         </div>
                     </div>
                 </section>
 
                 {/* Showcase Gallery */}
-                <section id="showcase" className="py-24 md:py-40 bg-white">
+                <section id="showcase" className="py-32 md:py-48 bg-white">
                     <div className="container mx-auto px-6">
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-20">
                             <div className="max-w-2xl">
@@ -460,7 +576,7 @@ export default function LandingPage() {
                                 <p className="text-lg text-slate-600">Discover the most inspiring AI transformations
                                     from our creators.</p>
                             </div>
-                            <Link href="/dashboard">
+                            <Link href="/gallery">
                                 <Button variant="outline" className="rounded-full px-8">View Full Gallery</Button>
                             </Link>
                         </div>
@@ -621,7 +737,7 @@ export default function LandingPage() {
                 <div className="container mx-auto px-6">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
                         <div className="flex items-center gap-2">
-                            <Box className="w-8 h-8 text-primary"/>
+                            <RoomifyLogo className="w-8 h-8 text-primary"/>
                             <span className="text-2xl font-bold tracking-tight text-slate-900 font-serif">Roomify</span>
                         </div>
                         <div className="flex gap-10">

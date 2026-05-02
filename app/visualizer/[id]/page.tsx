@@ -2,7 +2,9 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
-import {Box, RefreshCcw, Sparkles, X} from "lucide-react";
+import {RefreshCcw, Sparkles, X} from "lucide-react";
+import RoomifyLogo from "@/components/RoomifyLogo";
+import {toast} from "sonner";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
@@ -74,7 +76,7 @@ export default function VisualizerPage() {
 
             if (data.alreadyExists) {
                 setCurrentImage(data.output);
-                alert("This image has already been upscaled!");
+                toast.info("This image has already been upscaled!");
                 setIsUpscaling(false);
                 return;
             }
@@ -82,7 +84,7 @@ export default function VisualizerPage() {
             await resumeUpscale(data.id);
         } catch (error: any) {
             console.error("Upscale failed:", error);
-            alert(`Upscale failed: ${error.message}`);
+            toast.error(`Upscale failed: ${error.message}`);
             setIsUpscaling(false);
         }
     };
@@ -134,13 +136,13 @@ export default function VisualizerPage() {
                     const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
                     setCurrentImage(renderedUrl);
                 }
-                alert("Image successfully upscaled to 4K!");
+                toast.success("Image successfully upscaled to 4K!");
             } else {
                 throw new Error("Upscale prediction failed");
             }
         } catch (error: any) {
             console.error("Resuming upscale failed:", error);
-            alert(`Upscale failed: ${error.message}`);
+            toast.error(`Upscale failed: ${error.message}`);
         } finally {
             setIsUpscaling(false);
             setUpscalePrediction(null);
@@ -173,7 +175,7 @@ export default function VisualizerPage() {
             setTimeout(() => setShowToast(false), 3000);
         }).catch(err => {
             console.error('Failed to copy: ', err);
-            alert("Failed to copy link to clipboard");
+            toast.error("Failed to copy link to clipboard");
         });
     };
 
@@ -183,7 +185,7 @@ export default function VisualizerPage() {
         try {
             const {data: {user}} = await supabase.auth.getUser();
             if (!user) {
-                alert("You must be logged in to post to the community gallery.");
+                toast.error("You must be logged in to post to the community gallery.");
                 return;
             }
 
@@ -225,7 +227,7 @@ export default function VisualizerPage() {
             }
         } catch (error: any) {
             console.error("Failed to toggle public status:", error);
-            alert(`Failed to update gallery status: ${error.message}`);
+            toast.error(`Failed to update gallery status: ${error.message}`);
         }
     };
 
@@ -273,7 +275,7 @@ export default function VisualizerPage() {
             await resumePrediction(prediction.id);
         } catch (error) {
             console.error("Generation failed:", error);
-            alert("Failed to generate 3D view. Please try again.");
+            toast.error("Failed to generate 3D view. Please try again.");
             setIsProcessing(false);
         }
     };
@@ -334,7 +336,7 @@ export default function VisualizerPage() {
             }
         } catch (error) {
             console.error("Resuming prediction failed:", error);
-            alert("Failed to resume 3D view. Please try again.");
+            toast.error("Failed to resume 3D view. Please try again.");
         } finally {
             setIsProcessing(false);
         }
@@ -451,7 +453,7 @@ export default function VisualizerPage() {
         <div className="visualizer">
             <nav className="topbar">
                 <div className="brand">
-                    <Box className="logo"/>
+                    <RoomifyLogo className="logo"/>
                     <span className="name">Roomify</span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleBack} className="exit">

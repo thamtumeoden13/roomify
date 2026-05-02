@@ -5,6 +5,7 @@ import {ArrowRight, Clock, Layers} from "lucide-react";
 import Button from "@/components/ui/Button";
 import Upload from "@/components/Upload";
 import {useRouter} from "next/navigation";
+import {toast} from "sonner";
 import {MAX_UPLOAD_BYTES} from "@/lib/constants";
 import {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
@@ -60,7 +61,7 @@ export default function Dashboard() {
 
         if (error) {
             console.error("Error creating project:", error);
-            alert("Failed to create project. Please try again.");
+            toast.error("Failed to create project. Please try again.");
             return;
         }
 
