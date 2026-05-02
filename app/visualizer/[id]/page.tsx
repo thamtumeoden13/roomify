@@ -29,6 +29,8 @@ export default function VisualizerPage() {
     const [leftImage, setLeftImage] = useState<string | null>(null);
     const [rightImage, setRightImage] = useState<string | null>(null);
     const [showToast, setShowToast] = useState(false);
+    const [isPublic, setIsPublic] = useState(false);
+    const [showcaseId, setShowcaseId] = useState<string | null>(null);
 
     const handleBack = () => router.push("/dashboard");
 
@@ -165,7 +167,7 @@ export default function VisualizerPage() {
     };
 
     const handleShare = () => {
-        const shareUrl = `${window.location.origin}/share/${id}`;
+        const shareUrl = `${window.location.origin}/share/${showcaseId || id}`;
         navigator.clipboard.writeText(shareUrl).then(() => {
             setShowToast(true);
             setTimeout(() => setShowToast(false), 3000);
@@ -173,6 +175,58 @@ export default function VisualizerPage() {
             console.error('Failed to copy: ', err);
             alert("Failed to copy link to clipboard");
         });
+    };
+
+    const handleTogglePublic = async (shouldBePublic: boolean) => {
+        if (!currentImage) return;
+
+        try {
+            const {data: {user}} = await supabase.auth.getUser();
+            if (!user) {
+                alert("You must be logged in to post to the community gallery.");
+                return;
+            }
+
+            // Find the render_id for the currentImage
+            const currentRender = variants.find(v => v.upscaled_image_url === currentImage || v.rendered_image_url === currentImage);
+            const renderId = currentRender?.id;
+
+            if (!renderId) {
+                console.error("Could not find render ID for current image");
+                return;
+            }
+
+            if (shouldBePublic) {
+                const {data, error} = await supabase
+                    .from("showcase")
+                    .insert({
+                        render_id: renderId,
+                        user_id: user.id,
+                        is_admin_approved: false
+                    })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+                setIsPublic(true);
+                setShowcaseId(data.id);
+                // Also update variants locally if needed, but the effect will handle it
+            } else {
+                // Find and delete ALL entries for this render to be safe
+                const {error} = await supabase
+                    .from("showcase")
+                    .delete()
+                    .eq("render_id", renderId);
+
+                if (error) throw error;
+
+                setIsPublic(false);
+                setShowcaseId(null);
+            }
+        } catch (error: any) {
+            console.error("Failed to toggle public status:", error);
+            alert(`Failed to update gallery status: ${error.message}`);
+        }
     };
 
     const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0], contextOverride?: typeof PROJECT_CONTEXTS[0], forceNew = false) => {
@@ -303,6 +357,35 @@ export default function VisualizerPage() {
             setRightImage(currentImage);
         }
     }, [project, variants, currentImage]);
+
+    useEffect(() => {
+        if (!id) return;
+
+        const checkPublicStatus = async () => {
+            const currentRender = variants.find(v => v.upscaled_image_url === currentImage || v.rendered_image_url === currentImage);
+            if (!currentRender) {
+                setIsPublic(false);
+                setShowcaseId(null);
+                return;
+            }
+
+            const {data, error} = await supabase
+                .from("showcase")
+                .select("id")
+                .eq("render_id", currentRender.id)
+                .maybeSingle();
+
+            if (data) {
+                setIsPublic(true);
+                setShowcaseId(data.id);
+            } else {
+                setIsPublic(false);
+                setShowcaseId(null);
+            }
+        };
+
+        checkPublicStatus();
+    }, [id, currentImage, variants]);
 
     useEffect(() => {
         if (!id) return;
@@ -560,6 +643,8 @@ export default function VisualizerPage() {
                 isProcessing={isProcessing}
                 isUpscaling={isUpscaling}
                 hasCurrentImage={!!currentImage}
+                isPublic={isPublic}
+                onTogglePublic={handleTogglePublic}
             />
 
             {/* Toast Notification */}
