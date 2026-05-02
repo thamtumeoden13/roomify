@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS showcase (
 CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+    credits INTEGER DEFAULT 10,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -80,8 +81,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, role)
-  VALUES (new.id, 'user');
+  INSERT INTO public.profiles (id, role, credits)
+  VALUES (new.id, 'user', 10);
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -213,5 +214,23 @@ AS $$
 BEGIN
     UPDATE showcase
     SET trending_score = (vote_count * 2.0) + (view_count * 0.5);
+END;
+$$;
+
+-- Function to decrement credits
+CREATE OR REPLACE FUNCTION decrement_credits(target_user_id UUID, amount INTEGER DEFAULT 1)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    new_credits INTEGER;
+BEGIN
+    UPDATE profiles
+    SET credits = credits - amount
+    WHERE id = target_user_id
+    RETURNING credits INTO new_credits;
+    
+    RETURN new_credits;
 END;
 $$;

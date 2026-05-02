@@ -13,12 +13,14 @@ import {
     Home,
     Castle,
     Square,
-    Building
+    Building,
+    Coins
 } from 'lucide-react';
 import {Select} from '@/components/ui/Select';
 import {Tooltip} from '@/components/ui/Tooltip';
 import Button from '@/components/ui/Button';
 import {ROOM_STYLES, PROJECT_CONTEXTS} from '@/lib/constants';
+import {useCredits} from '@/lib/hooks/useCredits';
 
 interface VisualizerToolbarProps {
     onGenerate: (style?: any, context?: any, isVariant?: boolean) => void;
@@ -62,6 +64,7 @@ export default function VisualizerToolbar({
                                               isPublic,
                                               onTogglePublic
                                           }: VisualizerToolbarProps) {
+    const {credits} = useCredits();
 
     const contextOptions = PROJECT_CONTEXTS.map(c => ({
         id: c.id,
@@ -109,15 +112,15 @@ export default function VisualizerToolbar({
                 </div>
 
                 {/* Center Group: Primary Action */}
-                <div className="flex-1 flex justify-center">
+                <div className="flex-1 flex flex-col items-center gap-2">
                     <motion.div
-                        whileHover={{scale: 1.05}}
-                        whileTap={{scale: 0.95}}
+                        whileHover={credits && credits > 0 ? {scale: 1.05} : {}}
+                        whileTap={credits && credits > 0 ? {scale: 0.95} : {}}
                     >
                         <Button
                             onClick={() => onGenerate(undefined, undefined, true)}
-                            disabled={isProcessing || isUpscaling}
-                            className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-full px-8 py-6 h-auto shadow-lg shadow-indigo-500/25 border-none group transition-all min-w-[200px]"
+                            disabled={isProcessing || isUpscaling || credits === 0}
+                            className={`relative overflow-hidden bg-gradient-to-r ${credits === 0 ? 'from-slate-400 to-slate-500' : 'from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'} text-white rounded-full px-8 py-6 h-auto shadow-lg ${credits === 0 ? '' : 'shadow-indigo-500/25'} border-none group transition-all min-w-[200px]`}
                         >
                             <div className="flex items-center gap-2 text-base font-bold tracking-tight">
                                 {isProcessing ? (
@@ -125,12 +128,21 @@ export default function VisualizerToolbar({
                                 ) : (
                                     <Sparkles className="w-5 h-5 group-hover:animate-pulse"/>
                                 )}
-                                {isProcessing ? "Imagining..." : "Generate 3D"}
+                                {isProcessing ? "Imagining..." : (credits === 0 ? "Out of Credits" : "Generate 3D")}
                             </div>
                             <div
                                 className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"/>
                         </Button>
                     </motion.div>
+
+                    {credits !== null && (
+                        <div
+                            className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                            <Coins className={`w-3 h-3 ${credits === 0 ? 'text-rose-500' : 'text-indigo-500'}`}/>
+                            <span>Credits: <span
+                                className={credits === 0 ? 'text-rose-600' : 'text-indigo-600'}>{credits}</span></span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Group: Utilities */}
@@ -151,18 +163,19 @@ export default function VisualizerToolbar({
                         </button>
                     </div>
 
-                    <Tooltip content="Enhance to ultra-high resolution">
+                    <Tooltip content={credits === 0 ? "You've run out of credits" : "Enhance to ultra-high resolution"}>
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={onUpscale}
-                            disabled={isProcessing || isUpscaling || !hasCurrentImage}
+                            disabled={isProcessing || isUpscaling || !hasCurrentImage || credits === 0}
                             className="rounded-xl h-10 px-4 border-slate-200 hover:bg-slate-50 transition-colors"
                         >
                             {isUpscaling ? (
                                 <RefreshCcw className="w-4 h-4 mr-2 animate-spin"/>
                             ) : (
-                                <Zap className="w-4 h-4 mr-2 text-amber-500 fill-amber-500"/>
+                                <Zap
+                                    className={`w-4 h-4 mr-2 ${credits === 0 ? 'text-slate-400 fill-slate-400' : 'text-amber-500 fill-amber-500'}`}/>
                             )}
                             {isUpscaling ? "Enhancing..." : "4K Upscale"}
                         </Button>
