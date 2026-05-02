@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, type ReactNode} from 'react';
 import {clsx, type ClassValue} from 'clsx';
 import {twMerge} from 'tailwind-merge';
 
@@ -8,7 +8,7 @@ function cn(...inputs: ClassValue[]) {
 
 interface TooltipProps {
     content: string;
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
 export function Tooltip({content, children}: TooltipProps) {

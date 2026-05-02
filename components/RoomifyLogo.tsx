@@ -1,10 +1,10 @@
-import React from 'react';
+import React, {type FC} from 'react';
 
 interface RoomifyLogoProps {
     className?: string;
 }
 
-const RoomifyLogo: React.FC<RoomifyLogoProps> = ({className}) => {
+const RoomifyLogo: FC<RoomifyLogoProps> = ({className}) => {
     return (
         <svg
             viewBox="0 0 24 24"

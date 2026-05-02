@@ -72,17 +72,17 @@ interface UploadProps {
     className?: string;
 }
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends import('react').ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: "primary" | "secondary" | "ghost" | "outline";
     size?: "sm" | "md" | "lg";
     fullWidth?: boolean;
 }
 
 interface CardProps {
-    children: React.ReactNode;
+    children: import('react').ReactNode;
     className?: string;
     title?: string;
-    action?: React.ReactNode;
+    action?: import('react').ReactNode;
 }
 
 type AuthContext = {

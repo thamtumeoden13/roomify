@@ -1,7 +1,7 @@
 "use client";
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState, Suspense} from "react";
 import {RefreshCcw, Sparkles, X} from "lucide-react";
 import RoomifyLogo from "@/components/RoomifyLogo";
 import {toast} from "sonner";
@@ -14,7 +14,7 @@ import {useCredits} from "@/lib/hooks/useCredits";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export default function VisualizerPage() {
+function VisualizerContent() {
     const {id} = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -676,5 +676,17 @@ export default function VisualizerPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function VisualizerPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        }>
+            <VisualizerContent/>
+        </Suspense>
     );
 }

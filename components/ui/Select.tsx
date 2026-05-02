@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, type ReactNode} from 'react';
 import {Check, ChevronDown} from 'lucide-react';
 import {clsx, type ClassValue} from 'clsx';
 import {twMerge} from 'tailwind-merge';
@@ -10,9 +10,9 @@ function cn(...inputs: ClassValue[]) {
 interface SelectProps {
     value: string;
     onValueChange: (value: string) => void;
-    options: { id: string; name: string; icon?: React.ReactNode }[];
+    options: { id: string; name: string; icon?: ReactNode }[];
     label?: string;
-    icon?: React.ReactNode;
+    icon?: ReactNode;
     disabled?: boolean;
     position?: 'top' | 'bottom';
 }
