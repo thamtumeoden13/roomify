@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, {type ReactNode} from 'react';
 import {motion} from 'framer-motion';
 import {
     Sparkles,
@@ -36,7 +36,7 @@ interface VisualizerToolbarProps {
     onTogglePublic: (isPublic: boolean) => void;
 }
 
-const contextIcons: Record<string, React.ReactNode> = {
+const contextIcons: Record<string, ReactNode> = {
     'full-apartment': <Home className="w-4 h-4"/>,
     'luxury-villa': <Castle className="w-4 h-4"/>,
     'studio-suite': <Layout className="w-4 h-4"/>,
@@ -44,7 +44,7 @@ const contextIcons: Record<string, React.ReactNode> = {
     'commercial-space': <Building className="w-4 h-4"/>,
 };
 
-const styleIcons: Record<string, React.ReactNode> = {
+const styleIcons: Record<string, ReactNode> = {
     'modern': <Layout className="w-4 h-4"/>,
     'vintage': <Palette className="w-4 h-4"/>,
     'japandi': <Sparkles className="w-4 h-4"/>,

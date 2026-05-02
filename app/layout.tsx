@@ -1,4 +1,5 @@
 import type {Metadata} from "next";
+import React, {type ReactNode} from "react";
 import {Inter, Instrument_Serif, Geist} from "next/font/google";
 import "./app.css";
 import {cn} from "@/lib/utils";
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
                                        children,
                                    }: Readonly<{
-    children: React.ReactNode;
+    children: ReactNode;
 }>) {
     return (
         <html lang="en" data-scroll-behavior="smooth" className={cn("font-sans", geist.variable)}>

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useRef, useState, type DragEvent, type ChangeEvent} from 'react'
 import {CheckCircle2, ImageIcon, UploadIcon} from "lucide-react";
 import {toast} from "sonner";
 import {PROGRESS_INCREMENT, REDIRECT_DELAY_MS, PROGRESS_INTERVAL_MS} from "../lib/constants";
@@ -94,7 +94,7 @@ const Upload = ({onComplete}: UploadProps) => {
         }
     }, [isSignedIn, onComplete]);
 
-    const handleDragOver = (e: React.DragEvent) => {
+    const handleDragOver = (e: DragEvent) => {
         e.preventDefault();
         if (!isSignedIn) return;
         setIsDragging(true);
@@ -104,7 +104,7 @@ const Upload = ({onComplete}: UploadProps) => {
         setIsDragging(false);
     };
 
-    const handleDrop = (e: React.DragEvent) => {
+    const handleDrop = (e: DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
 
@@ -117,7 +117,7 @@ const Upload = ({onComplete}: UploadProps) => {
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (!isSignedIn) return;
 
         const selectedFile = e.target.files?.[0];
