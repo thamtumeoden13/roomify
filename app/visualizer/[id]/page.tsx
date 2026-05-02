@@ -29,7 +29,7 @@ export default function VisualizerPage() {
     const [leftImage, setLeftImage] = useState<string | null>(null);
     const [rightImage, setRightImage] = useState<string | null>(null);
 
-    const handleBack = () => router.push("/");
+    const handleBack = () => router.push("/dashboard");
 
     const fetchVariants = async (projectId: string) => {
         const {data, error} = await supabase

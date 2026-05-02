@@ -35,10 +35,10 @@ function Navbar() {
                     </Link>
 
                     <ul className={"links"}>
-                        <Link href="/#upload">Product</Link>
-                        {user && <Link href="/history">History</Link>}
-                        <Link href="/#projects">Community</Link>
-                        <Link href="#">Pricing</Link>
+                        <Link href="/#how-it-works">How It Works</Link>
+                        {user && <Link href="/dashboard">Dashboard</Link>}
+                        <Link href="/#features">Features</Link>
+                        <Link href="/#showcase">Showcase</Link>
                     </ul>
                 </div>
 

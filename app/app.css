@@ -92,19 +92,19 @@
     }
 
     .card {
-        @apply bg-surface border border-white/5 rounded-3xl p-6 shadow-xl;
+        @apply bg-white border border-slate-200 rounded-3xl p-6 shadow-xl;
 
         .header {
             @apply flex justify-between items-center mb-4;
 
             h3 {
-                @apply text-lg font-semibold text-zinc-100;
+                @apply text-lg font-semibold text-slate-900;
             }
         }
     }
 
     .navbar {
-        @apply fixed top-0 w-full z-50 bg-background/90 backdrop-blur-sm border-b border-black/5;
+        @apply fixed top-0 w-full z-50 bg-white/90 backdrop-blur-sm border-b border-black/5;
 
         .inner {
             @apply max-w-7xl mx-auto px-6 h-16 flex items-center justify-between;
@@ -116,11 +116,11 @@
                     @apply flex items-center space-x-2 cursor-pointer;
 
                     .logo {
-                        @apply w-6 h-6 text-black;
+                        @apply w-6 h-6 text-primary;
                     }
 
                     .name {
-                        @apply text-xl font-serif font-bold text-black tracking-tight;
+                        @apply text-xl font-serif font-bold text-slate-900 tracking-tight;
                     }
                 }
 
@@ -128,7 +128,7 @@
                     @apply hidden md:flex items-center space-x-6;
 
                     a {
-                        @apply text-sm font-medium text-zinc-600 hover:text-black transition-colors;
+                        @apply text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors;
                     }
                 }
             }
@@ -137,7 +137,15 @@
                 @apply flex items-center space-x-4;
 
                 .greeting {
-                    @apply text-xs font-semibold uppercase tracking-wide text-zinc-500;
+                    @apply text-xs font-semibold uppercase tracking-wide text-slate-500;
+                }
+
+                .user-profile {
+                    @apply flex items-center space-x-4;
+
+                    .email {
+                        @apply text-xs font-medium text-slate-500;
+                    }
                 }
 
                 .btn {
@@ -145,7 +153,7 @@
                 }
 
                 .login {
-                    @apply text-xs font-bold uppercase tracking-wide text-zinc-900 hover:text-primary transition-colors;
+                    @apply text-xs font-bold uppercase tracking-wide text-slate-900 hover:text-primary transition-colors;
                 }
 
                 .cta {
@@ -264,7 +272,7 @@
     }
 
     .visualizer {
-        @apply min-h-screen bg-background pt-6 pb-10 px-4 md:px-6 flex flex-col items-center font-sans relative;
+        @apply min-h-screen bg-[#F9FAFB] pt-6 pb-10 px-4 md:px-6 flex flex-col items-center font-sans relative;
 
         .topbar {
             @apply w-full max-w-6xl flex items-center justify-between mb-6 px-2;
@@ -273,16 +281,16 @@
                 @apply flex items-center space-x-2 cursor-pointer;
 
                 .logo {
-                    @apply w-6 h-6 text-black;
+                    @apply w-6 h-6 text-primary;
                 }
 
                 .name {
-                    @apply text-xl font-serif font-bold text-black tracking-tight;
+                    @apply text-xl font-serif font-bold text-slate-900 tracking-tight;
                 }
             }
 
             .exit {
-                @apply text-zinc-500 hover:text-black hover:bg-zinc-100;
+                @apply text-slate-500 hover:text-slate-900 hover:bg-slate-100;
 
                 .icon {
                     @apply w-5 h-5 mr-2;
@@ -302,19 +310,19 @@
 
                 .panel-meta {
                     p {
-                        @apply text-xs font-mono uppercase tracking-widest text-zinc-400;
+                        @apply text-xs font-mono uppercase tracking-widest text-slate-400;
                     }
 
                     h2 {
-                        @apply text-2xl font-serif font-bold text-black;
+                        @apply text-2xl font-serif font-bold text-slate-900;
                     }
 
                     h3 {
-                        @apply text-lg font-serif font-bold text-black;
+                        @apply text-lg font-serif font-bold text-slate-900;
                     }
 
                     .note {
-                        @apply text-xs text-zinc-500 mt-1;
+                        @apply text-xs text-slate-500 mt-1;
                     }
                 }
 
@@ -352,7 +360,7 @@
             }
 
             .render-area {
-                @apply relative bg-zinc-100 min-h-105;
+                @apply relative bg-slate-50 min-h-105;
 
                 .render-img {
                     @apply w-full h-full object-contain transition-all duration-700 opacity-100 scale-100;
@@ -376,18 +384,18 @@
                     @apply absolute inset-0 flex flex-col items-center justify-center z-30 bg-white/60 backdrop-blur-sm transition-opacity duration-300;
 
                     .rendering-card {
-                        @apply bg-white px-6 py-4 rounded-xl border border-zinc-200 flex flex-col items-center shadow-2xl;
+                        @apply bg-white px-6 py-4 rounded-xl border border-slate-200 flex flex-col items-center shadow-2xl;
 
                         .spinner {
                             @apply w-8 h-8 mb-3 animate-spin text-primary;
                         }
 
                         .title {
-                            @apply text-sm font-bold text-black;
+                            @apply text-sm font-bold text-slate-900;
                         }
 
                         .subtitle {
-                            @apply text-xs text-zinc-500 mt-1;
+                            @apply text-xs text-slate-500 mt-1;
                         }
                     }
                 }
@@ -400,12 +408,12 @@
                     @apply flex items-center justify-between;
 
                     .hint {
-                        @apply text-xs text-zinc-400;
+                        @apply text-xs text-slate-400;
                     }
                 }
 
                 .compare-stage {
-                    @apply relative bg-zinc-100 overflow-hidden flex items-center justify-center;
+                    @apply relative bg-slate-50 overflow-hidden flex items-center justify-center;
                 }
 
                 .compare-fallback {
@@ -420,13 +428,13 @@
     }
 
     .home {
-        @apply min-h-screen bg-background relative overflow-x-hidden text-foreground;
+        @apply min-h-screen bg-[#F9FAFB] relative overflow-x-hidden text-slate-900;
 
         .hero {
             @apply pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center;
 
             .announce {
-                @apply mb-8 inline-flex items-center px-3 py-1 rounded-md bg-white border border-zinc-200 shadow-sm;
+                @apply mb-8 inline-flex items-center px-3 py-1 rounded-md bg-white border border-slate-200 shadow-sm;
 
                 .dot {
                     @apply w-4 h-4 rounded bg-blue-100 flex items-center justify-center mr-2;
@@ -437,16 +445,16 @@
                 }
 
                 p {
-                    @apply text-[10px] font-bold uppercase tracking-widest text-zinc-600;
+                    @apply text-[10px] font-bold uppercase tracking-widest text-slate-600;
                 }
             }
 
             h1 {
-                @apply text-6xl md:text-8xl font-serif leading-[0.95] text-black mb-8 max-w-5xl mx-auto;
+                @apply text-6xl md:text-8xl font-serif leading-[0.95] text-slate-900 mb-8 max-w-5xl mx-auto;
             }
 
             .subtitle {
-                @apply max-w-2xl mx-auto text-xs md:text-sm font-mono uppercase tracking-widest text-zinc-500 mb-10 leading-relaxed;
+                @apply max-w-2xl mx-auto text-xs md:text-sm font-mono uppercase tracking-widest text-slate-500 mb-10 leading-relaxed;
             }
 
             .actions {
@@ -461,7 +469,7 @@
                 }
 
                 .demo {
-                    @apply px-8 bg-white rounded-md hover:bg-zinc-50;
+                    @apply px-8 bg-white rounded-md hover:bg-slate-50;
                 }
             }
 
@@ -478,7 +486,7 @@
                 }
 
                 .upload-card {
-                    @apply relative w-full max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-100 p-8 z-10 transition-transform hover:scale-[1.01] duration-500;
+                    @apply relative w-full max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100 p-8 z-10 transition-transform hover:scale-[1.01] duration-500;
 
                     .upload-head {
                         @apply text-center mb-6;
@@ -492,11 +500,11 @@
                         }
 
                         h3 {
-                            @apply text-xl font-serif font-bold text-black;
+                            @apply text-xl font-serif font-bold text-slate-900;
                         }
 
                         p {
-                            @apply text-zinc-500 text-sm mt-1;
+                            @apply text-slate-500 text-sm mt-1;
                         }
                     }
                 }
@@ -504,7 +512,7 @@
         }
 
         .projects {
-            @apply py-24 bg-white relative border-b border-zinc-100;
+            @apply py-24 bg-white relative border-b border-slate-100;
 
             .section-inner {
                 @apply max-w-7xl mx-auto px-6;
@@ -516,68 +524,68 @@
                         @apply max-w-2xl;
 
                         h2 {
-                            @apply text-4xl font-serif text-black mb-4;
+                            @apply text-4xl font-serif text-slate-900 mb-4;
                         }
 
                         p {
-                            @apply text-zinc-500 text-lg;
+                            @apply text-slate-500 text-lg;
                         }
                     }
                 }
 
                 .loading {
-                    @apply flex items-center justify-center text-sm text-zinc-500;
+                    @apply flex items-center justify-center text-sm text-slate-500;
                 }
 
                 .projects-grid {
                     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
 
                     .project-card {
-                        @apply relative bg-white rounded-xl overflow-hidden border border-zinc-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full;
+                        @apply relative bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full;
 
                         .preview {
-                            @apply aspect-4/3 overflow-hidden bg-zinc-100 relative;
+                            @apply aspect-4/3 overflow-hidden bg-slate-100 relative;
 
                             img {
                                 @apply w-full h-full object-cover group-hover:scale-105 transition-transform duration-700;
                             }
 
                             .badge {
-                                @apply absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md border border-zinc-200 shadow-sm;
+                                @apply absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md border border-slate-200 shadow-sm;
 
                                 span {
-                                    @apply text-[10px] font-bold uppercase tracking-wider text-zinc-800;
+                                    @apply text-[10px] font-bold uppercase tracking-wider text-slate-800;
                                 }
                             }
                         }
 
                         .card-body {
-                            @apply p-5 flex justify-between items-center bg-white border-t border-zinc-100 grow;
+                            @apply p-5 flex justify-between items-center bg-white border-t border-slate-100 grow;
 
                             h3 {
-                                @apply text-lg font-serif font-bold text-zinc-900 group-hover:text-primary transition-colors;
+                                @apply text-lg font-serif font-bold text-slate-900 group-hover:text-primary transition-colors;
                             }
 
                             .meta {
-                                @apply flex items-center text-zinc-400 text-xs mt-1 space-x-2;
+                                @apply flex items-center text-slate-400 text-xs mt-1 space-x-2;
 
                                 span {
                                     @apply font-mono uppercase;
                                 }
 
                                 span:last-child {
-                                    @apply text-zinc-400 text-[10px] uppercase tracking-wide;
+                                    @apply text-slate-400 text-[10px] uppercase tracking-wide;
                                 }
                             }
 
                             .arrow {
-                                @apply w-10 h-10 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300;
+                                @apply w-10 h-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300;
                             }
                         }
                     }
 
                     .empty {
-                        @apply col-span-full rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-10 text-center text-sm text-zinc-500;
+                        @apply col-span-full rounded-xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center text-sm text-slate-500;
                     }
                 }
             }
@@ -609,10 +617,10 @@
     }
 
     .visualizer-route {
-        @apply min-h-screen flex items-center justify-center;
+        @apply min-h-screen flex items-center justify-center bg-[#F9FAFB];
 
         &.loading {
-            @apply text-sm text-zinc-500;
+            @apply text-sm text-slate-500;
         }
     }
 }
