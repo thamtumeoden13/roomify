@@ -68,6 +68,7 @@ export default function HistoryPage() {
                                         src={render.rendered_image_url || render.source_image_url}
                                         alt={render.project_name}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        loading="eager"
                                     />
                                     <div className="absolute top-3 right-3">
                                         <span className={`px-2 py-1 text-xs rounded-full ${

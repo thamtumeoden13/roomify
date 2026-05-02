@@ -17,12 +17,24 @@ export default function SharePage() {
     const [showcase, setShowcase] = useState<any>(null);
     const [hasVoted, setHasVoted] = useState(false);
     const [voteCount, setVoteCount] = useState(0);
+    const [isAdminUser, setIsAdminUser] = useState(false);
 
     useEffect(() => {
         async function fetchProjectData() {
             if (!id) return;
 
             setLoading(true);
+
+            // Get user and check admin status
+            const {data: {user}} = await supabase.auth.getUser();
+            if (user) {
+                const {data: profile} = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+                setIsAdminUser(profile?.role === 'admin');
+            }
 
             // Try to find if this is a showcase item first
             const {data: showcaseData} = await supabase
@@ -189,17 +201,17 @@ export default function SharePage() {
                             {selectedVariant ? (
                                 <ReactCompareSlider
                                     itemOne={<ReactCompareSliderImage src={project.source_image_url}
-                                                                      alt="Original Plan"/>}
+                                                                      alt="Original Plan" loading="eager"/>}
                                     itemTwo={<ReactCompareSliderImage
                                         src={selectedVariant.upscaled_image_url || selectedVariant.rendered_image_url}
-                                        alt="3D Render"/>}
+                                        alt="3D Render" loading="eager"/>}
                                     className="aspect-[4/3] md:aspect-video"
                                 />
                             ) : (
                                 <div
                                     className="aspect-[4/3] md:aspect-video bg-slate-100 flex items-center justify-center">
                                     <img src={project.source_image_url} alt="Original Plan"
-                                         className="max-h-full object-contain"/>
+                                         className="max-h-full object-contain" loading="eager"/>
                                 </div>
                             )}
 
@@ -208,6 +220,46 @@ export default function SharePage() {
                                     className="absolute top-6 left-6 bg-amber-400 text-amber-950 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-2 z-20">
                                     <Sparkles className="w-4 h-4"/>
                                     Staff Pick
+                                </div>
+                            )}
+
+                            {isAdminUser && showcase && (
+                                <div className="absolute top-6 right-6 flex gap-2 z-20">
+                                    {!showcase.is_admin_approved ? (
+                                        <Button
+                                            size="sm"
+                                            className="bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg"
+                                            onClick={async () => {
+                                                const res = await fetch('/api/admin/approve', {
+                                                    method: 'POST',
+                                                    headers: {'Content-Type': 'application/json'},
+                                                    body: JSON.stringify({showcaseId: showcase.id, action: 'approve'}),
+                                                });
+                                                if (res.ok) setShowcase({...showcase, is_admin_approved: true});
+                                            }}
+                                        >
+                                            Approve
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="bg-white/90 backdrop-blur-md border-slate-200 text-red-600 hover:bg-red-50 rounded-full shadow-lg"
+                                            onClick={async () => {
+                                                const res = await fetch('/api/admin/approve', {
+                                                    method: 'POST',
+                                                    headers: {'Content-Type': 'application/json'},
+                                                    body: JSON.stringify({
+                                                        showcaseId: showcase.id,
+                                                        action: 'unapprove'
+                                                    }),
+                                                });
+                                                if (res.ok) setShowcase({...showcase, is_admin_approved: false});
+                                            }}
+                                        >
+                                            Unapprove
+                                        </Button>
+                                    )}
                                 </div>
                             )}
 
