@@ -1,15 +1,17 @@
 "use client";
 
 import React, {useEffect, useState} from 'react'
-import {User} from 'lucide-react'
+import {User, Coins} from 'lucide-react'
 import RoomifyLogo from './RoomifyLogo'
 import Link from "next/link";
 import {supabase} from "@/lib/supabase";
 import {useRouter} from "next/navigation";
+import {useCredits} from "@/lib/hooks/useCredits";
 
 function Navbar() {
     const [user, setUser] = useState<any>(null);
     const router = useRouter();
+    const {credits} = useCredits();
 
     useEffect(() => {
         const {data: {subscription}} = supabase.auth.onAuthStateChange((_event, session) => {
@@ -47,6 +49,11 @@ function Navbar() {
                 <div className={"actions"}>
                     {user ? (
                         <div className="user-profile">
+                            <div
+                                className="credits-badge mr-4 flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100 font-medium text-sm">
+                                <Coins className="w-4 h-4"/>
+                                <span>{credits !== null ? credits : '--'}</span>
+                            </div>
                             <span className="email">{user.email}</span>
                             <button className={"btn btn--ghost btn--sm"} onClick={handleLogout}>
                                 Log Out

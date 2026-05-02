@@ -43,6 +43,13 @@ export async function POST(req: Request) {
             .limit(1)
             .maybeSingle();
 
+        // Get current user for credits check
+        const {data: {user}} = await (await import("@/lib/supabase-server")).getServerUser();
+
+        if (!user) {
+            return NextResponse.json({error: "Authentication required"}, {status: 401});
+        }
+
         // Case 1: forceNew is false: If a matching record exists and its status is succeeded, return it immediately
         if (!forceNew && existingRender && existingRender.status === "succeeded") {
             // Cache Hit: Return existing record directly
@@ -53,6 +60,25 @@ export async function POST(req: Request) {
                 isCacheHit: true
             }, {status: 200});
         }
+
+        // --- CREDIT CHECK ---
+        const {data: profile, error: profileError} = await supabase
+            .from("profiles")
+            .select("credits")
+            .eq("id", user.id)
+            .single();
+
+        if (profileError || !profile) {
+            console.error("Profile fetch error:", profileError);
+            return NextResponse.json({error: "Could not verify user credits"}, {status: 500});
+        }
+
+        if (profile.credits < 1) {
+            return NextResponse.json({
+                error: "You have run out of credits. Please contact support or wait for a top-up."
+            }, {status: 403});
+        }
+        // --- END CREDIT CHECK ---
 
         let finalPrompt = prompt || ROOMIFY_RENDER_PROMPT;
 
@@ -92,9 +118,18 @@ export async function POST(req: Request) {
             return NextResponse.json({error: prediction.error}, {status: 500});
         }
 
-        // Save to Supabase (Upsert logic)
-        const {data: {user}} = await (await import("@/lib/supabase-server")).getServerUser();
+        // Decrement credits after successful prediction creation
+        const {error: decrementError} = await supabase.rpc("decrement_credits", {
+            target_user_id: user.id,
+            amount: 1
+        });
 
+        if (decrementError) {
+            console.error("Credit decrement error:", decrementError);
+            // We continue even if credit decrement fails, to not block the user if the AI already started
+        }
+
+        // Save to Supabase (Upsert logic)
         const renderData = {
             prediction_id: prediction.id,
             project_id: project_id,

@@ -3,6 +3,7 @@ import {Inter, Instrument_Serif, Geist} from "next/font/google";
 import "./app.css";
 import {cn} from "@/lib/utils";
 import {Toaster} from "sonner";
+import {CreditProvider} from "@/lib/context/CreditContext";
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
@@ -28,8 +29,10 @@ export default function RootLayout({
     return (
         <html lang="en" data-scroll-behavior="smooth" className={cn("font-sans", geist.variable)}>
         <body className={`${geist.variable} ${instrumentSerif.variable} antialiased`}>
-        {children}
-        <Toaster position="bottom-right" richColors/>
+        <CreditProvider>
+            {children}
+            <Toaster position="bottom-right" richColors/>
+        </CreditProvider>
         </body>
         </html>
     );

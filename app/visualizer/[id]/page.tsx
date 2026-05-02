@@ -10,6 +10,7 @@ import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider"
 import {supabase} from "@/lib/supabase";
 import {ROOM_STYLES, PROJECT_CONTEXTS} from "@/lib/constants";
 import VisualizerToolbar from "@/components/VisualizerToolbar";
+import {useCredits} from "@/lib/hooks/useCredits";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -33,6 +34,7 @@ export default function VisualizerPage() {
     const [showToast, setShowToast] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [showcaseId, setShowcaseId] = useState<string | null>(null);
+    const {refreshCredits} = useCredits();
 
     const handleBack = () => router.push("/dashboard");
 
@@ -113,8 +115,13 @@ export default function VisualizerPage() {
             }
 
             if (prediction.status === "succeeded") {
-                // Refresh variants
+                // Refresh variants and credits
                 if (id) fetchVariants(id as string);
+
+                // Add a small delay to allow database triggers/RPCs to finish
+                setTimeout(() => {
+                    refreshCredits();
+                }, 1000);
 
                 // Update project thumbnail
                 const {data: updatedRecord} = await supabase
@@ -304,8 +311,13 @@ export default function VisualizerPage() {
             }
 
             if (prediction.status === "succeeded") {
-                // Refresh variants
+                // Refresh variants and credits
                 if (id) fetchVariants(id as string);
+
+                // Add a small delay to allow database triggers/RPCs to finish
+                setTimeout(() => {
+                    refreshCredits();
+                }, 1000);
 
                 // If the backend updated the URL to Supabase storage, we should fetch the record again
                 // to get that permanent URL, or the backend should return it in the prediction response.

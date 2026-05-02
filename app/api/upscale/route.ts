@@ -34,6 +34,31 @@ export async function POST(req: Request) {
             }, {status: 200});
         }
 
+        // --- CREDIT CHECK ---
+        const {data: {user}} = await (await import("@/lib/supabase-server")).getServerUser();
+
+        if (!user) {
+            return NextResponse.json({error: "Authentication required"}, {status: 401});
+        }
+
+        const {data: profile, error: profileError} = await supabase
+            .from("profiles")
+            .select("credits")
+            .eq("id", user.id)
+            .single();
+
+        if (profileError || !profile) {
+            console.error("Profile fetch error:", profileError);
+            return NextResponse.json({error: "Could not verify user credits"}, {status: 500});
+        }
+
+        if (profile.credits < 2) {
+            return NextResponse.json({
+                error: "You need at least 2 credits to upscale. Please contact support or wait for a top-up."
+            }, {status: 403});
+        }
+        // --- END CREDIT CHECK ---
+
         // Initialize upscale prediction
         const prediction = await replicate.predictions.create({
             model: "nightmareai/real-esrgan",
@@ -47,6 +72,16 @@ export async function POST(req: Request) {
         if (prediction?.error) {
             console.error("Replicate internal error:", prediction.error);
             return NextResponse.json({error: prediction.error}, {status: 500});
+        }
+
+        // Decrement credits after successful prediction creation
+        const {error: decrementError} = await supabase.rpc("decrement_credits", {
+            target_user_id: user.id,
+            amount: 2
+        });
+
+        if (decrementError) {
+            console.error("Credit decrement error:", decrementError);
         }
 
         // Update the existing record with the upscale_prediction_id
