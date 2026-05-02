@@ -4,7 +4,7 @@ import {useParams} from "next/navigation";
 import {useEffect, useState} from "react";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
-import {Sparkles, ArrowRight} from "lucide-react";
+import {Sparkles, ArrowRight, Heart, Eye, Share2, Box, User} from "lucide-react";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 
@@ -14,40 +14,76 @@ export default function SharePage() {
     const [variants, setVariants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedVariant, setSelectedVariant] = useState<any>(null);
+    const [showcase, setShowcase] = useState<any>(null);
+    const [hasVoted, setHasVoted] = useState(false);
+    const [voteCount, setVoteCount] = useState(0);
 
     useEffect(() => {
         async function fetchProjectData() {
             if (!id) return;
 
-            // Fetch project details
-            const {data: projectData, error: projectError} = await supabase
-                .from("projects")
-                .select("*")
-                .eq("id", id)
-                .single();
+            setLoading(true);
 
-            if (projectError) {
-                console.error("Error fetching project:", projectError);
-                setLoading(false);
-                return;
-            }
+            // Try to find if this is a showcase item first
+            const {data: showcaseData} = await supabase
+                .from("showcase")
+                .select("*, render:renders(*)")
+                .or(`id.eq.${id},render_id.eq.${id}`)
+                .maybeSingle();
 
-            setProject(projectData);
+            if (showcaseData) {
+                setShowcase(showcaseData);
+                setVoteCount(showcaseData.vote_count);
 
-            // Fetch successful variants
-            const {data: variantsData, error: variantsError} = await supabase
-                .from("renders")
-                .select("*")
-                .eq("project_id", id)
-                .eq("status", "succeeded")
-                .order("created_at", {ascending: false});
+                // If we found a showcase, the project is from the render
+                const render = showcaseData.render;
+                const {data: projectData} = await supabase
+                    .from("projects")
+                    .select("*")
+                    .eq("id", render.project_id)
+                    .single();
 
-            if (variantsError) {
-                console.error("Error fetching variants:", variantsError);
-            } else if (variantsData) {
-                setVariants(variantsData);
-                if (variantsData.length > 0) {
-                    setSelectedVariant(variantsData[0]);
+                setProject(projectData);
+                setSelectedVariant(render);
+
+                // Increment view count
+                await supabase.rpc("increment_showcase_view", {target_showcase_id: showcaseData.id});
+
+                // Check if user has voted
+                const {data: {user}} = await supabase.auth.getUser();
+                if (user) {
+                    const {data: vote} = await supabase
+                        .from("showcase_votes")
+                        .select("*")
+                        .eq("user_id", user.id)
+                        .eq("showcase_id", showcaseData.id)
+                        .maybeSingle();
+                    setHasVoted(!!vote);
+                }
+            } else {
+                // Regular share page logic (fetch by project ID)
+                const {data: projectData, error: projectError} = await supabase
+                    .from("projects")
+                    .select("*")
+                    .eq("id", id)
+                    .maybeSingle();
+
+                if (projectData) {
+                    setProject(projectData);
+
+                    const {data: variantsData} = await supabase
+                        .from("renders")
+                        .select("*")
+                        .eq("project_id", id)
+                        .eq("status", "succeeded")
+                        .order("created_at", {ascending: false});
+
+                    if (variantsData) {
+                        setVariants(variantsData);
+                        if (variantsData.length > 0) {
+                            setSelectedVariant(variantsData[0]);
+                        }
+                    }
                 }
             }
 
@@ -56,6 +92,30 @@ export default function SharePage() {
 
         fetchProjectData();
     }, [id]);
+
+    const handleVote = async () => {
+        if (!showcase) return;
+
+        const {data: {user}} = await supabase.auth.getUser();
+        if (!user) {
+            alert("Please sign in to vote!");
+            return;
+        }
+
+        try {
+            const {data, error} = await supabase.rpc("toggle_showcase_vote", {
+                target_showcase_id: showcase.id
+            });
+
+            if (error) throw error;
+
+            setHasVoted(data.action === "voted");
+            setVoteCount(data.vote_count);
+        } catch (error: any) {
+            console.error("Vote failed:", error);
+            alert(error.message);
+        }
+    };
 
     if (loading) {
         return (
@@ -95,9 +155,25 @@ export default function SharePage() {
                         </div>
                         <span className="font-bold text-xl tracking-tight text-slate-900">Roomify</span>
                     </Link>
-                    <div className="text-right">
-                        <h1 className="text-sm font-semibold text-slate-900">{project.name}</h1>
-                        <p className="text-xs text-slate-500">Shared Design</p>
+                    <div className="flex items-center gap-4">
+                        {showcase && (
+                            <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 gap-4 mr-4">
+                                <div className="flex items-center gap-1.5">
+                                    <Heart
+                                        className={`w-4 h-4 ${hasVoted ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`}/>
+                                    <span className="text-sm font-bold text-slate-700">{voteCount}</span>
+                                </div>
+                                <div className="w-[1px] h-3 bg-slate-300"/>
+                                <div className="flex items-center gap-1.5">
+                                    <Eye className="w-4 h-4 text-slate-400"/>
+                                    <span className="text-sm font-bold text-slate-700">{showcase.view_count}</span>
+                                </div>
+                            </div>
+                        )}
+                        <div className="text-right">
+                            <h1 className="text-sm font-semibold text-slate-900">{project.name}</h1>
+                            <p className="text-xs text-slate-500">{showcase ? 'Community Showcase' : 'Shared Design'}</p>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -108,7 +184,8 @@ export default function SharePage() {
                     {/* Left side: Slider and Variants */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Comparison Slider */}
-                        <div className="bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-200">
+                        <div
+                            className="bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-200 relative group">
                             {selectedVariant ? (
                                 <ReactCompareSlider
                                     itemOne={<ReactCompareSliderImage src={project.source_image_url}
@@ -123,6 +200,40 @@ export default function SharePage() {
                                     className="aspect-[4/3] md:aspect-video bg-slate-100 flex items-center justify-center">
                                     <img src={project.source_image_url} alt="Original Plan"
                                          className="max-h-full object-contain"/>
+                                </div>
+                            )}
+
+                            {showcase?.is_admin_approved && (
+                                <div
+                                    className="absolute top-6 left-6 bg-amber-400 text-amber-950 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-2 z-20">
+                                    <Sparkles className="w-4 h-4"/>
+                                    Staff Pick
+                                </div>
+                            )}
+
+                            {showcase && (
+                                <div className="absolute bottom-6 right-6 flex items-center gap-2 z-20">
+                                    <Button
+                                        variant={hasVoted ? "secondary" : "primary"}
+                                        onClick={handleVote}
+                                        size="sm"
+                                        className="rounded-full shadow-lg"
+                                    >
+                                        <Heart
+                                            className={`w-4 h-4 mr-2 ${hasVoted ? 'fill-rose-500 text-rose-500' : ''}`}/>
+                                        {hasVoted ? "Voted" : "Vote"}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="bg-white/80 backdrop-blur-md rounded-full shadow-lg"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(window.location.href);
+                                            alert("Link copied!");
+                                        }}
+                                    >
+                                        <Share2 className="w-4 h-4"/>
+                                    </Button>
                                 </div>
                             )}
                         </div>

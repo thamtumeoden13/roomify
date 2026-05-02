@@ -55,3 +55,119 @@ CREATE POLICY "Users can update their own renders" ON renders
 
 CREATE POLICY "Users can delete their own renders" ON renders
     FOR DELETE USING (auth.uid() = user_id);
+
+-- Create the showcase table
+CREATE TABLE IF NOT EXISTS showcase (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    render_id UUID NOT NULL REFERENCES renders(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    is_admin_approved BOOLEAN DEFAULT false,
+    vote_count INT DEFAULT 0,
+    view_count INT DEFAULT 0,
+    trending_score FLOAT DEFAULT 0.0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Set up Row Level Security (RLS) for showcase
+ALTER TABLE showcase ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view showcase" ON showcase
+    FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own showcase" ON showcase
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own showcase" ON showcase
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own showcase" ON showcase
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Create a table for tracking user votes to prevent multiple votes
+CREATE TABLE IF NOT EXISTS showcase_votes (
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    showcase_id UUID REFERENCES showcase(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, showcase_id)
+);
+
+ALTER TABLE showcase_votes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own votes" ON showcase_votes
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can vote" ON showcase_votes
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can unvote" ON showcase_votes
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Function to toggle vote
+CREATE OR REPLACE FUNCTION toggle_showcase_vote(target_showcase_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    has_voted BOOLEAN;
+    new_vote_count INT;
+    v_user_id UUID;
+BEGIN
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Not authenticated';
+    END IF;
+
+    SELECT EXISTS (
+        SELECT 1 FROM showcase_votes 
+        WHERE user_id = v_user_id AND showcase_id = target_showcase_id
+    ) INTO has_voted;
+
+    IF has_voted THEN
+        DELETE FROM showcase_votes 
+        WHERE user_id = v_user_id AND showcase_id = target_showcase_id;
+        
+        UPDATE showcase 
+        SET vote_count = vote_count - 1 
+        WHERE id = target_showcase_id
+        RETURNING vote_count INTO new_vote_count;
+        
+        RETURN jsonb_build_object('action', 'unvoted', 'vote_count', new_vote_count);
+    ELSE
+        INSERT INTO showcase_votes (user_id, showcase_id)
+        VALUES (v_user_id, target_showcase_id);
+        
+        UPDATE showcase 
+        SET vote_count = vote_count + 1 
+        WHERE id = target_showcase_id
+        RETURNING vote_count INTO new_vote_count;
+        
+        RETURN jsonb_build_object('action', 'voted', 'vote_count', new_vote_count);
+    END IF;
+END;
+$$;
+
+-- Function to increment view count
+CREATE OR REPLACE FUNCTION increment_showcase_view(target_showcase_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE showcase 
+    SET view_count = view_count + 1 
+    WHERE id = target_showcase_id;
+END;
+$$;
+
+-- Function to update trending scores
+-- Score = (votes * 2) + (views * 0.5)
+CREATE OR REPLACE FUNCTION update_trending_scores()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE showcase
+    SET trending_score = (vote_count * 2.0) + (view_count * 0.5);
+END;
+$$;

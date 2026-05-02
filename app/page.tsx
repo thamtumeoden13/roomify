@@ -19,12 +19,15 @@ import Link from "next/link";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import {supabase} from "@/lib/supabase";
+import {Heart, Eye, Sparkles, User} from "lucide-react";
 
 export default function LandingPage() {
     const [user, setUser] = useState<any>(null);
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [trendingItems, setTrendingItems] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setMounted(true);
@@ -36,6 +39,31 @@ export default function LandingPage() {
             setIsScrolled(window.scrollY > 20);
         };
         window.addEventListener("scroll", handleScroll);
+
+        const fetchShowcase = async () => {
+            setIsLoading(true);
+            try {
+                // Update scores before fetching
+                await supabase.rpc("update_trending_scores");
+
+                const {data, error} = await supabase
+                    .from("showcase")
+                    .select("*, render:renders(*)")
+                    .order("is_admin_approved", {ascending: false})
+                    .order("trending_score", {ascending: false})
+                    .limit(12);
+
+                if (data) {
+                    setTrendingItems(data);
+                }
+            } catch (error) {
+                console.error("Error fetching showcase:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchShowcase();
 
         return () => {
             subscription.unsubscribe();
@@ -416,32 +444,107 @@ export default function LandingPage() {
                 {/* Showcase Gallery */}
                 <section id="showcase" className="py-24 md:py-40 bg-white">
                     <div className="container mx-auto px-6">
-                        <div className="text-center mb-20 max-w-3xl mx-auto">
-                            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900">Gallery</h2>
-                            <p className="text-lg text-slate-600">See what our community has been creating.</p>
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-20">
+                            <div className="max-w-2xl">
+                                <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900 tracking-tight">Community
+                                    Showcase</h2>
+                                <p className="text-lg text-slate-600">Discover the most inspiring AI transformations
+                                    from our creators.</p>
+                            </div>
+                            <Link href="/dashboard">
+                                <Button variant="outline" className="rounded-full px-8">View Full Gallery</Button>
+                            </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {galleryItems.map((img, i) => (
-                                <motion.div
-                                    key={i}
-                                    {...fadeIn}
-                                    transition={{delay: i * 0.05}}
-                                    className="rounded-3xl overflow-hidden border border-slate-200 group relative shadow-md aspect-[4/3]"
-                                >
-                                    <img
-                                        src={img}
-                                        alt={`Render ${i}`}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                    />
-                                    <div
-                                        className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-8">
-                                        <span
-                                            className="text-sm font-bold tracking-widest uppercase text-white">Project {i + 1}</span>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
+                        {isLoading ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} className="aspect-[4/5] rounded-3xl bg-slate-100 animate-pulse"/>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="columns-1 sm:columns-2 lg:columns-3 gap-8 space-y-8">
+                                {trendingItems.map((item, i) => {
+                                    const render = item.render;
+                                    const imageUrl = render.upscaled_image_url || render.rendered_image_url;
+                                    const isTrending = item.view_count > 50 || item.vote_count > 10;
+
+                                    return (
+                                        <motion.div
+                                            key={item.id}
+                                            {...fadeIn}
+                                            transition={{delay: i * 0.05}}
+                                            className="break-inside-avoid"
+                                        >
+                                            <Link href={`/share/${item.id}`} className="block group">
+                                                <div
+                                                    className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
+                                                    {/* Image Container with Hover Effect */}
+                                                    <div className="relative aspect-auto min-h-[200px]">
+                                                        <img
+                                                            src={imageUrl}
+                                                            alt={render.project_name || "AI Render"}
+                                                            className="w-full h-auto object-cover group-hover:opacity-0 transition-opacity duration-500"
+                                                        />
+                                                        <img
+                                                            src={render.source_image_url}
+                                                            alt="Original"
+                                                            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                                        />
+
+                                                        {/* Badges */}
+                                                        <div className="absolute top-4 left-4 flex flex-col gap-2">
+                                                            {item.is_admin_approved && (
+                                                                <span
+                                                                    className="bg-amber-400 text-amber-950 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+                                                                    <Sparkles className="w-3 h-3"/> Staff Pick
+                                                                </span>
+                                                            )}
+                                                            {isTrending && (
+                                                                <span
+                                                                    className="bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+                                                                    🔥 Trending
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <div
+                                                            className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm border border-white/20 capitalize">
+                                                            {render.style_id || "Japandi"}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Card Footer */}
+                                                    <div
+                                                        className="p-5 border-t border-slate-50 flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div
+                                                                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                                                                <User className="w-4 h-4 text-slate-400"/>
+                                                            </div>
+                                                            <span
+                                                                className="text-sm font-bold text-slate-700">User_{item.user_id.substring(0, 4)}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 text-slate-400">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Heart className="w-4 h-4"/>
+                                                                <span
+                                                                    className="text-xs font-bold">{item.vote_count}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Eye className="w-4 h-4"/>
+                                                                <span
+                                                                    className="text-xs font-bold">{item.view_count}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </section>
 

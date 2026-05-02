@@ -30,6 +30,8 @@ interface VisualizerToolbarProps {
     isProcessing: boolean;
     isUpscaling: boolean;
     hasCurrentImage: boolean;
+    isPublic: boolean;
+    onTogglePublic: (isPublic: boolean) => void;
 }
 
 const contextIcons: Record<string, React.ReactNode> = {
@@ -56,7 +58,9 @@ export default function VisualizerToolbar({
                                               selectedContext,
                                               isProcessing,
                                               isUpscaling,
-                                              hasCurrentImage
+                                              hasCurrentImage,
+                                              isPublic,
+                                              onTogglePublic
                                           }: VisualizerToolbarProps) {
 
     const contextOptions = PROJECT_CONTEXTS.map(c => ({
@@ -131,6 +135,22 @@ export default function VisualizerToolbar({
 
                 {/* Right Group: Utilities */}
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                    {/* Public Toggle */}
+                    <div
+                        className="flex items-center gap-2 mr-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span
+                            className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Public Gallery</span>
+                        <button
+                            onClick={() => onTogglePublic(!isPublic)}
+                            disabled={!hasCurrentImage || isProcessing || isUpscaling}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${isPublic ? 'bg-indigo-600' : 'bg-slate-300'} disabled:opacity-50`}
+                        >
+                            <span
+                                className={`${isPublic ? 'translate-x-5' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
+                            />
+                        </button>
+                    </div>
+
                     <Tooltip content="Enhance to ultra-high resolution">
                         <Button
                             variant="outline"
