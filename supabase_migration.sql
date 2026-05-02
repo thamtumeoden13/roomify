@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS renders (
 -- Set up Row Level Security (RLS) for projects
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view their own projects" ON projects
-    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Anyone can view projects" ON projects
+    FOR SELECT USING (true);
 
 CREATE POLICY "Users can insert their own projects" ON projects
     FOR INSERT WITH CHECK (auth.uid() = user_id);
@@ -44,8 +44,8 @@ CREATE POLICY "Users can delete their own projects" ON projects
 -- Set up Row Level Security (RLS) for renders
 ALTER TABLE renders ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view their own renders" ON renders
-    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Anyone can view renders" ON renders
+    FOR SELECT USING (true);
 
 CREATE POLICY "Users can insert their own renders" ON renders
     FOR INSERT WITH CHECK (auth.uid() = user_id);

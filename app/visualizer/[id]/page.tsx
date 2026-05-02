@@ -2,7 +2,7 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
-import {Box, RefreshCcw, X} from "lucide-react";
+import {Box, RefreshCcw, Sparkles, X} from "lucide-react";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
@@ -28,6 +28,7 @@ export default function VisualizerPage() {
     const [variants, setVariants] = useState<any[]>([]);
     const [leftImage, setLeftImage] = useState<string | null>(null);
     const [rightImage, setRightImage] = useState<string | null>(null);
+    const [showToast, setShowToast] = useState(false);
 
     const handleBack = () => router.push("/dashboard");
 
@@ -161,6 +162,17 @@ export default function VisualizerPage() {
             console.error("Failed to export image:", e);
             window.open(currentImage, "_blank");
         }
+    };
+
+    const handleShare = () => {
+        const shareUrl = `${window.location.origin}/share/${id}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert("Failed to copy link to clipboard");
+        });
     };
 
     const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0], contextOverride?: typeof PROJECT_CONTEXTS[0], forceNew = false) => {
@@ -542,12 +554,27 @@ export default function VisualizerPage() {
                 }}
                 onUpscale={handleUpscale}
                 onExport={handleExport}
+                onShare={handleShare}
                 selectedStyle={selectedStyle}
                 selectedContext={selectedContext}
                 isProcessing={isProcessing}
                 isUpscaling={isUpscaling}
                 hasCurrentImage={!!currentImage}
             />
+
+            {/* Toast Notification */}
+            {showToast && (
+                <div
+                    className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div
+                        className="bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10">
+                        <div className="bg-green-500 rounded-full p-1">
+                            <Sparkles className="w-4 h-4 text-white"/>
+                        </div>
+                        <span className="font-medium">Link copied to clipboard!</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

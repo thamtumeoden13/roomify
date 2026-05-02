@@ -24,6 +24,7 @@ interface VisualizerToolbarProps {
     onGenerate: (style?: any, context?: any, isVariant?: boolean) => void;
     onUpscale: () => void;
     onExport: () => void;
+    onShare: () => void;
     selectedStyle: any;
     selectedContext: any;
     isProcessing: boolean;
@@ -50,6 +51,7 @@ export default function VisualizerToolbar({
                                               onGenerate,
                                               onUpscale,
                                               onExport,
+                                              onShare,
                                               selectedStyle,
                                               selectedContext,
                                               isProcessing,
@@ -162,7 +164,7 @@ export default function VisualizerToolbar({
                         <Button
                             variant="outline"
                             size="sm"
-                            disabled
+                            onClick={onShare}
                             className="rounded-r-xl rounded-l-none h-10 px-4 border-slate-200 hover:bg-slate-50"
                         >
                             <Share2 className="w-4 h-4"/>
