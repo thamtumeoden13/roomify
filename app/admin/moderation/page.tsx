@@ -3,6 +3,7 @@
 import React, {useState, useEffect} from 'react';
 import {supabase} from '@/lib/supabase';
 import {Check, X, Trash2, ExternalLink} from 'lucide-react';
+import {toast} from "sonner";
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
 
@@ -38,13 +39,14 @@ export default function ModerationPage() {
 
             if (res.ok) {
                 setPendingItems(prev => prev.filter(item => item.id !== showcaseId));
+                toast.success(`Successfully ${action}d`);
             } else {
                 const err = await res.json();
-                alert(err.error || 'Failed to perform action');
+                toast.error(err.error || 'Failed to perform action');
             }
         } catch (error) {
             console.error('Action failed:', error);
-            alert('An error occurred');
+            toast.error('An error occurred');
         }
     };
 

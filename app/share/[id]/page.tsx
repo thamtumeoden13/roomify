@@ -4,7 +4,8 @@ import {useParams} from "next/navigation";
 import {useEffect, useState} from "react";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
-import {Sparkles, ArrowRight, Heart, Eye, Share2, Box, User} from "lucide-react";
+import {Sparkles, ArrowRight, Heart, Eye, Share2, User} from "lucide-react";
+import {toast} from "sonner";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 
@@ -36,6 +37,9 @@ export default function SharePage() {
                 setIsAdminUser(profile?.role === 'admin');
             }
 
+            let targetProjectId = null;
+            let initialSelectedVariant = null;
+
             // Try to find if this is a showcase item first
             const {data: showcaseData} = await supabase
                 .from("showcase")
@@ -49,14 +53,16 @@ export default function SharePage() {
 
                 // If we found a showcase, the project is from the render
                 const render = showcaseData.render;
+                targetProjectId = render.project_id;
+                initialSelectedVariant = render;
+
                 const {data: projectData} = await supabase
                     .from("projects")
                     .select("*")
-                    .eq("id", render.project_id)
+                    .eq("id", targetProjectId)
                     .single();
 
                 setProject(projectData);
-                setSelectedVariant(render);
 
                 // Increment view count
                 await supabase.rpc("increment_showcase_view", {target_showcase_id: showcaseData.id});
@@ -74,7 +80,7 @@ export default function SharePage() {
                 }
             } else {
                 // Regular share page logic (fetch by project ID)
-                const {data: projectData, error: projectError} = await supabase
+                const {data: projectData} = await supabase
                     .from("projects")
                     .select("*")
                     .eq("id", id)
@@ -82,20 +88,24 @@ export default function SharePage() {
 
                 if (projectData) {
                     setProject(projectData);
+                    targetProjectId = id;
+                }
+            }
 
-                    const {data: variantsData} = await supabase
-                        .from("renders")
-                        .select("*")
-                        .eq("project_id", id)
-                        .eq("status", "succeeded")
-                        .order("created_at", {ascending: false});
+            // Fetch variants if we have a project ID
+            if (targetProjectId) {
+                const {data: variantsData} = await supabase
+                    .from("renders")
+                    .select("*")
+                    .eq("project_id", targetProjectId)
+                    .eq("status", "succeeded")
+                    .order("created_at", {ascending: false});
 
-                    if (variantsData) {
-                        setVariants(variantsData);
-                        if (variantsData.length > 0) {
-                            setSelectedVariant(variantsData[0]);
-                        }
-                    }
+                if (variantsData) {
+                    setVariants(variantsData);
+                    // Default to initialSelectedVariant if set (from showcase), 
+                    // otherwise first variant, otherwise null
+                    setSelectedVariant(initialSelectedVariant || (variantsData.length > 0 ? variantsData[0] : null));
                 }
             }
 
@@ -110,7 +120,7 @@ export default function SharePage() {
 
         const {data: {user}} = await supabase.auth.getUser();
         if (!user) {
-            alert("Please sign in to vote!");
+            toast.error("Please sign in to vote!");
             return;
         }
 
@@ -125,7 +135,7 @@ export default function SharePage() {
             setVoteCount(data.vote_count);
         } catch (error: any) {
             console.error("Vote failed:", error);
-            alert(error.message);
+            toast.error(error.message);
         }
     };
 
@@ -281,7 +291,7 @@ export default function SharePage() {
                                         className="bg-white/80 backdrop-blur-md rounded-full shadow-lg"
                                         onClick={() => {
                                             navigator.clipboard.writeText(window.location.href);
-                                            alert("Link copied!");
+                                            toast.success("Link copied!");
                                         }}
                                     >
                                         <Share2 className="w-4 h-4"/>

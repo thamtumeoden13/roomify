@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {CheckCircle2, ImageIcon, UploadIcon} from "lucide-react";
+import {toast} from "sonner";
 import {PROGRESS_INCREMENT, REDIRECT_DELAY_MS, PROGRESS_INTERVAL_MS} from "../lib/constants";
 
 interface UploadProps {
@@ -89,7 +90,7 @@ const Upload = ({onComplete}: UploadProps) => {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
             }
-            alert('Failed to upload image. Please try again.');
+            toast.error('Failed to upload image. Please try again.');
         }
     }, [isSignedIn, onComplete]);
 

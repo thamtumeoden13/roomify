@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import {useRouter, useSearchParams} from "next/navigation";
+import {toast} from "sonner";
 import Navbar from "@/components/Navbar";
 import Button from "@/components/ui/Button";
 
@@ -36,7 +37,7 @@ export default function LoginPage() {
         setError(null);
         const {error} = await supabase.auth.signUp({email, password});
         if (error) setError(error.message);
-        else alert("Check your email for confirmation!");
+        else toast.success("Check your email for confirmation!");
         setLoading(false);
     };
 

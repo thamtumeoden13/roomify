@@ -1,7 +1,8 @@
 "use client";
 
 import React, {useEffect, useState} from 'react'
-import {Box, User} from 'lucide-react'
+import {User} from 'lucide-react'
+import RoomifyLogo from './RoomifyLogo'
 import Link from "next/link";
 import {supabase} from "@/lib/supabase";
 import {useRouter} from "next/navigation";
@@ -28,7 +29,7 @@ function Navbar() {
             <nav className={"inner"}>
                 <div className={"left"}>
                     <Link href="/" className={"brand"}>
-                        <Box className={"logo"}/>
+                        <RoomifyLogo className={"logo"}/>
                         <span className={"name"}>
                             Roomify
                         </span>
@@ -37,6 +38,7 @@ function Navbar() {
                     <ul className={"links"}>
                         <Link href="/#how-it-works">How It Works</Link>
                         {user && <Link href="/dashboard">Dashboard</Link>}
+                        <Link href="/gallery">Gallery</Link>
                         <Link href="/#features">Features</Link>
                         <Link href="/#showcase">Showcase</Link>
                     </ul>

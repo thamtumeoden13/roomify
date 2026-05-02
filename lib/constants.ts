@@ -37,56 +37,56 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10MB
 // ENVIRONMENT:
 // - Clean continuous surfaces, clutter-free, professional real estate presentation.
 // `.trim();
-
 export const ROOMIFY_RENDER_PROMPT = `
 Professional 3D architectural visualization, bird's-eye view, top-down orthographic plan. 
-Photorealistic 3D floor plan, clean continuous surfaces, architectural masterpiece.
-Clean white walls, uniform flooring, professional studio lighting with soft shadows, minimal aesthetic.
+Photorealistic 3D floor plan, architectural masterpiece.
+Clean monolithic white walls, seamless uniform flooring, professional studio lighting, soft natural shadows, high-end minimalist aesthetic.
 
 STRUCTURE & SURFACE CLEANUP:
-- Precise wall extrusion from plan lines, consistent height, realistic materials.
-- Seamless and continuous floor textures, clean empty floor spaces where labels used to be, strictly no 3D letters.
-- Smooth polished flooring across the entire layout, ignoring all text and annotations from the input.
+- Precise wall extrusion from plan lines, consistent height.
+- Solid and uninterrupted floor textures across the entire layout.
+- Strictly empty floor spaces, completely ignoring any text, labels, or annotations from the input image.
+- Smooth polished architectural surfaces with no decals or floor markings.
 
 FURNITURE MAPPING:
-- Realistic beds with linens, modern sofas, dining sets, full kitchen cabinetry.
-- Porcelain bathroom fixtures, office desks, and minimal outdoor patio furniture.
+- Realistic furniture placement: beds with linens, modern sofas, dining sets, full kitchen cabinetry.
+- Porcelain bathroom fixtures, professional office setups.
 
 STYLE & LIGHTING:
-- Bright natural daylight, soft ambient occlusion shadows.
-- High-end Octane render, Unreal Engine 5 aesthetic, 8k resolution, sharp details.
-- Materials: Polished hardwood, marble tiles, matte white walls.
+- Bright natural daylighting, realistic ambient occlusion.
+- High-end Octane render, Unreal Engine 5 aesthetic, 8k resolution, sharp professional visualization.
 `.trim();
 
 export const ROOMIFY_NEGATIVE_PROMPT = `
-text, labels, letters, dimensions, architectural symbols, messy grass, distorted furniture,
-watermark, logo, numbers, digits, 
-3D typography, alphabet-shaped furniture, word-shaped objects, 
-annotations, measurements, symbols, sketch, drawing, blurry, 
-low quality, distorted, messy, perspective tilt, hand-drawn, 
-paper texture, blueprints, black and white lines on floor.
+text, labels, letters, words, numbers, digits, dimensions, architectural symbols, 
+3D typography, alphabet-shaped furniture, word-shaped objects, floor decals, 
+floor stickers, carpet patterns, rugs with text, messy grass, distorted furniture,
+watermark, logo, annotations, measurements, sketch, drawing, blurry, 
+low quality, distorted, perspective tilt, hand-drawn, paper texture, 
+blueprints, black and white lines on floor, cluttered surfaces.
 `.trim();
 
 export const ROOM_STYLES = [
     {
         id: "modern",
         name: "Modern",
-        keywords: "modern minimalist interior, sleek lines, contemporary furniture, neutral color palette with bold accents, large windows, open space."
+        // Bổ sung "monolithic" và "seamless" để ép AI làm phẳng sàn
+        keywords: "ultra-modern minimalist interior, monolithic seamless flooring, sleek lines, contemporary furniture, neutral color palette, large windows, bright open space, flat uniform surfaces."
     },
     {
         id: "vintage",
         name: "Vintage",
-        keywords: "vintage interior design, antique furniture, retro textures, warm color tones, ornate details, classic mid-century modern elements."
+        keywords: "vintage interior design, antique furniture, retro textures, warm color tones, ornate details, classic mid-century modern elements, rich textures."
     },
     {
         id: "japandi",
         name: "Japandi",
-        keywords: "japandi style, blend of Japanese minimalism and Scandinavian functionality, natural materials, light wood, clean lines, serene and calm atmosphere."
+        keywords: "japandi style, natural materials, light oak wood, clean lines, serene atmosphere, zen minimalism, organized space."
     },
     {
         id: "industrial",
         name: "Industrial",
-        keywords: "industrial loft style, exposed brick, metal accents, concrete floors, large industrial windows, raw and unfinished look."
+        keywords: "industrial loft, exposed brick, metal accents, polished concrete floors, large windows, raw aesthetic."
     }
 ];
 

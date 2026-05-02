@@ -1,11 +1,10 @@
 import type {Metadata} from "next";
-import {Inter, Instrument_Serif} from "next/font/google";
+import {Inter, Instrument_Serif, Geist} from "next/font/google";
 import "./app.css";
+import {cn} from "@/lib/utils";
+import {Toaster} from "sonner";
 
-const inter = Inter({
-    variable: "--font-sans",
-    subsets: ["latin"],
-});
+const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
 const instrumentSerif = Instrument_Serif({
     variable: "--font-serif",
@@ -16,6 +15,9 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
     title: "Roomify - 2D to 3D Architectural Renders",
     description: "Convert your 2D room/house designs into photorealistic 3D renders with AI.",
+    icons: {
+        icon: "/logo.svg",
+    },
 };
 
 export default function RootLayout({
@@ -24,9 +26,10 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" data-scroll-behavior="smooth">
-        <body className={`${inter.variable} ${instrumentSerif.variable} antialiased`}>
+        <html lang="en" data-scroll-behavior="smooth" className={cn("font-sans", geist.variable)}>
+        <body className={`${geist.variable} ${instrumentSerif.variable} antialiased`}>
         {children}
+        <Toaster position="bottom-right" richColors/>
         </body>
         </html>
     );
