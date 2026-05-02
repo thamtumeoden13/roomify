@@ -471,11 +471,12 @@ export default function VisualizerPage() {
 
                     <div className={`render-area ${(isProcessing || isUpscaling) ? "is-processing" : ""}`}>
                         {currentImage ? (
-                            <img src={currentImage} alt="AI Render" className="render-img"/>
+                            <img src={currentImage} alt="AI Render" className="render-img" loading="eager"/>
                         ) : (
                             <div className="render-placeholder">
                                 {project?.source_image_url && (
-                                    <img src={project.source_image_url} alt="Original" className="render-fallback"/>
+                                    <img src={project.source_image_url} alt="Original" className="render-fallback"
+                                         loading="eager"/>
                                 )}
                             </div>
                         )}

@@ -28,11 +28,28 @@ export default function LandingPage() {
     const [mounted, setMounted] = useState(false);
     const [trendingItems, setTrendingItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAdminUser, setIsAdminUser] = useState(false);
 
     useEffect(() => {
         setMounted(true);
+
+        const checkAdmin = async (userId: string) => {
+            const {data} = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', userId)
+                .single();
+            setIsAdminUser(data?.role === 'admin');
+        };
+
         const {data: {subscription}} = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
+            const currentUser = session?.user ?? null;
+            setUser(currentUser);
+            if (currentUser) {
+                checkAdmin(currentUser.id);
+            } else {
+                setIsAdminUser(false);
+            }
         });
 
         const handleScroll = () => {
@@ -78,25 +95,16 @@ export default function LandingPage() {
         transition: {duration: 0.6}
     };
 
-    const showcaseImages = [
+    const showcaseImages = trendingItems.length > 0 ? trendingItems.map(item => ({
+        before: item.render?.source_image_url,
+        after: item.render?.rendered_image_url,
+    })) : [
         {
-            before: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=2158&auto=format&fit=crop",
-            after: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop",
-        },
-        {
-            before: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=2070&auto=format&fit=crop",
-            after: "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?q=80&w=1974&auto=format&fit=crop",
+            before: "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/inputs/p26t4n95h.webp",
+            after: "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/outputs/3ad99xpxx1rmw0cxwf3awxj8j8.png",
         }
     ];
 
-    const galleryItems = [
-        "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1974&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=2071&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=2070&auto=format&fit=crop",
-    ];
 
     const marqueeItems = [
         {
@@ -272,8 +280,9 @@ export default function LandingPage() {
                             >
                                 <ReactCompareSlider
                                     itemOne={<ReactCompareSliderImage src={showcaseImages[0].before}
-                                                                      alt="2D Floor Plan"/>}
-                                    itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after} alt="3D Render"/>}
+                                                                      alt="2D Floor Plan" loading="eager"/>}
+                                    itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after} alt="3D Render"
+                                                                      loading="eager"/>}
                                     className="aspect-video"
                                 />
                                 <div
@@ -463,7 +472,7 @@ export default function LandingPage() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="columns-1 sm:columns-2 lg:columns-3 gap-8 space-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {trendingItems.map((item, i) => {
                                     const render = item.render;
                                     const imageUrl = render.upscaled_image_url || render.rendered_image_url;
@@ -474,22 +483,57 @@ export default function LandingPage() {
                                             key={item.id}
                                             {...fadeIn}
                                             transition={{delay: i * 0.05}}
-                                            className="break-inside-avoid"
+                                            className="h-full group/item relative"
                                         >
-                                            <Link href={`/share/${item.id}`} className="block group">
+                                            {isAdminUser && (
                                                 <div
-                                                    className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
+                                                    className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="bg-white/90 backdrop-blur-md border-slate-200 text-red-600 hover:bg-red-50 h-8 w-8 p-0 flex items-center justify-center rounded-full"
+                                                        onClick={async (e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            if (confirm('Unapprove this item?')) {
+                                                                const res = await fetch('/api/admin/approve', {
+                                                                    method: 'POST',
+                                                                    headers: {'Content-Type': 'application/json'},
+                                                                    body: JSON.stringify({
+                                                                        showcaseId: item.id,
+                                                                        action: 'unapprove'
+                                                                    }),
+                                                                });
+                                                                if (res.ok) {
+                                                                    // Update the list or re-fetch
+                                                                    setTrendingItems(prev => prev.map(ti => ti.id === item.id ? {
+                                                                        ...ti,
+                                                                        is_admin_approved: false
+                                                                    } : ti));
+                                                                }
+                                                            }
+                                                        }}
+                                                    >
+                                                        <X className="w-4 h-4"/>
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            <Link href={`/share/${item.id}`} className="block h-full group">
+                                                <div
+                                                    className="relative h-full flex flex-col rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
                                                     {/* Image Container with Hover Effect */}
-                                                    <div className="relative aspect-auto min-h-[200px]">
+                                                    <div className="relative aspect-[4/3] overflow-hidden">
                                                         <img
                                                             src={imageUrl}
                                                             alt={render.project_name || "AI Render"}
-                                                            className="w-full h-auto object-cover group-hover:opacity-0 transition-opacity duration-500"
+                                                            className="absolute inset-0 w-full h-full object-cover group-hover:opacity-0 transition-opacity duration-500"
+                                                            loading={i < 4 ? "eager" : "lazy"}
                                                         />
                                                         <img
                                                             src={render.source_image_url}
                                                             alt="Original"
                                                             className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                                            loading={i < 4 ? "eager" : "lazy"}
                                                         />
 
                                                         {/* Badges */}

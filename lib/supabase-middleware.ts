@@ -54,7 +54,43 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    await supabase.auth.getUser()
+    const {
+        data: {user},
+    } = await supabase.auth.getUser()
+
+    if (user) {
+        // Ensure profile exists (Lazy creation for existing users)
+        const {data: profile, error: profileError} = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle()
+
+        if (!profile && !profileError) {
+            // Profile missing, auto-insert it
+            const {data: newProfile, error: insertError} = await supabase
+                .from('profiles')
+                .insert({id: user.id, role: 'user'})
+                .select()
+                .single()
+
+            // Protected /admin routes check after potential insert
+            if (request.nextUrl.pathname.startsWith('/admin')) {
+                if (newProfile?.role !== 'admin') {
+                    return NextResponse.redirect(new URL('/', request.url))
+                }
+            }
+        } else {
+            // Protected /admin routes
+            if (request.nextUrl.pathname.startsWith('/admin')) {
+                if (profile?.role !== 'admin') {
+                    return NextResponse.redirect(new URL('/', request.url))
+                }
+            }
+        }
+    } else if (request.nextUrl.pathname.startsWith('/admin')) {
+        return NextResponse.redirect(new URL('/', request.url))
+    }
 
     return response
 }
