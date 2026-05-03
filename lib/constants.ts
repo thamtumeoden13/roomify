@@ -90,6 +90,61 @@ export const ROOM_STYLES = [
     }
 ];
 
+export const FLOORING_MATERIALS = [
+    {
+        id: "light-oak",
+        name: "Light Oak",
+        keywords: "light oak wood planks, natural wood grain, scandinavian timber"
+    },
+    {
+        id: "dark-walnut",
+        name: "Dark Walnut",
+        keywords: "premium dark walnut hardwood, rich wood texture, polished timber"
+    },
+    {
+        id: "polished-concrete",
+        name: "Polished Concrete",
+        keywords: "smooth polished concrete floor, industrial gray cement, seamless modern flooring"
+    },
+    {
+        id: "white-marble",
+        name: "White Marble",
+        keywords: "luxury white carrara marble, elegant gray veining, high-gloss stone surface"
+    },
+    {
+        id: "hexagon-tiles",
+        name: "Hexagon Tiles",
+        keywords: "modern hexagon ceramic tiles, geometric tile layout"
+    }
+];
+
+export const LIGHTING_MOODS = [
+    {
+        id: "natural-daylight",
+        name: "Natural Daylight",
+        keywords: "bright natural sunlight, clear day lighting, realistic exterior light through windows",
+        description: "Bright and clear daylight for a realistic feel"
+    },
+    {
+        id: "golden-hour",
+        name: "Golden Hour",
+        keywords: "warm sunset glow, long soft shadows, cinematic orange hues, atmospheric lighting",
+        description: "Warm, cinematic glow from the setting sun"
+    },
+    {
+        id: "cozy-evening",
+        name: "Cozy Evening",
+        keywords: "warm indoor artificial lighting, soft lamps and recessed lights, intimate evening atmosphere",
+        description: "Intimate atmosphere with warm indoor lights"
+    },
+    {
+        id: "studio-white",
+        name: "Studio White",
+        keywords: "clean neutral white studio lighting, balanced shadows, professional architectural photography",
+        description: "Neutral, balanced professional studio lighting"
+    }
+];
+
 export const PROJECT_CONTEXTS = [
     {
         id: "full-apartment",

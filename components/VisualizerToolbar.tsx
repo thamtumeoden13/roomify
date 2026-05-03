@@ -14,21 +14,34 @@ import {
     Castle,
     Square,
     Building,
-    Coins
+    Coins,
+    Sun,
+    Layers,
+    Sunset,
+    Lamp,
+    Focus,
 } from 'lucide-react';
 import {Select} from '@/components/ui/Select';
 import {Tooltip} from '@/components/ui/Tooltip';
 import Button from '@/components/ui/Button';
-import {ROOM_STYLES, PROJECT_CONTEXTS} from '@/lib/constants';
+import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS} from '@/lib/constants';
 import {useCredits} from '@/lib/hooks/useCredits';
 
 interface VisualizerToolbarProps {
-    onGenerate: (style?: any, context?: any, isVariant?: boolean) => void;
+    // Tách biệt các sự kiện thay đổi
+    onSpaceChange: (val: string) => void;
+    onStyleChange: (val: string) => void;
+    onFlooringChange: (val: string) => void;
+    onMoodChange: (val: string) => void;
+    // Chỉ nút Generate mới gọi hàm này
+    onGenerate: () => void;
     onUpscale: () => void;
     onExport: () => void;
     onShare: () => void;
     selectedStyle: any;
     selectedContext: any;
+    selectedFlooring: any;
+    selectedLighting: any;
     isProcessing: boolean;
     isUpscaling: boolean;
     hasCurrentImage: boolean;
@@ -51,13 +64,34 @@ const styleIcons: Record<string, ReactNode> = {
     'industrial': <Building className="w-4 h-4"/>,
 };
 
+const lightingIcons: Record<string, ReactNode> = {
+    'natural-daylight': <Sun className="w-4 h-4"/>,
+    'golden-hour': <Sunset className="w-4 h-4"/>,
+    'cozy-evening': <Lamp className="w-4 h-4"/>,
+    'studio-white': <Focus className="w-4 h-4"/>,
+};
+
+const flooringSwatches: Record<string, string> = {
+    'light-oak': 'bg-[#E5D3B3]',
+    'dark-walnut': 'bg-[#4B3621]',
+    'polished-concrete': 'bg-[#8E8E8E]',
+    'white-marble': 'bg-[#F2F2F2]',
+    'hexagon-tiles': 'bg-[#D1D5DB]',
+};
+
 export default function VisualizerToolbar({
+                                              onSpaceChange,
+                                              onStyleChange,
+                                              onFlooringChange,
+                                              onMoodChange,
                                               onGenerate,
                                               onUpscale,
                                               onExport,
                                               onShare,
                                               selectedStyle,
                                               selectedContext,
+                                              selectedFlooring,
+                                              selectedLighting,
                                               isProcessing,
                                               isUpscaling,
                                               hasCurrentImage,
@@ -78,20 +112,37 @@ export default function VisualizerToolbar({
         icon: styleIcons[s.id] || <Palette className="w-4 h-4"/>
     }));
 
+    const flooringOptions = FLOORING_MATERIALS.map(f => ({
+        id: f.id,
+        name: f.name,
+        icon: (
+            <div className={`w-4 h-4 rounded-full border border-slate-200 ${
+                f.id === 'light-oak' ? 'bg-[#E5D3B3]' :
+                    f.id === 'dark-walnut' ? 'bg-[#4B3621]' :
+                        f.id === 'white-marble' ? 'bg-[#F2F2F2]' :
+                            'bg-slate-400'
+            }`}/>
+        )
+    }));
+
+    const lightingOptions = LIGHTING_MOODS.map(l => ({
+        id: l.id,
+        name: l.name,
+        icon: lightingIcons[l.id] || <Sun className="w-4 h-4"/>,
+        tooltip: l.description
+    }));
+
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-[95%]">
             <div
-                className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/50 rounded-3xl shadow-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-6 transition-all">
+                className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/50 rounded-3xl shadow-2xl p-4 flex flex-col lg:flex-row items-center justify-between gap-6 transition-all">
 
                 {/* Left Group: Configuration */}
-                <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-center lg:justify-start">
                     <Select
                         label="Space"
                         value={selectedContext.id}
-                        onValueChange={(val) => {
-                            const context = PROJECT_CONTEXTS.find(c => c.id === val);
-                            onGenerate(undefined, context);
-                        }}
+                        onValueChange={onSpaceChange} // CHỈ ĐỔI STATE
                         options={contextOptions}
                         icon={contextIcons[selectedContext.id]}
                         disabled={isProcessing || isUpscaling}
@@ -100,12 +151,27 @@ export default function VisualizerToolbar({
                     <Select
                         label="Theme"
                         value={selectedStyle.id}
-                        onValueChange={(val) => {
-                            const style = ROOM_STYLES.find(s => s.id === val);
-                            onGenerate(style);
-                        }}
+                        onValueChange={onStyleChange} // CHỈ ĐỔI STATE
                         options={styleOptions}
                         icon={<Palette className="w-4 h-4"/>}
+                        disabled={isProcessing || isUpscaling}
+                        position="top"
+                    />
+                    <Select
+                        label="Flooring"
+                        value={selectedFlooring?.id}
+                        onValueChange={onFlooringChange} // CHỈ ĐỔI STATE
+                        options={flooringOptions}
+                        icon={<Layers className="w-4 h-4"/>}
+                        disabled={isProcessing || isUpscaling}
+                        position="top"
+                    />
+                    <Select
+                        label="Mood"
+                        value={selectedLighting?.id}
+                        onValueChange={onMoodChange} // CHỈ ĐỔI STATE
+                        options={lightingOptions}
+                        icon={<Sun className="w-4 h-4"/>}
                         disabled={isProcessing || isUpscaling}
                         position="top"
                     />
@@ -118,7 +184,7 @@ export default function VisualizerToolbar({
                         whileTap={credits && credits > 0 ? {scale: 0.95} : {}}
                     >
                         <Button
-                            onClick={() => onGenerate(undefined, undefined, true)}
+                            onClick={onGenerate} // NHẤN MỚI RENDER
                             disabled={isProcessing || isUpscaling || credits === 0}
                             className={`relative overflow-hidden bg-gradient-to-r ${credits === 0 ? 'from-slate-400 to-slate-500' : 'from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'} text-white rounded-full px-8 py-6 h-auto shadow-lg ${credits === 0 ? '' : 'shadow-indigo-500/25'} border-none group transition-all min-w-[200px]`}
                         >
@@ -145,7 +211,7 @@ export default function VisualizerToolbar({
                     )}
                 </div>
 
-                {/* Right Group: Utilities */}
+                {/* Right Group: Utilities (giữ nguyên các hành động khác) */}
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                     {/* Public Toggle */}
                     <div
@@ -204,7 +270,6 @@ export default function VisualizerToolbar({
                         </Button>
                     </div>
                 </div>
-
             </div>
         </div>
     );
