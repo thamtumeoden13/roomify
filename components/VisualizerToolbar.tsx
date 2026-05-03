@@ -158,7 +158,7 @@ export default function VisualizerToolbar({
                             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${isPublic ? 'bg-indigo-600' : 'bg-slate-300'} disabled:opacity-50`}
                         >
                             <span
-                                className={`${isPublic ? 'translate-x-5' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
+                                className={`${isPublic ? 'translate-x-3' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
                             />
                         </button>
                     </div>

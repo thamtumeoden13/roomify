@@ -1,6 +1,8 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import {motion} from "framer-motion";
 import {ArrowRight, ArrowUpRight, Clock, Layers} from "lucide-react";
 import Button from "@/components/ui/Button";
 import Upload from "@/components/Upload";
@@ -76,9 +78,16 @@ export default function Dashboard() {
 
     return (
         <div className={"home bg-[#F9FAFB]"}>
+            {/* Slide Down Animation for Page Load */}
+            <motion.div
+                initial={{y: -100, opacity: 0}}
+                animate={{y: 0, opacity: 1}}
+                transition={{duration: 0.8, ease: "easeOut"}}
+                className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-[60]"
+            />
             <Navbar/>
 
-            <section className={"hero"}>
+            <section className={"hero !pt-40"}>
                 <div className={"announce"}>
                     <div className={"dot"}>
                         <div className={"pulse"}></div>
@@ -112,7 +121,7 @@ export default function Dashboard() {
                 </div>
             </section>
 
-            <section className={"projects"} id="projects">
+            <section className={"projects pt-0 md:pt-0"} id="projects">
                 <div className={"section-inner"}>
                     <div className={"section-head"}>
                         <div className={"copy"}>
@@ -156,6 +165,7 @@ export default function Dashboard() {
                     </div>
                 </div>
             </section>
+            <Footer/>
         </div>
     );
 }
