@@ -11,15 +11,24 @@ import {
     LogIn,
     Menu,
     X,
+    Printer,
+    LayoutDashboard,
 } from "lucide-react";
-import RoomifyLogo from "@/components/RoomifyLogo";
+import Navbar from "@/components/Navbar";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {motion, AnimatePresence} from "framer-motion";
 import Link from "next/link";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Footer from "@/components/Footer";
 import {supabase} from "@/lib/supabase";
 import {Heart, Eye, Sparkles, User} from "lucide-react";
+
+const ZaloIcon = ({className}: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M12 2C6.477 2 2 6.03 2 11c0 1.956.702 3.75 1.887 5.207L2.4 20.6a.5.5 0 0 0 .72.54l4.242-2.121c1.43.642 3.018.981 4.638.981 5.523 0 10-4.03 10-9s-4.477-9-10-9zm5.334 12.333c-.225.334-.847.457-1.18.233-.334-.224-.457-.846-.233-1.18.224-.334.846-.457 1.18-.233.333.224.456.846.233 1.18zm-2.667-1.333c-.224.333-.846.456-1.18.233-.333-.225-.456-.847-.233-1.18.224-.334.846-.457 1.18-.234.333.225.456.847.233 1.181zm-2.667-1.333c-.224.333-.846.457-1.18.233-.333-.224-.456-.846-.233-1.18.224-.334.846-.457 1.18-.233.333.224.456.846.233 1.18z"/>
+    </svg>
+);
 
 export default function LandingPage() {
     const [user, setUser] = useState<any>(null);
@@ -124,86 +133,14 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-[#F9FAFB] text-slate-900 selection:bg-primary/30">
-            {/* Sticky Header */}
-            <header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
-                    isScrolled
-                        ? "bg-white/80 backdrop-blur-md border-slate-200 py-3"
-                        : "bg-transparent border-transparent py-5"
-                }`}
-            >
-                <div className="container mx-auto px-6 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
-                            <RoomifyLogo className="w-6 h-6 text-primary"/>
-                        </div>
-                        <span className="text-xl font-bold tracking-tight text-slate-900">Roomify</span>
-                    </Link>
-
-                    {/* Desktop Nav */}
-                    <nav className="hidden md:flex items-center gap-8">
-                        <Link href="#how-it-works"
-                              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">How
-                            It
-                            Works</Link>
-                        <Link href="#features"
-                              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Features</Link>
-                        <Link href="#showcase"
-                              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Showcase</Link>
-                    </nav>
-
-                    <div className="flex items-center gap-4">
-                        {user ? (
-                            <Link href="/dashboard">
-                                <Button variant="primary" size="sm" className="hidden md:flex">Dashboard</Button>
-                            </Link>
-                        ) : (
-                            <Link href="/login">
-                                <Button variant="outline" size="sm"
-                                        className="hidden md:flex gap-2 border-slate-200 text-slate-900 hover:bg-slate-50">
-                                    <LogIn className="w-4 h-4"/> Login
-                                </Button>
-                            </Link>
-                        )}
-                        <button
-                            className="md:hidden text-slate-900"
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        >
-                            {mobileMenuOpen ? <X/> : <Menu/>}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Mobile Menu */}
-                <AnimatePresence>
-                    {mobileMenuOpen && (
-                        <motion.div
-                            initial={{opacity: 0, height: 0}}
-                            animate={{opacity: 1, height: "auto"}}
-                            exit={{opacity: 0, height: 0}}
-                            className="md:hidden bg-white border-b border-slate-200 overflow-hidden"
-                        >
-                            <div className="flex flex-col gap-4 p-6">
-                                <Link href="#how-it-works" className="text-slate-600"
-                                      onClick={() => setMobileMenuOpen(false)}>How It Works</Link>
-                                <Link href="#features" className="text-slate-600"
-                                      onClick={() => setMobileMenuOpen(false)}>Features</Link>
-                                <Link href="#showcase" className="text-slate-600"
-                                      onClick={() => setMobileMenuOpen(false)}>Showcase</Link>
-                                <hr className="border-slate-100"/>
-                                {user ? (
-                                    <Link href="/dashboard" className="text-slate-900 font-semibold"
-                                          onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                                ) : (
-                                    <Link href="/login" className="text-slate-900 font-semibold"
-                                          onClick={() => setMobileMenuOpen(false)}>Login</Link>
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </header>
-
+            <Navbar/>
+            {/* Slide Down Animation for Page Load */}
+            <motion.div
+                initial={{y: -100, opacity: 0}}
+                animate={{y: 0, opacity: 1}}
+                transition={{duration: 0.8, ease: "easeOut"}}
+                className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-[60]"
+            />
             <main>
                 {/* Hero Section */}
                 <section
@@ -730,26 +667,7 @@ export default function LandingPage() {
                 </section>
             </main>
 
-            <footer className="py-16 bg-white border-t border-slate-200">
-                <div className="container mx-auto px-6">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-                        <div className="flex items-center gap-2">
-                            <RoomifyLogo className="w-8 h-8 text-primary"/>
-                            <span className="text-2xl font-bold tracking-tight text-slate-900 font-serif">Roomify</span>
-                        </div>
-                        <div className="flex gap-10">
-                            <Link href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Privacy
-                                Policy</Link>
-                            <Link href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Terms of
-                                Service</Link>
-                            <Link href="#"
-                                  className="text-slate-500 hover:text-slate-900 transition-colors">Twitter</Link>
-                        </div>
-                    </div>
-                    <p className="text-center text-slate-400 text-sm">© {new Date().getFullYear()} Roomify AI. All
-                        rights reserved.</p>
-                </div>
-            </footer>
+            <Footer/>
         </div>
     );
 }
