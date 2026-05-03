@@ -31,7 +31,7 @@ function Navbar() {
             <nav className={"inner"}>
                 <div className={"left"}>
                     <Link href="/" className={"brand"}>
-                        <RoomifyLogo className={"logo"}/>
+                        <RoomifyLogo className={"logo drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]"}/>
                         <span className={"name"}>
                             Roomify
                         </span>

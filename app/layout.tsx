@@ -38,8 +38,8 @@ export const metadata: Metadata = {
         canonical: "/",
     },
     icons: {
-        icon: "/logo.svg",
-        apple: "/logo.svg", // Reusing logo as apple-touch-icon if separate one is not provided
+        icon: "/icon.svg",
+        apple: "/icon.svg", // Reusing logo as apple-touch-icon if separate one is not provided
     },
     openGraph: {
         type: "website",

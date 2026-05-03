@@ -143,7 +143,7 @@ export default function GalleryPage() {
                                     value={style}
                                     className={`px-8 py-3 rounded-full transition-all duration-300 text-base font-semibold ${
                                         selectedStyle === style
-                                            ? "bg-orange-600 text-slate-900 shadow-lg shadow-orange-600/20 hover:bg-orange-700"
+                                            ? "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary-dark"
                                             : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                                     }`}
                                 >

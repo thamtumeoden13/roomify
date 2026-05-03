@@ -269,7 +269,7 @@ export default function LandingPage() {
                                         }}
                                     >
                                         <Button variant="primary" size="lg"
-                                                className="w-full sm:w-auto h-14 px-8 text-base bg-orange-600 hover:bg-orange-700">
+                                                className="w-full sm:w-auto h-14 px-8 text-base bg-primary hover:bg-primary-dark shadow-xl shadow-primary/20 transition-all duration-300">
                                             Get Started <ArrowRight className="ml-2 w-5 h-5"/>
                                         </Button>
                                     </motion.div>
@@ -725,7 +725,7 @@ export default function LandingPage() {
                         </p>
                         <Link href="/dashboard">
                             <Button variant="primary" size="lg"
-                                    className="h-16 px-12 text-lg bg-orange-600 hover:bg-orange-700 shadow-xl shadow-orange-600/20">
+                                    className="h-16 px-12 text-lg bg-primary hover:bg-primary-dark shadow-xl shadow-primary/20">
                                 Start Your First Project Now <ArrowRight className="ml-2 w-6 h-6"/>
                             </Button>
                         </Link>

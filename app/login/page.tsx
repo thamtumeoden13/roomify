@@ -129,7 +129,7 @@ function LoginForm() {
                     Don't have an account?{" "}
                     <button
                         onClick={handleSignUp}
-                        className="text-orange-600 font-bold hover:underline underline-offset-4"
+                        className="text-primary font-bold hover:underline underline-offset-4"
                     >
                         Sign Up
                     </button>
@@ -159,7 +159,7 @@ export default function LoginPage() {
                 <Suspense fallback={
                     <div
                         className="w-full max-w-md bg-white/40 backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-2xl shadow-slate-200/50 flex items-center justify-center min-h-[400px]">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                 }>
                     <LoginForm/>
