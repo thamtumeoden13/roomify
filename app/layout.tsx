@@ -5,6 +5,8 @@ import "./app.css";
 import {cn} from "@/lib/utils";
 import {Toaster} from "sonner";
 import {CreditProvider} from "@/lib/context/CreditContext";
+import {Analytics} from "@vercel/analytics/react";
+import {ContactButton} from "@/components/ContactButton";
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
@@ -40,8 +42,9 @@ export const metadata: Metadata = {
     icons: {
         icon: "/favicon.ico",
         shortcut: "/favicon.ico",
-        apple: "/icon.svg",
+        apple: "/apple-touch-icon.png",
     },
+    manifest: "/site.webmanifest",
     openGraph: {
         type: "website",
         siteName: "Roomify",
@@ -73,6 +76,8 @@ export default function RootLayout({
         <body className={`${geist.variable} ${instrumentSerif.variable} antialiased`}>
         <CreditProvider>
             {children}
+            <ContactButton/>
+            <Analytics/>
             <Toaster position="bottom-right" richColors/>
         </CreditProvider>
         </body>

@@ -43,7 +43,6 @@ function LoginForm() {
 
     const handleGoogleLogin = async () => {
         const redirectTo = `${window.location.origin}/api/auth/callback`;
-        console.log('Logging in with Google, redirecting to:', redirectTo);
         const {data, error} = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {

@@ -50,9 +50,7 @@ function VisualizerContent() {
             console.error("Error fetching variants:", error);
             return;
         }
-
         if (data) {
-            console.log("Fetched variants:", data.length);
             setVariants(data);
         }
     };
@@ -178,8 +176,16 @@ function VisualizerContent() {
     const handleShare = () => {
         const shareUrl = `${window.location.origin}/share/${showcaseId || id}`;
         navigator.clipboard.writeText(shareUrl).then(() => {
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 3000);
+            const tweetText = encodeURIComponent(`Check out my 3D interior design on Roomify! #RoomifyAI`);
+            const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
+
+            toast.success("Link copied!", {
+                description: "Share your design with the world.",
+                action: {
+                    label: "Share on X",
+                    onClick: () => window.open(tweetUrl, "_blank"),
+                },
+            });
         }).catch(err => {
             console.error('Failed to copy: ', err);
             toast.error("Failed to copy link to clipboard");
@@ -485,11 +491,13 @@ function VisualizerContent() {
 
                     <div className={`render-area ${(isProcessing || isUpscaling) ? "is-processing" : ""}`}>
                         {currentImage ? (
-                            <img src={currentImage} alt="AI Render" className="render-img" loading="eager"/>
+                            <img src={currentImage} alt={`${selectedStyle.name} style AI architectural render`}
+                                 className="render-img" loading="eager"/>
                         ) : (
                             <div className="render-placeholder">
                                 {project?.source_image_url && (
-                                    <img src={project.source_image_url} alt="Original" className="render-fallback"
+                                    <img src={project.source_image_url} alt="Original floor plan"
+                                         className="render-fallback"
                                          loading="eager"/>
                                 )}
                             </div>
@@ -578,16 +586,17 @@ function VisualizerContent() {
                             <div style={{position: "relative", width: "100%", height: "auto"}}>
                                 <ReactCompareSlider
                                     defaultValue={50}
-                                    itemOne={<ReactCompareSliderImage src={leftImage} alt="Left"
+                                    itemOne={<ReactCompareSliderImage src={leftImage} alt="Before: Original floor plan"
                                                                       className="compare-img"/>}
-                                    itemTwo={<ReactCompareSliderImage src={rightImage} alt="Right"
+                                    itemTwo={<ReactCompareSliderImage src={rightImage}
+                                                                      alt="After: AI 3D architectural render"
                                                                       className="compare-img"/>}
                                 />
                             </div>
                         ) : (
                             <div className="compare-fallback">
                                 {project?.source_image_url && (
-                                    <img src={project.source_image_url} alt="Before"
+                                    <img src={project.source_image_url} alt="Before: Original floor plan"
                                          className="compare-img object-cover"/>
                                 )}
                             </div>
@@ -606,7 +615,7 @@ function VisualizerContent() {
                                             else setRightImage(project.source_image_url);
                                         }}
                                     >
-                                        <img src={project.source_image_url} alt="Original"
+                                        <img src={project.source_image_url} alt="Original source plan"
                                              className="w-full h-full object-cover"/>
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                                             <span className="text-[10px] text-white font-bold">Original</span>
@@ -625,7 +634,7 @@ function VisualizerContent() {
                                                 else setRightImage(imgUrl);
                                             }}
                                         >
-                                            <img src={imgUrl} alt={`Variant ${i + 1}`}
+                                            <img src={imgUrl} alt={`${selectedStyle.name} variant ${i + 1}`}
                                                  className="w-full h-full object-cover"/>
                                             <div className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 px-1">
                                                 <span className="text-[10px] text-white">V{i + 1}</span>
@@ -661,20 +670,6 @@ function VisualizerContent() {
                 isPublic={isPublic}
                 onTogglePublic={handleTogglePublic}
             />
-
-            {/* Toast Notification */}
-            {showToast && (
-                <div
-                    className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div
-                        className="bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10">
-                        <div className="bg-green-500 rounded-full p-1">
-                            <Sparkles className="w-4 h-4 text-white"/>
-                        </div>
-                        <span className="font-medium">Link copied to clipboard!</span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
