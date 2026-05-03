@@ -38,18 +38,28 @@ export const metadata: Metadata = {
         canonical: "/",
     },
     icons: {
-        icon: "/icon.svg",
-        apple: "/icon.svg", // Reusing logo as apple-touch-icon if separate one is not provided
+        icon: "/favicon.ico",
+        shortcut: "/favicon.ico",
+        apple: "/icon.svg",
     },
     openGraph: {
         type: "website",
         siteName: "Roomify",
         locale: "en_US",
         url: "https://roomify-iota-two.vercel.app",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 640,
+                alt: "Roomify - AI 2D to 3D Architectural Renders",
+            },
+        ],
     },
     twitter: {
         card: "summary_large_image",
-        site: "@roomify", // Optional, assuming a handle or just for completeness
+        site: "@roomify",
+        images: ["/og-image.png"],
     },
 };
 
