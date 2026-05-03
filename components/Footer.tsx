@@ -9,17 +9,22 @@ const socials = [
     {
         name: "facebook",
         url: "/facebook.svg",
-        href: "https://www.facebook.com/ShjnDo.Hjkaru/",
+        href: "https://www.facebook.com/asapisces.vn/",
     },
     {
-        name: "linkedin",
-        url: "/linkedin.svg",
-        href: "https://www.linkedin.com/in/l%C3%AA-ho%C3%A0ng-v%C5%A9-586885169/",
+        name: "youtube",
+        url: "/youtube.svg",
+        href: "https://www.youtube.com/@asapisces",
     },
     {
         name: "tiktok",
         url: "/tiktok.svg",
         href: "https://www.tiktok.com/@asapisces",
+    },
+    {
+        name: "pinterest",
+        url: "/pinterest.svg",
+        href: "https://www.pinterest.com/asapisces/?actingBusinessId=893401782238073606",
     },
 ];
 

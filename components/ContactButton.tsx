@@ -29,7 +29,6 @@ export const ContactButton = () => {
                     width={40}
                     height={40}
                     className="object-contain"
-                    loading="eager"
                 />
             </a>
 
