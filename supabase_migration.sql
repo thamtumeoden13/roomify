@@ -217,6 +217,20 @@ BEGIN
 END;
 $$;
 
+-- Automatically update trending scores on vote or view
+CREATE OR REPLACE FUNCTION trigger_update_trending_score()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.trending_score = (NEW.vote_count * 2.0) + (NEW.view_count * 0.5);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER on_showcase_update_score
+    BEFORE UPDATE OF vote_count, view_count ON showcase
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_update_trending_score();
+
 -- Function to decrement credits
 CREATE OR REPLACE FUNCTION decrement_credits(target_user_id UUID, amount INTEGER DEFAULT 1)
 RETURNS INTEGER

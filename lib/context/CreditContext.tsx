@@ -53,6 +53,11 @@ export function CreditProvider({children}: { children: ReactNode }) {
             const {data: {user}} = await supabase.auth.getUser();
             if (!user || !mounted) return;
 
+            // Cleanup previous channel if it exists
+            if (channel) {
+                await supabase.removeChannel(channel);
+            }
+
             channel = supabase
                 .channel(`profile_credits_global_${user.id}`)
                 .on(
@@ -78,21 +83,24 @@ export function CreditProvider({children}: { children: ReactNode }) {
                             }
                         }
                     }
-                )
-                .subscribe();
+                );
+
+            channel.subscribe();
         }
 
         setupSubscription();
 
         // Also listen for auth changes to re-fetch/re-subscribe
-        const {data: {subscription}} = supabase.auth.onAuthStateChange((event, session) => {
+        const {data: {subscription}} = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                fetchCredits();
-                if (channel) supabase.removeChannel(channel);
-                setupSubscription();
+                await fetchCredits();
+                await setupSubscription();
             } else if (event === 'SIGNED_OUT') {
                 setCredits(null);
-                if (channel) supabase.removeChannel(channel);
+                if (channel) {
+                    await supabase.removeChannel(channel);
+                    channel = null;
+                }
             }
         });
 
@@ -100,7 +108,9 @@ export function CreditProvider({children}: { children: ReactNode }) {
             mounted = false;
             subscription.unsubscribe();
             if (channel) {
-                supabase.removeChannel(channel);
+                supabase.removeChannel(channel).then(() => {
+                    channel = null;
+                });
             }
         };
     }, []);

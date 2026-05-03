@@ -60,9 +60,6 @@ export default function LandingPage() {
         const fetchShowcase = async () => {
             setIsLoading(true);
             try {
-                // Update scores before fetching
-                await supabase.rpc("update_trending_scores");
-
                 const {data, error} = await supabase
                     .from("showcase")
                     .select("*, render:renders(*)")

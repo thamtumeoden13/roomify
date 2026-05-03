@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import {ArrowRight, Clock, Layers} from "lucide-react";
+import {ArrowRight, ArrowUpRight, Clock, Layers} from "lucide-react";
 import Button from "@/components/ui/Button";
 import Upload from "@/components/Upload";
 import {useRouter} from "next/navigation";
@@ -148,7 +148,7 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                     <div className={"arrow"}>
-                                        <ArrowRight size={18}/>
+                                        <ArrowUpRight size={18}/>
                                     </div>
                                 </div>
                             </div>
