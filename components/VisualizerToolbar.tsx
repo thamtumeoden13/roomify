@@ -204,7 +204,6 @@ export default function VisualizerToolbar({
                         </Button>
                     </div>
                 </div>
-
             </div>
         </div>
     );
