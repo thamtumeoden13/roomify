@@ -55,8 +55,14 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
         };
     }
 
-    const title = project.name;
-    const description = `Check out this amazing 3D transformation of ${project.name} on Roomify.`;
+    const style = selectedRender?.style_id || "Modern";
+    const userName = project.user_name || "a Roomify User";
+
+    const title = project.name
+        ? `${project.name} | 3D Design by ${userName} | Roomify`
+        : `${style} 3D Interior Design | Roomify AI`;
+
+    const description = `Experience this stunning ${style} 3D transformation on Roomify. Upload your own 2D floor plan and get a photorealistic render in seconds for free!`;
     const ogImage = selectedRender?.upscaled_image_url || selectedRender?.rendered_image_url || project.source_image_url;
 
     return {
