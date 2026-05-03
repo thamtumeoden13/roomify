@@ -2,13 +2,13 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState, Suspense} from "react";
-import {RefreshCcw, Sparkles, X} from "lucide-react";
+import {RefreshCcw, Sparkles, X, ThumbsUp, ThumbsDown} from "lucide-react";
 import RoomifyLogo from "@/components/RoomifyLogo";
 import {toast} from "sonner";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
-import {ROOM_STYLES, PROJECT_CONTEXTS} from "@/lib/constants";
+import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS} from "@/lib/constants";
 import VisualizerToolbar from "@/components/VisualizerToolbar";
 import {useCredits} from "@/lib/hooks/useCredits";
 
@@ -28,12 +28,17 @@ function VisualizerContent() {
     const [upscalePrediction, setUpscalePrediction] = useState<any>(null);
     const [selectedStyle, setSelectedStyle] = useState(ROOM_STYLES[0]);
     const [selectedContext, setSelectedContext] = useState(PROJECT_CONTEXTS[0]);
+    const [selectedFlooring, setSelectedFlooring] = useState(FLOORING_MATERIALS[0]);
+    const [selectedLighting, setSelectedLighting] = useState(LIGHTING_MOODS[1]); // Default to Natural Daylight
+    const [isEnhancing, setIsEnhancing] = useState(false);
+    const [rating, setRating] = useState<number | null>(null);
     const [variants, setVariants] = useState<any[]>([]);
     const [leftImage, setLeftImage] = useState<string | null>(null);
     const [rightImage, setRightImage] = useState<string | null>(null);
     const [showToast, setShowToast] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [showcaseId, setShowcaseId] = useState<string | null>(null);
+    const [elapsed, setElapsed] = useState(0);
     const {refreshCredits} = useCredits();
 
     const handleBack = () => router.push("/dashboard");
@@ -244,11 +249,19 @@ function VisualizerContent() {
         }
     };
 
-    const runGeneration = async (styleOverride?: typeof ROOM_STYLES[0], contextOverride?: typeof PROJECT_CONTEXTS[0], forceNew = false) => {
+    const runGeneration = async (
+        styleOverride?: typeof ROOM_STYLES[0],
+        contextOverride?: typeof PROJECT_CONTEXTS[0],
+        flooringOverride?: typeof FLOORING_MATERIALS[0],
+        lightingOverride?: typeof LIGHTING_MOODS[0],
+        forceNew = true
+    ) => {
         if (!project?.source_image_url) return;
 
         const styleToUse = styleOverride || selectedStyle;
         const contextToUse = contextOverride || selectedContext;
+        const flooringToUse = flooringOverride || selectedFlooring;
+        const lightingToUse = lightingOverride || selectedLighting;
 
         try {
             setIsProcessing(true);
@@ -263,6 +276,10 @@ function VisualizerContent() {
                     styleId: styleToUse.id,
                     projectContext: contextToUse.name,
                     contextId: contextToUse.id,
+                    flooringKeywords: flooringToUse.keywords,
+                    flooringId: flooringToUse.id,
+                    lightingKeywords: lightingToUse.keywords,
+                    lightingId: lightingToUse.id,
                     forceNew
                 }),
             });
@@ -293,6 +310,43 @@ function VisualizerContent() {
         }
     };
 
+    const handleEnhance = async (imageUrl: string, renderId: string) => {
+        try {
+            setIsEnhancing(true);
+            const response = await fetch("/api/enhance", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({image: imageUrl, renderId}),
+            });
+            const data = await response.json();
+            if (response.status !== 201) throw new Error(data.error);
+
+            let prediction = data;
+            while (prediction.status !== "succeeded" && prediction.status !== "failed") {
+                await sleep(2000);
+                const res = await fetch("/api/predictions/" + prediction.id);
+                prediction = await res.json();
+            }
+
+            if (prediction.status === "succeeded" && prediction.output) {
+                setCurrentImage(prediction.output);
+                setRightImage(prediction.output);
+                // Update the render record with the enhanced image
+                await supabase
+                    .from("renders")
+                    .update({rendered_image_url: prediction.output})
+                    .eq("prediction_id", renderId);
+
+                if (id) fetchVariants(id as string);
+                toast.success("AI Enhancement applied!");
+            }
+        } catch (error: any) {
+            console.error("Enhancement failed:", error);
+        } finally {
+            setIsEnhancing(false);
+        }
+    };
+
     const resumePrediction = async (predictionId: string) => {
         try {
             setIsProcessing(true);
@@ -319,6 +373,11 @@ function VisualizerContent() {
             if (prediction.status === "succeeded") {
                 // Refresh variants and credits
                 if (id) fetchVariants(id as string);
+
+                // Automatic enhancement pass
+                if (prediction.output) {
+                    handleEnhance(prediction.output, prediction.id);
+                }
 
                 // Add a small delay to allow database triggers/RPCs to finish
                 setTimeout(() => {
@@ -359,7 +418,13 @@ function VisualizerContent() {
             setIsProcessing(false);
         }
     };
-
+    const getProcessingStatus = (status: string, elapsed: number) => {
+        if (status === "starting") return "Initializing AI Engine...";
+        if (elapsed < 5000) return "Analyzing floor plan architecture...";
+        if (elapsed < 12000) return `Applying ${selectedStyle.name} and ${selectedFlooring.name}...`;
+        if (elapsed < 18000) return `Calculating ${selectedLighting.name} shadows...`;
+        return "Finalizing 3D render...";
+    };
     useEffect(() => {
         if (id) {
             fetchVariants(id as string);
@@ -467,6 +532,16 @@ function VisualizerContent() {
         init();
     }, [project, searchParams, id]);
 
+    // useEffect(() => {
+    //     let timer: NodeJS.Timeout;
+    //     if (isProcessing) {
+    //         timer = setInterval(() => setElapsed(prev => prev + 1000), 1000);
+    //     } else {
+    //         setElapsed(0);
+    //     }
+    //     return () => clearInterval(timer);
+    // }, [isProcessing]);
+
     return (
         <div className="visualizer">
             <nav className="topbar">
@@ -509,9 +584,11 @@ function VisualizerContent() {
                                     <RefreshCcw className="spinner"/>
                                     <span className="title">Rendering...</span>
                                     <span className="subtitle">
-                    {prediction?.status === "starting" ? "Starting Replicate engine..." :
-                        prediction?.status === "processing" ? "AI is imagining your room..." :
-                            "Generating your 3D visualization"}
+                    {/*{prediction?.status === "starting" ? "Starting Replicate engine..." :*/}
+                                        {/*    prediction?.status === "processing" ? "AI is imagining your room..." :*/}
+                                        {/*        "Generating your 3D visualization"}*/}
+
+                                        {getProcessingStatus(prediction?.status, elapsed)}
                   </span>
                                 </div>
                             </div>
@@ -523,9 +600,11 @@ function VisualizerContent() {
                                     <RefreshCcw className="spinner"/>
                                     <span className="title">Enhancing details...</span>
                                     <span className="subtitle">
-                    {upscalePrediction?.status === "starting" ? "Preparing AI Upscaler..." :
-                        upscalePrediction?.status === "processing" ? "Adding 4K textures and details..." :
-                            "Upscaling your render to 4K"}
+                    {/*{upscalePrediction?.status === "starting" ? "Preparing AI Upscaler..." :*/}
+                                        {/*    upscalePrediction?.status === "processing" ? "Adding 4K textures and details..." :*/}
+                                        {/*        "Upscaling your render to 4K"}*/}
+                                        {getProcessingStatus(upscalePrediction?.status, elapsed)}
+
                   </span>
                                 </div>
                             </div>
@@ -592,6 +671,52 @@ function VisualizerContent() {
                                                                       alt="After: AI 3D architectural render"
                                                                       className="compare-img"/>}
                                 />
+                                {prediction?.status === "succeeded" && (
+                                    <div
+                                        className="absolute top-4 right-4 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur p-3 rounded-2xl shadow-xl border border-white/20 flex flex-col gap-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Rate
+                                            this render</p>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={async () => {
+                                                    setRating(1);
+                                                    toast.success("Thanks for your feedback!");
+                                                    if (prediction?.id) {
+                                                        await supabase
+                                                            .from("renders")
+                                                            .update({rating: 1})
+                                                            .eq("prediction_id", prediction.id);
+                                                    }
+                                                }}
+                                                className={`p-2 rounded-xl transition-all ${rating === 1 ? 'bg-emerald-500 text-white' : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600'}`}
+                                            >
+                                                <ThumbsUp className="w-5 h-5"/>
+                                            </button>
+                                            <button
+                                                onClick={async () => {
+                                                    setRating(0);
+                                                    toast.success("We'll work on improving this style!");
+                                                    if (prediction?.id) {
+                                                        await supabase
+                                                            .from("renders")
+                                                            .update({rating: 0})
+                                                            .eq("prediction_id", prediction.id);
+                                                    }
+                                                }}
+                                                className={`p-2 rounded-xl transition-all ${rating === 0 ? 'bg-rose-500 text-white' : 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600'}`}
+                                            >
+                                                <ThumbsDown className="w-5 h-5"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {isEnhancing && (
+                                    <div
+                                        className="absolute bottom-4 right-4 z-20 bg-primary/90 text-white backdrop-blur px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 animate-pulse"/>
+                                        <span className="text-xs font-medium">Enhancing details...</span>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="compare-fallback">
@@ -648,22 +773,31 @@ function VisualizerContent() {
                 </div>
             </section>
             <VisualizerToolbar
-                onGenerate={(style, context, isVariant) => {
-                    if (style) {
-                        setSelectedStyle(style);
-                        runGeneration(style);
-                    } else if (context) {
-                        setSelectedContext(context);
-                        runGeneration(undefined, context);
-                    } else if (isVariant) {
-                        runGeneration(undefined, undefined, true);
-                    }
+                onSpaceChange={(val) => {
+                    const context = PROJECT_CONTEXTS.find(c => c.id === val);
+                    if (context) setSelectedContext(context);
                 }}
+                onStyleChange={(val) => {
+                    const style = ROOM_STYLES.find(s => s.id === val);
+                    if (style) setSelectedStyle(style);
+                }}
+                onFlooringChange={(val) => {
+                    const flooring = FLOORING_MATERIALS.find(f => f.id === val);
+                    if (flooring) setSelectedFlooring(flooring);
+                }}
+                onMoodChange={(val) => {
+                    const mood = LIGHTING_MOODS.find(l => l.id === val);
+                    if (mood) setSelectedLighting(mood);
+                }}
+                // CHỈ nhấn nút này mới gọi runGeneration
+                onGenerate={() => runGeneration()}
                 onUpscale={handleUpscale}
                 onExport={handleExport}
                 onShare={handleShare}
                 selectedStyle={selectedStyle}
                 selectedContext={selectedContext}
+                selectedFlooring={selectedFlooring}
+                selectedLighting={selectedLighting}
                 isProcessing={isProcessing}
                 isUpscaling={isUpscaling}
                 hasCurrentImage={!!currentImage}
