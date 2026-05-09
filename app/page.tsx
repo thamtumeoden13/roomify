@@ -107,7 +107,7 @@ export default function LandingPage() {
     })) : [
         {
             before: "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/inputs/p26t4n95h.webp",
-            after: "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/outputs/3ad99xpxx1rmw0cxwf3awxj8j8.png",
+            after: "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/outputs/jbw5zr7pyxrmt0cxwyzby097vr.png",
         }
     ];
 
