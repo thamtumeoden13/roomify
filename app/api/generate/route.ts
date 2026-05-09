@@ -21,6 +21,8 @@ export async function POST(req: Request) {
             flooringId,
             lightingKeywords,
             lightingId,
+            viewKeywords,
+            viewId,
             forceNew
         } = await req.json();
 
@@ -35,7 +37,8 @@ export async function POST(req: Request) {
             .eq("style_id", styleId || "")
             .eq("project_context", contextId || "")
             .eq("flooring_id", flooringId || "")
-            .eq("lighting_id", lightingId || "");
+            .eq("lighting_id", lightingId || "")
+            .eq("view_id", viewId || "plan");
 
         if (project_id) {
             query.eq("project_id", project_id);
@@ -71,6 +74,7 @@ export async function POST(req: Request) {
         // 3. XÂY DỰNG MASTER PROMPT (Dynamic Prompt Building)
         const fKeywords = flooringKeywords || "light oak wood planks, natural wood grain, scandinavian timber";
         const lKeywords = lightingKeywords || "bright natural sunlight, clear day lighting, realistic exterior light through windows";
+        const vKeywords = viewKeywords || "orthographic top-down plan view, flat architectural layout.";
         const masterPrompt = `
             ${ROOMIFY_RENDER_PROMPT}
             ADDITIONAL DESIGN SPECIFICATIONS:
@@ -78,16 +82,26 @@ export async function POST(req: Request) {
             - Interior Style: ${styleKeywords || "Modern minimalist"}
             - Material Choice: Use ${fKeywords} for all floor surfaces.
             - Lighting Mood: The scene is bathed in ${lKeywords}.
+            - Camera Perspective: ${vKeywords}
             
             FINAL REQUIREMENT: Ensure all 3D furniture and walls strictly align with the 2D plan lines. Completely hide and replace all floor text labels with the selected ${fKeywords}.
             `.trim();
 
         // 4. Smart Tuning
         let guidanceScale = 10;
+        let conditionScale = 0.45;
+
+        if (viewId === "plan") {
+            conditionScale = 0.45;
+        } else if (viewId === "isometric" || viewId === "perspective") {
+            conditionScale = 0.39; // Lower scale for tilted views to allow extrusion
+            guidanceScale += 2; // Increase stability for tilted views
+        }
+
         if (flooringId === "white-marble" || flooringId === "polished-concrete") {
-            guidanceScale = 12; // Sharp reflections
+            guidanceScale += 2; // Sharp reflections
         } else if (styleId === "japandi" || styleId === "vintage") {
-            guidanceScale = 9; // Softer, organic look
+            guidanceScale -= 1; // Softer, organic look
         }
 
         // 5. Khởi tạo prediction
@@ -97,7 +111,7 @@ export async function POST(req: Request) {
                 image: image,
                 prompt: masterPrompt,
                 negative_prompt: ROOMIFY_NEGATIVE_PROMPT,
-                condition_scale: 0.45, // Tăng nhẹ lên 0.45 để giữ tường chắc chắn hơn khi có nhiều vật liệu
+                condition_scale: conditionScale,
                 num_inference_steps: 50,
                 guidance_scale: guidanceScale,
                 scheduler: "K_EULER_ANCESTRAL",
@@ -123,6 +137,7 @@ export async function POST(req: Request) {
             project_context: contextId,
             flooring_id: flooringId,
             lighting_id: lightingId,
+            view_id: viewId || "plan",
             user_id: user?.id,
             rendered_image_url: null,
             upscaled_image_url: null

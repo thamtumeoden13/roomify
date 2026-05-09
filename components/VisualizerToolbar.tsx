@@ -3,6 +3,8 @@
 import React, {type ReactNode} from 'react';
 import {motion} from 'framer-motion';
 import {
+    Box,
+    Video,
     Sparkles,
     Zap,
     Download,
@@ -24,7 +26,7 @@ import {
 import {Select} from '@/components/ui/Select';
 import {Tooltip} from '@/components/ui/Tooltip';
 import Button from '@/components/ui/Button';
-import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS} from '@/lib/constants';
+import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMERA_VIEWS} from '@/lib/constants';
 import {useCredits} from '@/lib/hooks/useCredits';
 
 interface VisualizerToolbarProps {
@@ -33,6 +35,7 @@ interface VisualizerToolbarProps {
     onStyleChange: (val: string) => void;
     onFlooringChange: (val: string) => void;
     onMoodChange: (val: string) => void;
+    onViewChange: (val: string) => void;
     // Chỉ nút Generate mới gọi hàm này
     onGenerate: () => void;
     onUpscale: () => void;
@@ -42,6 +45,7 @@ interface VisualizerToolbarProps {
     selectedContext: any;
     selectedFlooring: any;
     selectedLighting: any;
+    selectedView: any;
     isProcessing: boolean;
     isUpscaling: boolean;
     hasCurrentImage: boolean;
@@ -71,6 +75,12 @@ const lightingIcons: Record<string, ReactNode> = {
     'studio-white': <Focus className="w-4 h-4"/>,
 };
 
+const viewIcons: Record<string, ReactNode> = {
+    'plan': <Square className="w-4 h-4"/>,
+    'isometric': <Box className="w-4 h-4"/>,
+    'perspective': <Video className="w-4 h-4"/>,
+};
+
 const flooringSwatches: Record<string, string> = {
     'light-oak': 'bg-[#E5D3B3]',
     'dark-walnut': 'bg-[#4B3621]',
@@ -84,6 +94,7 @@ export default function VisualizerToolbar({
                                               onStyleChange,
                                               onFlooringChange,
                                               onMoodChange,
+                                              onViewChange,
                                               onGenerate,
                                               onUpscale,
                                               onExport,
@@ -92,6 +103,7 @@ export default function VisualizerToolbar({
                                               selectedContext,
                                               selectedFlooring,
                                               selectedLighting,
+                                              selectedView,
                                               isProcessing,
                                               isUpscaling,
                                               hasCurrentImage,
@@ -134,6 +146,12 @@ export default function VisualizerToolbar({
         tooltip: l.description
     }));
 
+    const viewOptions = CAMERA_VIEWS.map(v => ({
+        id: v.id,
+        name: v.name,
+        icon: viewIcons[v.id] || <Square className="w-4 h-4"/>
+    }));
+
     return (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-[95%]">
             <div
@@ -174,6 +192,15 @@ export default function VisualizerToolbar({
                         onValueChange={onMoodChange} // CHỈ ĐỔI STATE
                         options={lightingOptions}
                         icon={lightingIcons[selectedLighting?.id] || <Sun className="w-4 h-4"/>}
+                        disabled={isProcessing || isUpscaling}
+                        position="top"
+                    />
+                    <Select
+                        label="View"
+                        value={selectedView?.id}
+                        onValueChange={onViewChange}
+                        options={viewOptions}
+                        icon={viewIcons[selectedView?.id] || <Square className="w-4 h-4"/>}
                         disabled={isProcessing || isUpscaling}
                         position="top"
                     />

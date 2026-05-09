@@ -177,3 +177,26 @@ export const PROJECT_CONTEXTS = [
         icon: "Building"
     }
 ];
+
+export const CAMERA_VIEWS = [
+    {
+        id: "plan",
+        name: "Top-down (Plan)",
+        keywords: "orthographic top-down plan view, flat architectural layout.",
+        icon: "Square"
+    },
+    {
+        id: "isometric",
+        name: "Isometric (Angled)",
+        // keywords: "isometric 3D perspective, 45-degree angle view, architectural scale model style, showing wall heights and depth.",
+        keywords: "isometric 3D render, angled view, 45-degree architectural model, visible wall depth, miniature diorama style.",
+        icon: "Box"
+    },
+    {
+        id: "perspective",
+        name: "Cinematic (Perspective)",
+        // keywords: "bird's eye cinematic perspective, wide-angle architectural photography, deep shadows, realistic spatial volume.",
+        keywords: "3D perspective visualization, high-angle camera tilt, showing room volume and wall height, depth of field, architectural photography.",
+        icon: "Video"
+    }
+];
