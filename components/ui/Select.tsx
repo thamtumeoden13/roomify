@@ -3,6 +3,8 @@ import {Check, ChevronDown} from 'lucide-react';
 import {clsx, type ClassValue} from 'clsx';
 import {twMerge} from 'tailwind-merge';
 
+import {Tooltip} from '@/components/ui/Tooltip';
+
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
@@ -10,7 +12,7 @@ function cn(...inputs: ClassValue[]) {
 interface SelectProps {
     value: string;
     onValueChange: (value: string) => void;
-    options: { id: string; name: string; icon?: ReactNode }[];
+    options: { id: string; name: string; icon?: ReactNode; tooltip?: string }[];
     label?: string;
     icon?: ReactNode;
     disabled?: boolean;
@@ -73,8 +75,19 @@ export function Select({value, onValueChange, options, label, icon, disabled, po
                                 )}
                             >
                                 <div className="flex items-center gap-2">
-                                    {option.icon}
-                                    {option.name}
+                                    {option.tooltip ? (
+                                        <Tooltip content={option.tooltip}>
+                                            <div className="flex items-center gap-2">
+                                                {option.icon}
+                                                {option.name}
+                                            </div>
+                                        </Tooltip>
+                                    ) : (
+                                        <>
+                                            {option.icon}
+                                            {option.name}
+                                        </>
+                                    )}
                                 </div>
                                 {value === option.id && <Check className="w-4 h-4"/>}
                             </button>
