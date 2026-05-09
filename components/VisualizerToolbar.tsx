@@ -119,8 +119,10 @@ export default function VisualizerToolbar({
             <div className={`w-4 h-4 rounded-full border border-slate-200 ${
                 f.id === 'light-oak' ? 'bg-[#E5D3B3]' :
                     f.id === 'dark-walnut' ? 'bg-[#4B3621]' :
-                        f.id === 'white-marble' ? 'bg-[#F2F2F2]' :
-                            'bg-slate-400'
+                        f.id === 'polished-concrete' ? 'bg-[#8E8E8E]' :
+                            f.id === 'white-marble' ? 'bg-[#F2F2F2]' :
+                                f.id === 'hexagon-tiles' ? 'bg-[#D1D5DB]' :
+                                    'bg-slate-400'
             }`}/>
         )
     }));
@@ -171,7 +173,7 @@ export default function VisualizerToolbar({
                         value={selectedLighting?.id}
                         onValueChange={onMoodChange} // CHỈ ĐỔI STATE
                         options={lightingOptions}
-                        icon={<Sun className="w-4 h-4"/>}
+                        icon={lightingIcons[selectedLighting?.id] || <Sun className="w-4 h-4"/>}
                         disabled={isProcessing || isUpscaling}
                         position="top"
                     />

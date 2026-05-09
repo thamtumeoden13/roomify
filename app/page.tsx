@@ -8,27 +8,16 @@ import {
     Zap,
     Maximize,
     ShieldCheck,
-    LogIn,
-    Menu,
     X,
-    Printer,
-    LayoutDashboard,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
-import {motion, AnimatePresence} from "framer-motion";
+import {motion} from "framer-motion";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/Footer";
 import {supabase} from "@/lib/supabase";
 import {Heart, Eye, Sparkles, User} from "lucide-react";
-
-const ZaloIcon = ({className}: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-        <path
-            d="M12 2C6.477 2 2 6.03 2 11c0 1.956.702 3.75 1.887 5.207L2.4 20.6a.5.5 0 0 0 .72.54l4.242-2.121c1.43.642 3.018.981 4.638.981 5.523 0 10-4.03 10-9s-4.477-9-10-9zm5.334 12.333c-.225.334-.847.457-1.18.233-.334-.224-.457-.846-.233-1.18.224-.334.846-.457 1.18-.233.333.224.456.846.233 1.18zm-2.667-1.333c-.224.333-.846.456-1.18.233-.333-.225-.456-.847-.233-1.18.224-.334.846-.457 1.18-.234.333.225.456.847.233 1.181zm-2.667-1.333c-.224.333-.846.457-1.18.233-.333-.224-.456-.846-.233-1.18.224-.334.846-.457 1.18-.233.333.224.456.846.233 1.18z"/>
-    </svg>
-);
 
 export default function LandingPage() {
     const [user, setUser] = useState<any>(null);
@@ -139,7 +128,7 @@ export default function LandingPage() {
                 initial={{y: -100, opacity: 0}}
                 animate={{y: 0, opacity: 1}}
                 transition={{duration: 0.8, ease: "easeOut"}}
-                className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-[60]"
+                className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-60"
             />
             <main>
                 {/* Hero Section */}
@@ -162,7 +151,7 @@ export default function LandingPage() {
                         }}
                     >
                         <div
-                            className="absolute inset-0 bg-gradient-to-b from-[#F9FAFB]/0 via-[#F9FAFB]/50 to-[#F9FAFB]"/>
+                            className="absolute inset-0 bg-linear-to-b from-[#F9FAFB]/0 via-[#F9FAFB]/50 to-[#F9FAFB]"/>
                     </motion.div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden">
@@ -220,7 +209,7 @@ export default function LandingPage() {
                             <div className="relative mt-20">
                                 {/* Glowing Aura */}
                                 <div
-                                    className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
+                                    className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
 
                                 <motion.div
                                     style={{
@@ -278,7 +267,7 @@ export default function LandingPage() {
                                 {[...marqueeItems, ...marqueeItems].map((item, idx) => (
                                     <div
                                         key={idx}
-                                        className="relative flex-shrink-0 w-80 h-48 rounded-xl overflow-hidden group border border-slate-200 shadow-md"
+                                        className="relative shrink-0 w-80 h-48 rounded-xl overflow-hidden group border border-slate-200 shadow-md"
                                     >
                                         <img
                                             src={item.image}
@@ -307,7 +296,7 @@ export default function LandingPage() {
                         </div>
 
                         {/* Connection Line */}
-                        <div className="absolute top-[60%] left-[10%] right-[10%] h-[2px] hidden md:block z-0">
+                        <div className="absolute top-[60%] left-[10%] right-[10%] h-0.5 hidden md:block z-0">
                             <svg className="w-full h-24 overflow-visible">
                                 <motion.path
                                     d="M 0 50 Q 250 -50 500 50 T 1000 50"
@@ -361,7 +350,7 @@ export default function LandingPage() {
                                     className="relative p-10 rounded-[2.5rem] bg-slate-50 border border-slate-200 hover:border-primary/50 transition-all group overflow-hidden"
                                 >
                                     <div
-                                        className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                        className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
 
                                     <div className="relative z-10">
                                         <div
@@ -518,7 +507,7 @@ export default function LandingPage() {
                         {isLoading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div key={i} className="aspect-[4/5] rounded-3xl bg-slate-100 animate-pulse"/>
+                                    <div key={i} className="aspect-4/5 rounded-3xl bg-slate-100 animate-pulse"/>
                                 ))}
                             </div>
                         ) : (
@@ -572,7 +561,7 @@ export default function LandingPage() {
                                                 <div
                                                     className="relative h-full flex flex-col rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
                                                     {/* Image Container with Hover Effect */}
-                                                    <div className="relative aspect-[4/3] overflow-hidden">
+                                                    <div className="relative aspect-4/3 overflow-hidden">
                                                         <img
                                                             src={imageUrl}
                                                             alt={render.project_name || "AI Render"}

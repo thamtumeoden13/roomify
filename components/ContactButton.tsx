@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 export const ContactButton = () => {
     return (
-        <div className="fixed bottom-6 left-6 z-[9999] flex items-center justify-center group">
+        <div className="fixed bottom-6 left-6 z-9999 flex items-center justify-center group">
             {/* Hiệu ứng vòng tròn nhấp nháy (Pulsing Effect) */}
             <div className="absolute inset-0 flex items-center justify-center">
         <span className="relative flex h-14 w-14">

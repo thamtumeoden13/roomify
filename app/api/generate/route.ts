@@ -68,30 +68,26 @@ export async function POST(req: Request) {
             return NextResponse.json({error: "You have run out of credits."}, {status: 403});
         }
 
-        // 3. XÂY DỰNG MASTER PROMPT (KẾT HỢP CẢ HAI)
-        const fKeywords = flooringKeywords || "natural wood flooring";
-        const lKeywords = lightingKeywords || "soft natural daylight";
-
-        // Chúng ta đưa ROOMIFY_RENDER_PROMPT lên đầu làm "Luật",
-        // sau đó mới đưa các yêu cầu cụ thể của người dùng xuống dưới.
+        // 3. XÂY DỰNG MASTER PROMPT (Dynamic Prompt Building)
+        const fKeywords = flooringKeywords || "light oak wood planks, natural wood grain, scandinavian timber";
+        const lKeywords = lightingKeywords || "bright natural sunlight, clear day lighting, realistic exterior light through windows";
         const masterPrompt = `
-${ROOMIFY_RENDER_PROMPT}
-
-ADDITIONAL DESIGN SPECIFICATIONS:
-- Project Context: This is a ${projectContext || "comprehensive apartment"} layout. 
-- Interior Style: ${styleKeywords || "Modern minimalist"}
-- Material Choice: Use ${fKeywords} for all floor surfaces.
-- Lighting Mood: The scene is bathed in ${lKeywords}.
-
-FINAL REQUIREMENT: Ensure all 3D furniture and walls strictly align with the 2D plan lines. Completely hide and replace all floor text labels with the selected ${fKeywords}.
-`.trim();
+            ${ROOMIFY_RENDER_PROMPT}
+            ADDITIONAL DESIGN SPECIFICATIONS:
+            - Project Context: This is a ${projectContext || "comprehensive apartment"} layout. 
+            - Interior Style: ${styleKeywords || "Modern minimalist"}
+            - Material Choice: Use ${fKeywords} for all floor surfaces.
+            - Lighting Mood: The scene is bathed in ${lKeywords}.
+            
+            FINAL REQUIREMENT: Ensure all 3D furniture and walls strictly align with the 2D plan lines. Completely hide and replace all floor text labels with the selected ${fKeywords}.
+            `.trim();
 
         // 4. Smart Tuning
         let guidanceScale = 10;
         if (flooringId === "white-marble" || flooringId === "polished-concrete") {
-            guidanceScale = 12; // Tăng để làm rõ độ bóng của đá/bê tông
+            guidanceScale = 12; // Sharp reflections
         } else if (styleId === "japandi" || styleId === "vintage") {
-            guidanceScale = 9; // Giảm để tạo độ mềm mại tự nhiên
+            guidanceScale = 9; // Softer, organic look
         }
 
         // 5. Khởi tạo prediction

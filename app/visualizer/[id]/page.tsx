@@ -420,10 +420,10 @@ function VisualizerContent() {
     };
     const getProcessingStatus = (status: string, elapsed: number) => {
         if (status === "starting") return "Initializing AI Engine...";
-        if (elapsed < 5000) return "Analyzing floor plan architecture...";
-        if (elapsed < 12000) return `Applying ${selectedStyle.name} and ${selectedFlooring.name}...`;
-        if (elapsed < 18000) return `Calculating ${selectedLighting.name} shadows...`;
-        return "Finalizing 3D render...";
+        if (elapsed < 3000) return "Step 1 (0-20%): Analyzing floor plan architecture...";
+        if (elapsed < 8000) return `Step 2 (20-60%): Applying ${selectedFlooring.name} and ${selectedStyle.name}...`;
+        if (elapsed < 14000) return `Step 3 (60-90%): Calculating ${selectedLighting.name} shadows...`;
+        return "Step 4 (90-100%): Finalizing 3D render...";
     };
     useEffect(() => {
         if (id) {
@@ -584,10 +584,6 @@ function VisualizerContent() {
                                     <RefreshCcw className="spinner"/>
                                     <span className="title">Rendering...</span>
                                     <span className="subtitle">
-                    {/*{prediction?.status === "starting" ? "Starting Replicate engine..." :*/}
-                                        {/*    prediction?.status === "processing" ? "AI is imagining your room..." :*/}
-                                        {/*        "Generating your 3D visualization"}*/}
-
                                         {getProcessingStatus(prediction?.status, elapsed)}
                   </span>
                                 </div>
@@ -600,12 +596,8 @@ function VisualizerContent() {
                                     <RefreshCcw className="spinner"/>
                                     <span className="title">Enhancing details...</span>
                                     <span className="subtitle">
-                    {/*{upscalePrediction?.status === "starting" ? "Preparing AI Upscaler..." :*/}
-                                        {/*    upscalePrediction?.status === "processing" ? "Adding 4K textures and details..." :*/}
-                                        {/*        "Upscaling your render to 4K"}*/}
                                         {getProcessingStatus(upscalePrediction?.status, elapsed)}
-
-                  </span>
+                                    </span>
                                 </div>
                             </div>
                         )}
@@ -684,7 +676,7 @@ function VisualizerContent() {
                                                     if (prediction?.id) {
                                                         await supabase
                                                             .from("renders")
-                                                            .update({rating: 1})
+                                                            .update({feedback: 'thumbs_up'})
                                                             .eq("prediction_id", prediction.id);
                                                     }
                                                 }}
@@ -699,7 +691,7 @@ function VisualizerContent() {
                                                     if (prediction?.id) {
                                                         await supabase
                                                             .from("renders")
-                                                            .update({rating: 0})
+                                                            .update({feedback: 'thumbs_down'})
                                                             .eq("prediction_id", prediction.id);
                                                     }
                                                 }}
