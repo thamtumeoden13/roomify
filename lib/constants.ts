@@ -78,15 +78,15 @@ export const ROOM_STYLES = [
         name: "Vintage",
         keywords: "vintage interior design, antique furniture, retro textures, warm color tones, ornate details, classic mid-century modern elements, rich textures."
     },
-    {
-        id: "japandi",
-        name: "Japandi",
-        keywords: "japandi style, natural materials, light oak wood, clean lines, serene atmosphere, zen minimalism, organized space."
-    },
+    // {
+    //     id: "japandi",
+    //     name: "Japandi",
+    //     keywords: "japandi style, natural materials, light oak wood, clean lines, serene atmosphere, zen minimalism, organized space."
+    // },
     {
         id: "industrial",
         name: "Industrial",
-        keywords: "industrial loft, exposed brick, metal accents, polished concrete floors, large windows, raw aesthetic."
+        keywords: "luxury industrial 3D loft, volumetric dark brick walls, black metal 3D accents, charcoal furniture, high contrast 3D depth"
     }
 ];
 
