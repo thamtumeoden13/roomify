@@ -78,15 +78,15 @@ export const ROOM_STYLES = [
         name: "Vintage",
         keywords: "vintage interior design, antique furniture, retro textures, warm color tones, ornate details, classic mid-century modern elements, rich textures."
     },
-    {
-        id: "japandi",
-        name: "Japandi",
-        keywords: "japandi style, natural materials, light oak wood, clean lines, serene atmosphere, zen minimalism, organized space."
-    },
+    // {
+    //     id: "japandi",
+    //     name: "Japandi",
+    //     keywords: "japandi style, natural materials, light oak wood, clean lines, serene atmosphere, zen minimalism, organized space."
+    // },
     {
         id: "industrial",
         name: "Industrial",
-        keywords: "industrial loft, exposed brick, metal accents, polished concrete floors, large windows, raw aesthetic."
+        keywords: "luxury industrial 3D loft, volumetric dark brick walls, black metal 3D accents, charcoal furniture, high contrast 3D depth"
     }
 ];
 
@@ -147,33 +147,53 @@ export const LIGHTING_MOODS = [
 
 export const PROJECT_CONTEXTS = [
     {
-        id: "full-apartment",
-        name: "Full Apartment",
-        description: "Comprehensive layout of a complete apartment with multiple zones.",
-        icon: "Home"
+        id: "residential",
+        name: "Residential",
+        description: "Standard home or apartment with a cozy, lived-in feel.",
+        icon: "Home",
+        keywords: "residential interior, cozy home atmosphere, domestic architecture"
     },
     {
-        id: "luxury-villa",
-        name: "Luxury Villa",
-        description: "Large-scale residential project with premium finishes and expansive spaces.",
-        icon: "Castle"
+        id: "luxury-real-estate",
+        name: "Luxury Estate",
+        description: "High-end finishes and premium architectural details.",
+        icon: "Castle",
+        keywords: "exquisite 3D architectural scale model, premium luxury finishes, high-end materials, sophisticated miniature detail, handcrafted diorama aesthetic"
     },
     {
-        id: "studio-suite",
-        name: "Studio Suite",
-        description: "Compact integrated living space combining multiple functions.",
-        icon: "Layout"
+        id: "commercial-office",
+        name: "Office Space",
+        description: "Professional workplace environment with commercial lighting.",
+        icon: "Building",
+        keywords: "modern office interior, commercial workplace, professional business environment"
     },
     {
-        id: "single-room",
-        name: "Single Room",
-        description: "Focused design for a specific individual room.",
+        id: "retail-hospitality",
+        name: "Retail & Cafe",
+        description: "Public spaces like shops, restaurants, or cafes.",
+        icon: "Store",
+        keywords: "retail interior design, hospitality architecture, public commercial space"
+    }
+];
+
+export const CAMERA_VIEWS = [
+    {
+        id: "plan",
+        name: "Top-down (Plan)",
+        keywords: "3D architectural floor plan, top-down orthographic visualization, flat 2D-to-3D conversion.",
         icon: "Square"
     },
     {
-        id: "commercial-space",
-        name: "Commercial Space",
-        description: "Business or retail environment layout.",
-        icon: "Building"
+        id: "isometric",
+        name: "Isometric (Angled)",
+        // Thay "Model" và "Cutaway" để AI hiện cả cái nhà từ xa
+        keywords: "A 3D dollhouse model of a house, 45 degree tilt, architectural diorama, miniature scale, visible wall height, floating on a white surface.",
+        icon: "Box"
+    },
+    {
+        id: "perspective",
+        name: "Cinematic (Depth)", // Đổi tên để gợi ý về chiều sâu
+        keywords: "A dramatic 3D perspective interior shot, camera tilted at a low angle looking INTO the rooms, extreme spatial depth, visible horizon line, vanishing point, high-end architectural photography, wide-angle lens, realistic room volume.",
+        icon: "Video"
     }
 ];

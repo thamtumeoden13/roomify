@@ -8,7 +8,7 @@ import {toast} from "sonner";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
-import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS} from "@/lib/constants";
+import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMERA_VIEWS} from "@/lib/constants";
 import VisualizerToolbar from "@/components/VisualizerToolbar";
 import {useCredits} from "@/lib/hooks/useCredits";
 
@@ -30,7 +30,7 @@ function VisualizerContent() {
     const [selectedContext, setSelectedContext] = useState(PROJECT_CONTEXTS[0]);
     const [selectedFlooring, setSelectedFlooring] = useState(FLOORING_MATERIALS[0]);
     const [selectedLighting, setSelectedLighting] = useState(LIGHTING_MOODS[1]); // Default to Natural Daylight
-    const [isEnhancing, setIsEnhancing] = useState(false);
+    const [selectedView, setSelectedView] = useState(CAMERA_VIEWS[0]);
     const [rating, setRating] = useState<number | null>(null);
     const [variants, setVariants] = useState<any[]>([]);
     const [leftImage, setLeftImage] = useState<string | null>(null);
@@ -254,6 +254,7 @@ function VisualizerContent() {
         contextOverride?: typeof PROJECT_CONTEXTS[0],
         flooringOverride?: typeof FLOORING_MATERIALS[0],
         lightingOverride?: typeof LIGHTING_MOODS[0],
+        viewOverride?: typeof CAMERA_VIEWS[0],
         forceNew = true
     ) => {
         if (!project?.source_image_url) return;
@@ -262,6 +263,7 @@ function VisualizerContent() {
         const contextToUse = contextOverride || selectedContext;
         const flooringToUse = flooringOverride || selectedFlooring;
         const lightingToUse = lightingOverride || selectedLighting;
+        const viewToUse = viewOverride || selectedView;
 
         try {
             setIsProcessing(true);
@@ -280,6 +282,8 @@ function VisualizerContent() {
                     flooringId: flooringToUse.id,
                     lightingKeywords: lightingToUse.keywords,
                     lightingId: lightingToUse.id,
+                    viewKeywords: viewToUse.keywords,
+                    viewId: viewToUse.id,
                     forceNew
                 }),
             });
@@ -310,43 +314,6 @@ function VisualizerContent() {
         }
     };
 
-    const handleEnhance = async (imageUrl: string, renderId: string) => {
-        try {
-            setIsEnhancing(true);
-            const response = await fetch("/api/enhance", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({image: imageUrl, renderId}),
-            });
-            const data = await response.json();
-            if (response.status !== 201) throw new Error(data.error);
-
-            let prediction = data;
-            while (prediction.status !== "succeeded" && prediction.status !== "failed") {
-                await sleep(2000);
-                const res = await fetch("/api/predictions/" + prediction.id);
-                prediction = await res.json();
-            }
-
-            if (prediction.status === "succeeded" && prediction.output) {
-                setCurrentImage(prediction.output);
-                setRightImage(prediction.output);
-                // Update the render record with the enhanced image
-                await supabase
-                    .from("renders")
-                    .update({rendered_image_url: prediction.output})
-                    .eq("prediction_id", renderId);
-
-                if (id) fetchVariants(id as string);
-                toast.success("AI Enhancement applied!");
-            }
-        } catch (error: any) {
-            console.error("Enhancement failed:", error);
-        } finally {
-            setIsEnhancing(false);
-        }
-    };
-
     const resumePrediction = async (predictionId: string) => {
         try {
             setIsProcessing(true);
@@ -373,11 +340,6 @@ function VisualizerContent() {
             if (prediction.status === "succeeded") {
                 // Refresh variants and credits
                 if (id) fetchVariants(id as string);
-
-                // Automatic enhancement pass
-                if (prediction.output) {
-                    handleEnhance(prediction.output, prediction.id);
-                }
 
                 // Add a small delay to allow database triggers/RPCs to finish
                 setTimeout(() => {
@@ -702,13 +664,6 @@ function VisualizerContent() {
                                         </div>
                                     </div>
                                 )}
-                                {isEnhancing && (
-                                    <div
-                                        className="absolute bottom-4 right-4 z-20 bg-primary/90 text-white backdrop-blur px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-                                        <Sparkles className="w-4 h-4 animate-pulse"/>
-                                        <span className="text-xs font-medium">Enhancing details...</span>
-                                    </div>
-                                )}
                             </div>
                         ) : (
                             <div className="compare-fallback">
@@ -781,6 +736,10 @@ function VisualizerContent() {
                     const mood = LIGHTING_MOODS.find(l => l.id === val);
                     if (mood) setSelectedLighting(mood);
                 }}
+                onViewChange={(val) => {
+                    const view = CAMERA_VIEWS.find(v => v.id === val);
+                    if (view) setSelectedView(view);
+                }}
                 // CHỈ nhấn nút này mới gọi runGeneration
                 onGenerate={() => runGeneration()}
                 onUpscale={handleUpscale}
@@ -790,6 +749,7 @@ function VisualizerContent() {
                 selectedContext={selectedContext}
                 selectedFlooring={selectedFlooring}
                 selectedLighting={selectedLighting}
+                selectedView={selectedView}
                 isProcessing={isProcessing}
                 isUpscaling={isUpscaling}
                 hasCurrentImage={!!currentImage}

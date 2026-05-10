@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS renders (
     project_context TEXT,
     flooring_id TEXT,
     lighting_id TEXT,
+    view_id TEXT,
     rating INTEGER,
     upscaled_image_url TEXT,
     upscale_prediction_id TEXT,

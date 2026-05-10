@@ -3,6 +3,8 @@
 import React, {type ReactNode} from 'react';
 import {motion} from 'framer-motion';
 import {
+    Box,
+    Video,
     Sparkles,
     Zap,
     Download,
@@ -24,7 +26,7 @@ import {
 import {Select} from '@/components/ui/Select';
 import {Tooltip} from '@/components/ui/Tooltip';
 import Button from '@/components/ui/Button';
-import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS} from '@/lib/constants';
+import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMERA_VIEWS} from '@/lib/constants';
 import {useCredits} from '@/lib/hooks/useCredits';
 
 interface VisualizerToolbarProps {
@@ -33,6 +35,7 @@ interface VisualizerToolbarProps {
     onStyleChange: (val: string) => void;
     onFlooringChange: (val: string) => void;
     onMoodChange: (val: string) => void;
+    onViewChange: (val: string) => void;
     // Chỉ nút Generate mới gọi hàm này
     onGenerate: () => void;
     onUpscale: () => void;
@@ -42,6 +45,7 @@ interface VisualizerToolbarProps {
     selectedContext: any;
     selectedFlooring: any;
     selectedLighting: any;
+    selectedView: any;
     isProcessing: boolean;
     isUpscaling: boolean;
     hasCurrentImage: boolean;
@@ -71,6 +75,12 @@ const lightingIcons: Record<string, ReactNode> = {
     'studio-white': <Focus className="w-4 h-4"/>,
 };
 
+const viewIcons: Record<string, ReactNode> = {
+    'plan': <Square className="w-4 h-4"/>,
+    'isometric': <Box className="w-4 h-4"/>,
+    'perspective': <Video className="w-4 h-4"/>,
+};
+
 const flooringSwatches: Record<string, string> = {
     'light-oak': 'bg-[#E5D3B3]',
     'dark-walnut': 'bg-[#4B3621]',
@@ -84,6 +94,7 @@ export default function VisualizerToolbar({
                                               onStyleChange,
                                               onFlooringChange,
                                               onMoodChange,
+                                              onViewChange,
                                               onGenerate,
                                               onUpscale,
                                               onExport,
@@ -92,6 +103,7 @@ export default function VisualizerToolbar({
                                               selectedContext,
                                               selectedFlooring,
                                               selectedLighting,
+                                              selectedView,
                                               isProcessing,
                                               isUpscaling,
                                               hasCurrentImage,
@@ -132,6 +144,12 @@ export default function VisualizerToolbar({
         name: l.name,
         icon: lightingIcons[l.id] || <Sun className="w-4 h-4"/>,
         tooltip: l.description
+    }));
+
+    const viewOptions = CAMERA_VIEWS.map(v => ({
+        id: v.id,
+        name: v.name,
+        icon: viewIcons[v.id] || <Square className="w-4 h-4"/>
     }));
 
     return (
@@ -177,6 +195,15 @@ export default function VisualizerToolbar({
                         disabled={isProcessing || isUpscaling}
                         position="top"
                     />
+                    <Select
+                        label="View"
+                        value={selectedView?.id}
+                        onValueChange={onViewChange}
+                        options={viewOptions}
+                        icon={viewIcons[selectedView?.id] || <Square className="w-4 h-4"/>}
+                        disabled={isProcessing || isUpscaling}
+                        position="top"
+                    />
                 </div>
 
                 {/* Center Group: Primary Action */}
@@ -188,7 +215,7 @@ export default function VisualizerToolbar({
                         <Button
                             onClick={onGenerate} // NHẤN MỚI RENDER
                             disabled={isProcessing || isUpscaling || credits === 0}
-                            className={`relative overflow-hidden bg-gradient-to-r ${credits === 0 ? 'from-slate-400 to-slate-500' : 'from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'} text-white rounded-full px-8 py-6 h-auto shadow-lg ${credits === 0 ? '' : 'shadow-indigo-500/25'} border-none group transition-all min-w-[200px]`}
+                            className={`relative overflow-hidden bg-linear-to-r ${credits === 0 ? 'from-slate-400 to-slate-500' : 'from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'} text-white rounded-full px-8 py-6 h-auto shadow-lg ${credits === 0 ? '' : 'shadow-indigo-500/25'} border-none group transition-all min-w-50`}
                         >
                             <div className="flex items-center gap-2 text-base font-bold tracking-tight">
                                 {isProcessing ? (
@@ -249,7 +276,7 @@ export default function VisualizerToolbar({
                         </Button>
                     </Tooltip>
 
-                    <div className="h-8 w-[1px] bg-slate-200 mx-1 hidden md:block"/>
+                    <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block"/>
 
                     <div className="flex items-center">
                         <Button
