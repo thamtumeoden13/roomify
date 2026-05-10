@@ -28,6 +28,7 @@ import {Tooltip} from '@/components/ui/Tooltip';
 import Button from '@/components/ui/Button';
 import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMERA_VIEWS} from '@/lib/constants';
 import {useCredits} from '@/lib/hooks/useCredits';
+import {cn} from "@/lib/utils";
 
 interface VisualizerToolbarProps {
     // Tách biệt các sự kiện thay đổi
@@ -37,7 +38,7 @@ interface VisualizerToolbarProps {
     onMoodChange: (val: string) => void;
     onViewChange: (val: string) => void;
     // Chỉ nút Generate mới gọi hàm này
-    onGenerate: () => void;
+    onGenerate: (viewId?: string) => void;
     onUpscale: () => void;
     onExport: () => void;
     onShare: () => void;
@@ -46,11 +47,13 @@ interface VisualizerToolbarProps {
     selectedFlooring: any;
     selectedLighting: any;
     selectedView: any;
-    isProcessing: boolean;
+    isPlanProcessing: boolean;
+    isIsoProcessing: boolean;
     isUpscaling: boolean;
     hasCurrentImage: boolean;
     isPublic: boolean;
     onTogglePublic: (isPublic: boolean) => void;
+    currentPlanExists: boolean;
 }
 
 const contextIcons: Record<string, ReactNode> = {
@@ -104,13 +107,28 @@ export default function VisualizerToolbar({
                                               selectedFlooring,
                                               selectedLighting,
                                               selectedView,
-                                              isProcessing,
+                                              isPlanProcessing,
+                                              isIsoProcessing,
                                               isUpscaling,
                                               hasCurrentImage,
                                               isPublic,
-                                              onTogglePublic
+                                              onTogglePublic,
+                                              currentPlanExists
                                           }: VisualizerToolbarProps) {
     const {credits} = useCredits();
+
+    const [isSettingsChanged, setIsSettingsChanged] = React.useState(false);
+
+    const handleSettingChange = (callback: (val: string) => void) => (val: string) => {
+        callback(val);
+        setIsSettingsChanged(true);
+    };
+
+    // Reset indicator when generation starts
+    const onGenerateWithReset = (viewId?: string) => {
+        setIsSettingsChanged(false);
+        onGenerate(viewId);
+    };
 
     const contextOptions = PROJECT_CONTEXTS.map(c => ({
         id: c.id,
@@ -146,157 +164,202 @@ export default function VisualizerToolbar({
         tooltip: l.description
     }));
 
-    const viewOptions = CAMERA_VIEWS.map(v => ({
-        id: v.id,
-        name: v.name,
-        icon: viewIcons[v.id] || <Square className="w-4 h-4"/>
-    }));
-
     return (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-[95%]">
             <div
-                className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/50 rounded-3xl shadow-2xl p-4 flex flex-col lg:flex-row items-center justify-between gap-6 transition-all">
+                className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-x border-slate-200/40 dark:border-slate-800/40 border-t border-white/40 dark:border-white/10 border-b border-slate-300/50 dark:border-black/50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-3 lg:p-4 flex flex-col lg:flex-row items-center justify-between gap-6 transition-all">
 
                 {/* Left Group: Configuration */}
-                <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-center lg:justify-start">
+                <div
+                    className="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-center lg:justify-start pb-4 lg:pb-0 lg:pr-6">
                     <Select
                         label="Space"
                         value={selectedContext.id}
-                        onValueChange={onSpaceChange} // CHỈ ĐỔI STATE
+                        onValueChange={handleSettingChange(onSpaceChange)}
                         options={contextOptions}
                         icon={contextIcons[selectedContext.id]}
-                        disabled={isProcessing || isUpscaling}
-                        position="top"
+                        disabled={isPlanProcessing || isIsoProcessing || isUpscaling}
                     />
                     <Select
                         label="Theme"
                         value={selectedStyle.id}
-                        onValueChange={onStyleChange} // CHỈ ĐỔI STATE
+                        onValueChange={handleSettingChange(onStyleChange)}
                         options={styleOptions}
                         icon={<Palette className="w-4 h-4"/>}
-                        disabled={isProcessing || isUpscaling}
+                        disabled={isPlanProcessing || isIsoProcessing || isUpscaling}
                         position="top"
                     />
                     <Select
                         label="Flooring"
                         value={selectedFlooring?.id}
-                        onValueChange={onFlooringChange} // CHỈ ĐỔI STATE
+                        onValueChange={handleSettingChange(onFlooringChange)}
                         options={flooringOptions}
                         icon={<Layers className="w-4 h-4"/>}
-                        disabled={isProcessing || isUpscaling}
+                        disabled={isPlanProcessing || isIsoProcessing || isUpscaling}
                         position="top"
                     />
                     <Select
                         label="Mood"
                         value={selectedLighting?.id}
-                        onValueChange={onMoodChange} // CHỈ ĐỔI STATE
+                        onValueChange={handleSettingChange(onMoodChange)}
                         options={lightingOptions}
                         icon={lightingIcons[selectedLighting?.id] || <Sun className="w-4 h-4"/>}
-                        disabled={isProcessing || isUpscaling}
-                        position="top"
-                    />
-                    <Select
-                        label="View"
-                        value={selectedView?.id}
-                        onValueChange={onViewChange}
-                        options={viewOptions}
-                        icon={viewIcons[selectedView?.id] || <Square className="w-4 h-4"/>}
-                        disabled={isProcessing || isUpscaling}
+                        disabled={isPlanProcessing || isIsoProcessing || isUpscaling}
                         position="top"
                     />
                 </div>
 
+                <div className="hidden lg:block h-10 w-px bg-slate-200/30 mx-2"/>
+
                 {/* Center Group: Primary Action */}
-                <div className="flex-1 flex flex-col items-center gap-2">
+                <div className="flex-1 flex flex-col items-center gap-2 py-4 lg:py-0 lg:px-6">
                     <motion.div
-                        whileHover={credits && credits > 0 ? {scale: 1.05} : {}}
-                        whileTap={credits && credits > 0 ? {scale: 0.95} : {}}
+                        animate={isSettingsChanged && !isPlanProcessing ? {scale: [1, 1.02, 1]} : {}}
+                        transition={isSettingsChanged ? {duration: 2, repeat: Infinity, ease: "easeInOut"} : {}}
+                        whileHover={{y: -2}}
+                        whileTap={{scale: 0.98}}
                     >
                         <Button
-                            onClick={onGenerate} // NHẤN MỚI RENDER
-                            disabled={isProcessing || isUpscaling || credits === 0}
-                            className={`relative overflow-hidden bg-linear-to-r ${credits === 0 ? 'from-slate-400 to-slate-500' : 'from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'} text-white rounded-full px-8 py-6 h-auto shadow-lg ${credits === 0 ? '' : 'shadow-indigo-500/25'} border-none group transition-all min-w-50`}
+                            onClick={() => onGenerateWithReset('plan')}
+                            disabled={isPlanProcessing || isUpscaling || credits === 0}
+                            className={`relative overflow-hidden ${
+                                credits === 0
+                                    ? 'bg-slate-400'
+                                    : isPlanProcessing
+                                        ? 'bg-indigo-600'
+                                        : 'bg-gradient-to-r from-indigo-600 via-violet-600 to-blue-600 animate-gradient-x'
+                            } text-white rounded-full px-10 py-6 h-auto transition-all duration-500 border-none group min-w-[220px] shadow-[0_0_20px_rgba(99,102,241,0)] ${
+                                isSettingsChanged && !isPlanProcessing ? 'shadow-[0_0_25px_rgba(99,102,241,0.5)]' : ''
+                            }`}
                         >
-                            <div className="flex items-center gap-2 text-base font-bold tracking-tight">
-                                {isProcessing ? (
+                            {/* Mesh Gradient Animation Overlay */}
+                            {!isPlanProcessing && credits !== 0 && (
+                                <div
+                                    className="absolute inset-0 opacity-50 group-hover:opacity-80 transition-opacity bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)] animate-pulse"/>
+                            )}
+
+                            {/* Shimmer effect for processing */}
+                            {isPlanProcessing && (
+                                <div
+                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"/>
+                            )}
+
+                            <div
+                                className="relative z-10 flex items-center justify-center gap-3 text-base font-bold tracking-tight">
+                                {isPlanProcessing ? (
                                     <RefreshCcw className="w-5 h-5 animate-spin"/>
                                 ) : (
-                                    <Sparkles className="w-5 h-5 group-hover:animate-pulse"/>
+                                    <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform"/>
                                 )}
-                                {isProcessing ? "Imagining..." : (credits === 0 ? "Out of Credits" : "Generate 3D")}
+                                <span>{isPlanProcessing ? "Imagining..." : (credits === 0 ? "Out of Credits" : "Generate 3D Plan")}</span>
                             </div>
-                            <div
-                                className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"/>
                         </Button>
                     </motion.div>
 
                     {credits !== null && (
                         <div
-                            className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                            <Coins className={`w-3 h-3 ${credits === 0 ? 'text-rose-500' : 'text-indigo-500'}`}/>
+                            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md px-4 py-1.5 rounded-full border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+                            <Coins className={`w-3.5 h-3.5 ${credits === 0 ? 'text-rose-500' : 'text-indigo-500'}`}/>
                             <span>Credits: <span
-                                className={credits === 0 ? 'text-rose-600' : 'text-indigo-600'}>{credits}</span></span>
+                                className={credits === 0 ? 'text-rose-600' : 'text-indigo-600 dark:text-indigo-400'}>{credits}</span></span>
                         </div>
                     )}
                 </div>
 
-                {/* Right Group: Utilities (giữ nguyên các hành động khác) */}
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                <div className="hidden lg:block h-10 w-px bg-slate-200/30 mx-2"/>
+
+                {/* Right Group: Utilities */}
+                <div
+                    className="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-end pt-4 lg:pt-0 lg:pl-6">
+                    <Tooltip content="Please generate the 3D Plan view first to unlock the Isometric model."
+                             disabled={currentPlanExists}>
+                        <motion.div whileHover={{y: -2}}>
+                            <Button
+                                variant="outline"
+                                onClick={() => onGenerateWithReset('isometric')}
+                                disabled={isIsoProcessing || isUpscaling || !currentPlanExists || (credits !== null && credits === 0)}
+                                className={cn(
+                                    "relative overflow-hidden px-5 py-2.5 h-11 rounded-2xl transition-all duration-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2",
+                                    isIsoProcessing
+                                        ? "bg-gradient-to-r from-slate-800 to-slate-900 text-white border-none shadow-lg"
+                                        : "bg-white/10 backdrop-blur-md border-[1.5px] border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 shadow-sm"
+                                )}
+                            >
+                                {isIsoProcessing ? (
+                                    <RefreshCcw className="w-4 h-4 animate-spin"/>
+                                ) : (
+                                    <Box className="w-4 h-4 text-indigo-500"/>
+                                )}
+                                <span>{isIsoProcessing ? "Creating..." : "3D Isometric"}</span>
+
+                                {isIsoProcessing && (
+                                    <div
+                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"/>
+                                )}
+                            </Button>
+                        </motion.div>
+                    </Tooltip>
+
+                    <motion.div whileHover={{y: -2}}>
+                        <Button
+                            variant="outline"
+                            onClick={onUpscale}
+                            disabled={isPlanProcessing || isIsoProcessing || isUpscaling || !hasCurrentImage || credits === 0}
+                            className="rounded-2xl h-11 px-5 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2"
+                        >
+                            {isUpscaling ? (
+                                <RefreshCcw className="w-4 h-4 animate-spin"/>
+                            ) : (
+                                <Zap
+                                    className={`w-4 h-4 ${credits === 0 ? 'text-slate-400 fill-slate-400' : 'text-amber-500 fill-amber-500'}`}/>
+                            )}
+                            <span>{isUpscaling ? "Enhancing..." : "4K Upscale"}</span>
+                        </Button>
+                    </motion.div>
+
+                    <div className="h-8 w-px bg-slate-200/30 mx-1 hidden md:block"/>
+
                     {/* Public Toggle */}
                     <div
-                        className="flex items-center gap-2 mr-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                        className="flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
                         <span
-                            className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Public Gallery</span>
+                            className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Public</span>
                         <button
                             onClick={() => onTogglePublic(!isPublic)}
-                            disabled={!hasCurrentImage || isProcessing || isUpscaling}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${isPublic ? 'bg-indigo-600' : 'bg-slate-300'} disabled:opacity-50`}
+                            disabled={!hasCurrentImage || isPlanProcessing || isIsoProcessing || isUpscaling}
+                            className={cn(
+                                "relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none disabled:opacity-50",
+                                isPublic ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]' : 'bg-slate-300 dark:bg-slate-600'
+                            )}
                         >
-                            <span
-                                className={`${isPublic ? 'translate-x-3' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
+                            <motion.span
+                                animate={{x: isPublic ? 24 : 4}}
+                                className="inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform"
                             />
                         </button>
                     </div>
 
-                    <Tooltip content={credits === 0 ? "You've run out of credits" : "Enhance to ultra-high resolution"}>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onUpscale}
-                            disabled={isProcessing || isUpscaling || !hasCurrentImage || credits === 0}
-                            className="rounded-xl h-10 px-4 border-slate-200 hover:bg-slate-50 transition-colors"
-                        >
-                            {isUpscaling ? (
-                                <RefreshCcw className="w-4 h-4 mr-2 animate-spin"/>
-                            ) : (
-                                <Zap
-                                    className={`w-4 h-4 mr-2 ${credits === 0 ? 'text-slate-400 fill-slate-400' : 'text-amber-500 fill-amber-500'}`}/>
-                            )}
-                            {isUpscaling ? "Enhancing..." : "4K Upscale"}
-                        </Button>
-                    </Tooltip>
-
-                    <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block"/>
-
-                    <div className="flex items-center">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onExport}
-                            disabled={!hasCurrentImage || isUpscaling}
-                            className="rounded-l-xl rounded-r-none h-10 px-4 border-slate-200 hover:bg-slate-50 border-r-0"
-                        >
-                            <Download className="w-4 h-4 mr-2"/>
-                            Export
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onShare}
-                            className="rounded-r-xl rounded-l-none h-10 px-4 border-slate-200 hover:bg-slate-50"
-                        >
-                            <Share2 className="w-4 h-4"/>
-                        </Button>
+                    <div className="flex items-center gap-0.5">
+                        <motion.div whileHover={{y: -2}}>
+                            <Button
+                                variant="outline"
+                                onClick={onExport}
+                                disabled={!hasCurrentImage || isUpscaling}
+                                className="rounded-l-2xl rounded-r-none h-11 px-5 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 border-r-0 font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
+                            >
+                                <Download className="w-4 h-4 mr-2"/>
+                                Export
+                            </Button>
+                        </motion.div>
+                        <motion.div whileHover={{y: -2}}>
+                            <Button
+                                variant="outline"
+                                onClick={onShare}
+                                className="rounded-r-2xl rounded-l-none h-11 px-4 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-xs transition-all shadow-sm"
+                            >
+                                <Share2 className="w-4 h-4"/>
+                            </Button>
+                        </motion.div>
                     </div>
                 </div>
             </div>

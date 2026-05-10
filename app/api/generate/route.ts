@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         const {
             image, project_id, projectName, styleKeywords, styleId,
             projectContext, contextId, flooringKeywords, flooringId,
-            lightingKeywords, lightingId, viewKeywords, viewId, forceNew
+            lightingKeywords, lightingId, viewKeywords, viewId = "plan", forceNew
         } = await req.json();
 
         if (!image) return NextResponse.json({error: "Image is required"}, {status: 400});
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         const query = supabase.from("renders").select("*")
             .eq("style_id", styleId || "").eq("project_context", contextId || "")
             .eq("flooring_id", flooringId || "").eq("lighting_id", lightingId || "")
-            .eq("view_id", viewId || "plan");
+            .eq("view_id", viewId);
         if (project_id) query.eq("project_id", project_id);
         else query.eq("source_image_url", image);
         const {data: existingRender} = await query.order("created_at", {ascending: false}).limit(1).maybeSingle();
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
             prediction_id: prediction.id, project_id: project_id, project_name: projectName || "Untitled Project",
             source_image_url: image, status: prediction.status, prompt: masterPrompt,
             style_id: styleId, project_context: contextId, flooring_id: flooringId,
-            lighting_id: lightingId, view_id: viewId || "plan", user_id: user?.id, seed: baseSeed,
+            lighting_id: lightingId, view_id: viewId, user_id: user?.id, seed: baseSeed,
             rendered_image_url: null, upscaled_image_url: null
         };
         if (existingRender) await supabase.from("renders").update(renderData).match({id: existingRender.id});
