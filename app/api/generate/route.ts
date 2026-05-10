@@ -43,18 +43,17 @@ export async function POST(req: Request) {
         if (!profile || profile.credits < 1) return NextResponse.json({error: "Out of credits"}, {status: 403});
 
         // 3. THIẾT LẬP CHIẾN THUẬT RENDER DỰA TRÊN VIEW_ID
+        let baseSeed = (viewId === "plan") ? 363109 : 665380;
         let basePromptAnchor = "";
         let conditionScale = 0.45;
         let guidanceScale = 12;
         let negativePromptExtension = "";
-        let finalSeed = 665380;
 
         if (viewId === "plan") {
             // VIEW PHẲNG: Tập trung vào độ chính xác mặt bằng
             basePromptAnchor = "Professional 3D floor plan, top-down orthographic view, 90-degree overhead visualization.";
             conditionScale = 0.45;
             guidanceScale = 12;
-            finalSeed = 363109
         } else if (viewId === "isometric") {
             // VIEW NGHIÊNG: Ép AI tạo mô hình sa bàn (Single Story)
             basePromptAnchor = "A professional 3D ISOMETRIC DIORAMA of a SINGLE-STORY interior, 45-degree angled view, architectural scale model, roofless cutaway.";
@@ -94,7 +93,7 @@ export async function POST(req: Request) {
                 num_inference_steps: 50,
                 guidance_scale: guidanceScale,
                 scheduler: "K_EULER_ANCESTRAL",
-                seed: finalSeed,
+                seed: baseSeed,
             },
         });
 
@@ -106,7 +105,7 @@ export async function POST(req: Request) {
             prediction_id: prediction.id, project_id: project_id, project_name: projectName || "Untitled Project",
             source_image_url: image, status: prediction.status, prompt: masterPrompt,
             style_id: styleId, project_context: contextId, flooring_id: flooringId,
-            lighting_id: lightingId, view_id: viewId || "plan", user_id: user?.id, seed: finalSeed,
+            lighting_id: lightingId, view_id: viewId || "plan", user_id: user?.id, seed: baseSeed,
             rendered_image_url: null, upscaled_image_url: null
         };
         if (existingRender) await supabase.from("renders").update(renderData).match({id: existingRender.id});

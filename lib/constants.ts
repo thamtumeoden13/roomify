@@ -147,34 +147,32 @@ export const LIGHTING_MOODS = [
 
 export const PROJECT_CONTEXTS = [
     {
-        id: "full-apartment",
-        name: "Full Apartment",
-        description: "Comprehensive layout of a complete apartment with multiple zones.",
-        icon: "Home"
+        id: "residential",
+        name: "Residential",
+        description: "Standard home or apartment with a cozy, lived-in feel.",
+        icon: "Home",
+        keywords: "residential interior, cozy home atmosphere, domestic architecture"
     },
     {
-        id: "luxury-villa",
-        name: "Luxury Villa",
-        description: "Large-scale residential project with premium finishes and expansive spaces.",
-        icon: "Castle"
+        id: "luxury-real-estate",
+        name: "Luxury Estate",
+        description: "High-end finishes and premium architectural details.",
+        icon: "Castle",
+        keywords: "exquisite 3D architectural scale model, premium luxury finishes, high-end materials, sophisticated miniature detail, handcrafted diorama aesthetic"
     },
     {
-        id: "studio-suite",
-        name: "Studio Suite",
-        description: "Compact integrated living space combining multiple functions.",
-        icon: "Layout"
+        id: "commercial-office",
+        name: "Office Space",
+        description: "Professional workplace environment with commercial lighting.",
+        icon: "Building",
+        keywords: "modern office interior, commercial workplace, professional business environment"
     },
     {
-        id: "single-room",
-        name: "Single Room",
-        description: "Focused design for a specific individual room.",
-        icon: "Square"
-    },
-    {
-        id: "commercial-space",
-        name: "Commercial Space",
-        description: "Business or retail environment layout.",
-        icon: "Building"
+        id: "retail-hospitality",
+        name: "Retail & Cafe",
+        description: "Public spaces like shops, restaurants, or cafes.",
+        icon: "Store",
+        keywords: "retail interior design, hospitality architecture, public commercial space"
     }
 ];
 
