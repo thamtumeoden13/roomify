@@ -215,7 +215,7 @@ export default function VisualizerToolbar({
                         <Button
                             onClick={onGenerate} // NHẤN MỚI RENDER
                             disabled={isProcessing || isUpscaling || credits === 0}
-                            className={`relative overflow-hidden bg-gradient-to-r ${credits === 0 ? 'from-slate-400 to-slate-500' : 'from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'} text-white rounded-full px-8 py-6 h-auto shadow-lg ${credits === 0 ? '' : 'shadow-indigo-500/25'} border-none group transition-all min-w-[200px]`}
+                            className={`relative overflow-hidden bg-linear-to-r ${credits === 0 ? 'from-slate-400 to-slate-500' : 'from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'} text-white rounded-full px-8 py-6 h-auto shadow-lg ${credits === 0 ? '' : 'shadow-indigo-500/25'} border-none group transition-all min-w-50`}
                         >
                             <div className="flex items-center gap-2 text-base font-bold tracking-tight">
                                 {isProcessing ? (
@@ -276,7 +276,7 @@ export default function VisualizerToolbar({
                         </Button>
                     </Tooltip>
 
-                    <div className="h-8 w-[1px] bg-slate-200 mx-1 hidden md:block"/>
+                    <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block"/>
 
                     <div className="flex items-center">
                         <Button

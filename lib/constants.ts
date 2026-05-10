@@ -182,21 +182,20 @@ export const CAMERA_VIEWS = [
     {
         id: "plan",
         name: "Top-down (Plan)",
-        keywords: "orthographic top-down plan view, flat architectural layout.",
+        keywords: "3D architectural floor plan, top-down orthographic visualization, flat 2D-to-3D conversion.",
         icon: "Square"
     },
     {
         id: "isometric",
         name: "Isometric (Angled)",
-        // keywords: "isometric 3D perspective, 45-degree angle view, architectural scale model style, showing wall heights and depth.",
-        keywords: "isometric 3D render, angled view, 45-degree architectural model, visible wall depth, miniature diorama style.",
+        // Thay "Model" và "Cutaway" để AI hiện cả cái nhà từ xa
+        keywords: "A 3D dollhouse model of a house, 45 degree tilt, architectural diorama, miniature scale, visible wall height, floating on a white surface.",
         icon: "Box"
     },
     {
         id: "perspective",
-        name: "Cinematic (Perspective)",
-        // keywords: "bird's eye cinematic perspective, wide-angle architectural photography, deep shadows, realistic spatial volume.",
-        keywords: "3D perspective visualization, high-angle camera tilt, showing room volume and wall height, depth of field, architectural photography.",
+        name: "Cinematic (Depth)", // Đổi tên để gợi ý về chiều sâu
+        keywords: "A dramatic 3D perspective interior shot, camera tilted at a low angle looking INTO the rooms, extreme spatial depth, visible horizon line, vanishing point, high-end architectural photography, wide-angle lens, realistic room volume.",
         icon: "Video"
     }
 ];
