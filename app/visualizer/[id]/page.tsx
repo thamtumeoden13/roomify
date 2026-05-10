@@ -22,8 +22,10 @@ function VisualizerContent() {
     const hasInitialGenerated = useRef(false);
     const [project, setProject] = useState<any>(null);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [prediction, setPrediction] = useState<any>(null);
+    const [isPlanProcessing, setIsPlanProcessing] = useState(false);
+    const [planPrediction, setPlanPrediction] = useState<any>(null);
+    const [isIsoProcessing, setIsIsoProcessing] = useState(false);
+    const [isoPrediction, setIsoPrediction] = useState<any>(null);
     const [isUpscaling, setIsUpscaling] = useState(false);
     const [upscalePrediction, setUpscalePrediction] = useState<any>(null);
     const [selectedStyle, setSelectedStyle] = useState(ROOM_STYLES[0]);
@@ -35,11 +37,29 @@ function VisualizerContent() {
     const [variants, setVariants] = useState<any[]>([]);
     const [leftImage, setLeftImage] = useState<string | null>(null);
     const [rightImage, setRightImage] = useState<string | null>(null);
+
+    // New Comparison States for Isometric
+    const [isoLeftImage, setIsoLeftImage] = useState<string | null>(null);
+    const [isoRightImage, setIsoRightImage] = useState<string | null>(null);
+
     const [showToast, setShowToast] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [showcaseId, setShowcaseId] = useState<string | null>(null);
     const [elapsed, setElapsed] = useState(0);
     const {refreshCredits} = useCredits();
+
+    // Variant Filtering
+    const planVariants = variants.filter(v => v.view_id === 'plan' || !v.view_id);
+    const isoVariants = variants.filter(v => v.view_id === 'isometric');
+
+    const currentPlanExists = variants.some(v =>
+        (v.view_id === 'plan' || !v.view_id) &&
+        (v.style_id === selectedStyle.id) &&
+        (v.project_context === selectedContext.id) &&
+        (v.flooring_id === selectedFlooring.id) &&
+        (v.lighting_id === selectedLighting.id) &&
+        v.status === 'succeeded'
+    );
 
     const handleBack = () => router.push("/dashboard");
 
@@ -255,7 +275,8 @@ function VisualizerContent() {
         flooringOverride?: typeof FLOORING_MATERIALS[0],
         lightingOverride?: typeof LIGHTING_MOODS[0],
         viewOverride?: typeof CAMERA_VIEWS[0],
-        forceNew = true
+        forceNew = true,
+        specificViewId?: string
     ) => {
         if (!project?.source_image_url) return;
 
@@ -264,9 +285,17 @@ function VisualizerContent() {
         const flooringToUse = flooringOverride || selectedFlooring;
         const lightingToUse = lightingOverride || selectedLighting;
         const viewToUse = viewOverride || selectedView;
+        const viewIdToUse = specificViewId || viewToUse.id;
+
+        const isPlan = viewIdToUse === 'plan';
 
         try {
-            setIsProcessing(true);
+            if (isPlan) {
+                setIsPlanProcessing(true);
+            } else {
+                setIsIsoProcessing(true);
+            }
+
             const response = await fetch("/api/generate", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -283,7 +312,7 @@ function VisualizerContent() {
                     lightingKeywords: lightingToUse.keywords,
                     lightingId: lightingToUse.id,
                     viewKeywords: viewToUse.keywords,
-                    viewId: viewToUse.id,
+                    viewId: viewIdToUse,
                     forceNew
                 }),
             });
@@ -294,9 +323,14 @@ function VisualizerContent() {
             }
 
             if (prediction.isCacheHit) {
-                setCurrentImage(prediction.output);
-                setPrediction(prediction);
-                setIsProcessing(false);
+                if (isPlan) {
+                    setCurrentImage(prediction.output);
+                    setPlanPrediction(prediction);
+                    setIsPlanProcessing(false);
+                } else {
+                    setIsoPrediction(prediction);
+                    setIsIsoProcessing(false);
+                }
                 return;
             }
 
@@ -306,17 +340,27 @@ function VisualizerContent() {
 
             window.history.replaceState({}, "", `/visualizer/${id}?${params.toString()}`);
 
-            await resumePrediction(prediction.id);
+            await resumePrediction(prediction.id, viewIdToUse);
         } catch (error) {
             console.error("Generation failed:", error);
             toast.error("Failed to generate 3D view. Please try again.");
-            setIsProcessing(false);
+            if (isPlan) {
+                setIsPlanProcessing(false);
+            } else {
+                setIsIsoProcessing(false);
+            }
         }
     };
 
-    const resumePrediction = async (predictionId: string) => {
+    const resumePrediction = async (predictionId: string, viewId: string = 'plan') => {
+        const isPlan = viewId === 'plan';
         try {
-            setIsProcessing(true);
+            if (isPlan) {
+                setIsPlanProcessing(true);
+            } else {
+                setIsIsoProcessing(true);
+            }
+
             let predictionResponse = await fetch("/api/predictions/" + predictionId);
             let prediction = await predictionResponse.json();
 
@@ -324,7 +368,11 @@ function VisualizerContent() {
                 throw new Error(prediction.error);
             }
 
-            setPrediction(prediction);
+            if (isPlan) {
+                setPlanPrediction(prediction);
+            } else {
+                setIsoPrediction(prediction);
+            }
 
             // Polling mechanism
             while (prediction.status !== "succeeded" && prediction.status !== "failed") {
@@ -334,7 +382,11 @@ function VisualizerContent() {
                 if (response.status !== 200) {
                     throw new Error(prediction.error);
                 }
-                setPrediction(prediction);
+                if (isPlan) {
+                    setPlanPrediction(prediction);
+                } else {
+                    setIsoPrediction(prediction);
+                }
             }
 
             if (prediction.status === "succeeded") {
@@ -346,18 +398,19 @@ function VisualizerContent() {
                     refreshCredits();
                 }, 1000);
 
-                // If the backend updated the URL to Supabase storage, we should fetch the record again
-                // to get that permanent URL, or the backend should return it in the prediction response.
-                // Since our /api/predictions/[id] returns the Replicate prediction object, we'll
-                // fetch the record from our database to get the permanent URL.
                 const {data: updatedRecord} = await supabase
                     .from("renders")
-                    .select("rendered_image_url, project_id")
+                    .select("rendered_image_url, project_id, view_id")
                     .eq("prediction_id", prediction.id)
                     .single();
 
                 if (updatedRecord?.rendered_image_url) {
-                    setCurrentImage(updatedRecord.rendered_image_url);
+                    if (updatedRecord.view_id === 'plan' || !updatedRecord.view_id) {
+                        setCurrentImage(updatedRecord.rendered_image_url);
+                    } else if (updatedRecord.view_id === 'isometric') {
+                        setIsoRightImage(updatedRecord.rendered_image_url);
+                    }
+
                     if (updatedRecord.project_id) {
                         await supabase
                             .from("projects")
@@ -368,7 +421,11 @@ function VisualizerContent() {
                     // Fallback to Replicate URL if database update isn't reflected yet
                     const output = prediction.output;
                     const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
-                    setCurrentImage(renderedUrl);
+                    if (isPlan) {
+                        setCurrentImage(renderedUrl);
+                    } else {
+                        setIsoRightImage(renderedUrl);
+                    }
                 }
             } else {
                 throw new Error("Prediction failed");
@@ -377,7 +434,11 @@ function VisualizerContent() {
             console.error("Resuming prediction failed:", error);
             toast.error("Failed to resume 3D view. Please try again.");
         } finally {
-            setIsProcessing(false);
+            if (isPlan) {
+                setIsPlanProcessing(false);
+            } else {
+                setIsIsoProcessing(false);
+            }
         }
     };
     const getProcessingStatus = (status: string, elapsed: number) => {
@@ -397,13 +458,28 @@ function VisualizerContent() {
         if (project?.source_image_url) {
             setLeftImage(project.source_image_url);
         }
-        if (variants.length > 0) {
-            const latest = variants[variants.length - 1];
+        if (planVariants.length > 0) {
+            const latest = planVariants[planVariants.length - 1];
             setRightImage(latest.upscaled_image_url || latest.rendered_image_url);
-        } else if (currentImage) {
+        } else if (currentImage && (selectedView.id === 'plan' || !selectedView.id)) {
             setRightImage(currentImage);
         }
-    }, [project, variants, currentImage]);
+    }, [project, planVariants, currentImage, selectedView.id]);
+
+    useEffect(() => {
+        if (isoVariants.length > 1) {
+            if (!isoLeftImage) {
+                setIsoLeftImage(isoVariants[isoVariants.length - 2].upscaled_image_url || isoVariants[isoVariants.length - 2].rendered_image_url);
+            }
+            if (!isoRightImage) {
+                setIsoRightImage(isoVariants[isoVariants.length - 1].upscaled_image_url || isoVariants[isoVariants.length - 1].rendered_image_url);
+            }
+        } else if (isoVariants.length === 1) {
+            if (!isoRightImage) {
+                setIsoRightImage(isoVariants[0].upscaled_image_url || isoVariants[0].rendered_image_url);
+            }
+        }
+    }, [isoVariants, isoLeftImage, isoRightImage]);
 
     useEffect(() => {
         if (!id) return;
@@ -494,15 +570,15 @@ function VisualizerContent() {
         init();
     }, [project, searchParams, id]);
 
-    // useEffect(() => {
-    //     let timer: NodeJS.Timeout;
-    //     if (isProcessing) {
-    //         timer = setInterval(() => setElapsed(prev => prev + 1000), 1000);
-    //     } else {
-    //         setElapsed(0);
-    //     }
-    //     return () => clearInterval(timer);
-    // }, [isProcessing]);
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (isPlanProcessing || isIsoProcessing || isUpscaling) {
+            timer = setInterval(() => setElapsed(prev => prev + 1000), 1000);
+        } else {
+            setElapsed(0);
+        }
+        return () => clearInterval(timer);
+    }, [isPlanProcessing, isIsoProcessing, isUpscaling]);
 
     return (
         <div className="visualizer">
@@ -526,7 +602,7 @@ function VisualizerContent() {
                         </div>
                     </div>
 
-                    <div className={`render-area ${(isProcessing || isUpscaling) ? "is-processing" : ""}`}>
+                    <div className={`render-area ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
                         {currentImage ? (
                             <img src={currentImage} alt={`${selectedStyle.name} style AI architectural render`}
                                  className="render-img" loading="eager"/>
@@ -540,26 +616,35 @@ function VisualizerContent() {
                             </div>
                         )}
 
-                        {isProcessing && (
-                            <div className="render-overlay">
-                                <div className="rendering-card">
-                                    <RefreshCcw className="spinner"/>
-                                    <span className="title">Rendering...</span>
-                                    <span className="subtitle">
-                                        {getProcessingStatus(prediction?.status, elapsed)}
-                  </span>
+                        {isPlanProcessing && (
+                            <div className="render-overlay bg-slate-50/20 backdrop-blur-md">
+                                <div
+                                    className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4">
+                                    <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
+                                    <div className="flex flex-col items-center">
+                                        <span
+                                            className="text-slate-900 font-semibold tracking-tight text-xl">Rendering...</span>
+                                        <span
+                                            className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
+                                            {getProcessingStatus(planPrediction?.status, elapsed)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         )}
 
                         {isUpscaling && (
-                            <div className="render-overlay">
-                                <div className="rendering-card">
-                                    <RefreshCcw className="spinner"/>
-                                    <span className="title">Enhancing details...</span>
-                                    <span className="subtitle">
-                                        {getProcessingStatus(upscalePrediction?.status, elapsed)}
-                                    </span>
+                            <div className="render-overlay bg-slate-50/20 backdrop-blur-md">
+                                <div
+                                    className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4">
+                                    <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-slate-900 font-semibold tracking-tight text-xl">Enhancing details...</span>
+                                        <span
+                                            className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
+                                            {getProcessingStatus(upscalePrediction?.status, elapsed)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -569,7 +654,7 @@ function VisualizerContent() {
                 <div className="panel compare">
                     <div className="panel-header flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="panel-meta">
-                            <p>Comparison</p>
+                            <p>Technical Visualization</p>
                             <h3>Side by Side</h3>
                         </div>
                         <div className="flex items-center gap-4">
@@ -584,7 +669,7 @@ function VisualizerContent() {
                                     {project?.source_image_url && <option value={project.source_image_url}
                                                                           className="bg-white text-black">Original
                                         2D</option>}
-                                    {variants.map((v, i) => (
+                                    {planVariants.map((v, i) => (
                                         <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
                                                 className="bg-white text-black">
                                             Variant {i + 1}
@@ -603,7 +688,7 @@ function VisualizerContent() {
                                     {project?.source_image_url && <option value={project.source_image_url}
                                                                           className="bg-white text-black">Original
                                         2D</option>}
-                                    {variants.map((v, i) => (
+                                    {planVariants.map((v, i) => (
                                         <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
                                                 className="bg-white text-black">
                                             Variant {i + 1}
@@ -625,7 +710,7 @@ function VisualizerContent() {
                                                                       alt="After: AI 3D architectural render"
                                                                       className="compare-img"/>}
                                 />
-                                {prediction?.status === "succeeded" && (
+                                {planPrediction?.status === "succeeded" && (
                                     <div
                                         className="absolute top-4 right-4 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur p-3 rounded-2xl shadow-xl border border-white/20 flex flex-col gap-3">
                                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Rate
@@ -635,11 +720,11 @@ function VisualizerContent() {
                                                 onClick={async () => {
                                                     setRating(1);
                                                     toast.success("Thanks for your feedback!");
-                                                    if (prediction?.id) {
+                                                    if (planPrediction?.id) {
                                                         await supabase
                                                             .from("renders")
                                                             .update({feedback: 'thumbs_up'})
-                                                            .eq("prediction_id", prediction.id);
+                                                            .eq("prediction_id", planPrediction.id);
                                                     }
                                                 }}
                                                 className={`p-2 rounded-xl transition-all ${rating === 1 ? 'bg-emerald-500 text-white' : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600'}`}
@@ -650,11 +735,11 @@ function VisualizerContent() {
                                                 onClick={async () => {
                                                     setRating(0);
                                                     toast.success("We'll work on improving this style!");
-                                                    if (prediction?.id) {
+                                                    if (planPrediction?.id) {
                                                         await supabase
                                                             .from("renders")
                                                             .update({feedback: 'thumbs_down'})
-                                                            .eq("prediction_id", prediction.id);
+                                                            .eq("prediction_id", planPrediction.id);
                                                     }
                                                 }}
                                                 className={`p-2 rounded-xl transition-all ${rating === 0 ? 'bg-rose-500 text-white' : 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600'}`}
@@ -675,9 +760,9 @@ function VisualizerContent() {
                         )}
                     </div>
 
-                    {variants.length > 0 && (
+                    {planVariants.length > 0 && (
                         <div className="mt-6">
-                            <p className="text-xs uppercase opacity-50 font-bold mb-2">Available Variants</p>
+                            <p className="text-xs uppercase opacity-50 font-bold mb-2">Technical Variants</p>
                             <div className="flex gap-2 overflow-x-auto pb-2">
                                 {project?.source_image_url && (
                                     <div
@@ -694,7 +779,7 @@ function VisualizerContent() {
                                         </div>
                                     </div>
                                 )}
-                                {variants.map((v, i) => {
+                                {planVariants.map((v, i) => {
                                     const imgUrl = v.upscaled_image_url || v.rendered_image_url;
                                     const isActive = leftImage === imgUrl || rightImage === imgUrl;
                                     return (
@@ -718,6 +803,120 @@ function VisualizerContent() {
                         </div>
                     )}
                 </div>
+
+                {/* ISO COMPARISON CARD */}
+                {(isoVariants.length > 0 || isIsoProcessing) && (
+                    <div className="panel compare mt-12 relative overflow-hidden">
+                        {isIsoProcessing && (
+                            <div
+                                className="absolute inset-0 z-50 bg-slate-50/20 backdrop-blur-md flex items-center justify-center">
+                                <div
+                                    className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4 scale-90">
+                                    <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
+                                    <div className="flex flex-col items-center">
+                                        <span
+                                            className="text-slate-900 font-semibold tracking-tight text-xl">Rendering...</span>
+                                        <span
+                                            className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
+                                            {getProcessingStatus(isoPrediction?.status, elapsed)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div className="panel-header flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="panel-meta">
+                                <p>Style Comparison (3D Model)</p>
+                                <h3>Isometric Styles</h3>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div
+                                    className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
+                                    <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Style A</span>
+                                    <select
+                                        className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                        value={isoLeftImage || ""}
+                                        onChange={(e) => setIsoLeftImage(e.target.value)}
+                                    >
+                                        {isoVariants.map((v, i) => (
+                                            <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
+                                                    className="bg-white text-black">
+                                                {v.style_id?.toUpperCase() || `ISO ${i + 1}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div
+                                    className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
+                                    <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Style B</span>
+                                    <select
+                                        className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                        value={isoRightImage || ""}
+                                        onChange={(e) => setIsoRightImage(e.target.value)}
+                                    >
+                                        {isoVariants.map((v, i) => (
+                                            <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
+                                                    className="bg-white text-black">
+                                                {v.style_id?.toUpperCase() || `ISO ${i + 1}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="compare-stage">
+                            {isoLeftImage && isoRightImage ? (
+                                <div style={{position: "relative", width: "100%", height: "auto"}}>
+                                    <ReactCompareSlider
+                                        defaultValue={50}
+                                        itemOne={<ReactCompareSliderImage src={isoLeftImage} alt="Style A"
+                                                                          className="compare-img"/>}
+                                        itemTwo={<ReactCompareSliderImage src={isoRightImage} alt="Style B"
+                                                                          className="compare-img"/>}
+                                    />
+                                </div>
+                            ) : isoRightImage ? (
+                                <div className="compare-fallback">
+                                    <img src={isoRightImage} alt="Isometric variant"
+                                         className="compare-img object-cover"/>
+                                </div>
+                            ) : (
+                                <div
+                                    className="compare-fallback bg-slate-100 dark:bg-slate-800 flex items-center justify-center h-[400px] rounded-2xl">
+                                    <p className="text-slate-400">Select isometric variants to compare</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-6">
+                            <p className="text-xs uppercase opacity-50 font-bold mb-2">Isometric Styles</p>
+                            <div className="flex gap-2 overflow-x-auto pb-2">
+                                {isoVariants.map((v, i) => {
+                                    const imgUrl = v.upscaled_image_url || v.rendered_image_url;
+                                    const isActive = isoLeftImage === imgUrl || isoRightImage === imgUrl;
+                                    return (
+                                        <div
+                                            key={v.id}
+                                            className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${isActive ? 'border-primary' : 'border-transparent'}`}
+                                            onClick={(e) => {
+                                                if (e.altKey) setIsoLeftImage(imgUrl);
+                                                else setIsoRightImage(imgUrl);
+                                            }}
+                                        >
+                                            <img src={imgUrl} alt={`Isometric ${v.style_id}`}
+                                                 className="w-full h-full object-cover"/>
+                                            <div className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 px-1">
+                                                <span
+                                                    className="text-[10px] text-white uppercase">{v.style_id?.substring(0, 3)}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </section>
             <VisualizerToolbar
                 onSpaceChange={(val) => {
@@ -741,7 +940,7 @@ function VisualizerContent() {
                     if (view) setSelectedView(view);
                 }}
                 // CHỈ nhấn nút này mới gọi runGeneration
-                onGenerate={() => runGeneration()}
+                onGenerate={(viewId) => runGeneration(undefined, undefined, undefined, undefined, undefined, true, viewId)}
                 onUpscale={handleUpscale}
                 onExport={handleExport}
                 onShare={handleShare}
@@ -750,11 +949,13 @@ function VisualizerContent() {
                 selectedFlooring={selectedFlooring}
                 selectedLighting={selectedLighting}
                 selectedView={selectedView}
-                isProcessing={isProcessing}
+                isPlanProcessing={isPlanProcessing}
+                isIsoProcessing={isIsoProcessing}
                 isUpscaling={isUpscaling}
                 hasCurrentImage={!!currentImage}
                 isPublic={isPublic}
                 onTogglePublic={handleTogglePublic}
+                currentPlanExists={currentPlanExists}
             />
         </div>
     );

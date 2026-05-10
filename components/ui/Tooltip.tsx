@@ -9,19 +9,20 @@ function cn(...inputs: ClassValue[]) {
 interface TooltipProps {
     content: string;
     children: ReactNode;
+    disabled?: boolean;
 }
 
-export function Tooltip({content, children}: TooltipProps) {
+export function Tooltip({content, children, disabled}: TooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
 
     return (
         <div
             className="relative inline-block"
-            onMouseEnter={() => setIsVisible(true)}
+            onMouseEnter={() => !disabled && setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
         >
             {children}
-            {isVisible && (
+            {isVisible && !disabled && (
                 <div
                     className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-50 animate-in fade-in zoom-in duration-150 origin-bottom">
                     {content}
