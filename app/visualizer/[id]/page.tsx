@@ -2,7 +2,7 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState, Suspense} from "react";
-import {RefreshCcw, Sparkles, X, ThumbsUp, ThumbsDown} from "lucide-react";
+import {RefreshCcw, Sparkles, X, ThumbsUp, ThumbsDown, Info, Home, Layers, Sun} from "lucide-react";
 import RoomifyLogo from "@/components/RoomifyLogo";
 import {toast} from "sonner";
 import Button from "@/components/ui/Button";
@@ -11,6 +11,7 @@ import {supabase} from "@/lib/supabase";
 import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMERA_VIEWS} from "@/lib/constants";
 import VisualizerToolbar from "@/components/VisualizerToolbar";
 import {useCredits} from "@/lib/hooks/useCredits";
+import {Tooltip} from "@/components/ui/Tooltip";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -47,6 +48,19 @@ function VisualizerContent() {
     const [showcaseId, setShowcaseId] = useState<string | null>(null);
     const [elapsed, setElapsed] = useState(0);
     const {refreshCredits} = useCredits();
+
+    const getVariantLabel = (v: any) => {
+        const style = ROOM_STYLES.find(s => s.id === v.style_id)?.name || v.style_id;
+        const flooring = FLOORING_MATERIALS.find(f => f.id === v.flooring_id)?.name || v.flooring_id;
+        const mood = LIGHTING_MOODS.find(l => l.id === v.lighting_id)?.name || v.lighting_id;
+        return `${style} • ${flooring} • ${mood}`;
+    };
+
+    const getVariantLabelByUrl = (url: string) => {
+        const variant = variants.find(v => v.upscaled_image_url === url || v.rendered_image_url === url);
+        if (!variant) return url === project?.source_image_url ? "Original 2D Plan" : "Selected Plan";
+        return getVariantLabel(variant);
+    };
 
     // Variant Filtering
     const planVariants = variants.filter(v => v.view_id === 'plan' || !v.view_id);
@@ -455,13 +469,30 @@ function VisualizerContent() {
     }, [id, currentImage]);
 
     useEffect(() => {
-        if (project?.source_image_url) {
+        if (project?.source_image_url && !leftImage) {
             setLeftImage(project.source_image_url);
         }
         if (planVariants.length > 0) {
             const latest = planVariants[planVariants.length - 1];
-            setRightImage(latest.upscaled_image_url || latest.rendered_image_url);
-        } else if (currentImage && (selectedView.id === 'plan' || !selectedView.id)) {
+            const latestUrl = latest.upscaled_image_url || latest.rendered_image_url;
+
+            // Only auto-update if we don't have a right image yet OR if a NEW variant was just added
+            // A "new" variant is detected if the current rightImage is not in the planVariants list,
+            // or if we just want to track the latest by default when it first arrives.
+            if (!rightImage) {
+                setRightImage(latestUrl);
+            } else {
+                // Check if rightImage is currently pointing to a variant that is NOT the latest, 
+                // and if the latest is actually NEWER than what we have.
+                // To keep it simple: if rightImage is one of the planVariants but not the latest one, 
+                // it means the user might have manually selected it. 
+                // If rightImage is NOT in planVariants (e.g. it was currentImage placeholder), we update.
+                const isManualSelection = planVariants.some(v => (v.upscaled_image_url || v.rendered_image_url) === rightImage);
+                if (!isManualSelection && rightImage !== latestUrl && rightImage !== project?.source_image_url) {
+                    setRightImage(latestUrl);
+                }
+            }
+        } else if (currentImage && (selectedView.id === 'plan' || !selectedView.id) && !rightImage) {
             setRightImage(currentImage);
         }
     }, [project, planVariants, currentImage, selectedView.id]);
@@ -473,6 +504,14 @@ function VisualizerContent() {
             }
             if (!isoRightImage) {
                 setIsoRightImage(isoVariants[isoVariants.length - 1].upscaled_image_url || isoVariants[isoVariants.length - 1].rendered_image_url);
+            } else {
+                // Only auto-update Right side if current selection is not one of the variants (e.g. initial load or processing)
+                const isManualSelection = isoVariants.some(v => (v.upscaled_image_url || v.rendered_image_url) === isoRightImage);
+                const latest = isoVariants[isoVariants.length - 1];
+                const latestUrl = latest.upscaled_image_url || latest.rendered_image_url;
+                if (!isManualSelection && isoRightImage !== latestUrl) {
+                    setIsoRightImage(latestUrl);
+                }
             }
         } else if (isoVariants.length === 1) {
             if (!isoRightImage) {
@@ -592,7 +631,7 @@ function VisualizerContent() {
                 </Button>
             </nav>
 
-            <section className="content pb-32">
+            <section className="content pb-[280px] lg:pb-32">
                 <div className="panel">
                     <div className="panel-header">
                         <div className="panel-meta">
@@ -651,7 +690,24 @@ function VisualizerContent() {
                     </div>
                 </div>
 
-                <div className="panel compare">
+                <div className="panel compare mt-12 relative overflow-hidden">
+                    {isPlanProcessing && (
+                        <div
+                            className="absolute inset-0 z-50 bg-slate-50/20 backdrop-blur-md flex items-center justify-center">
+                            <div
+                                className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4 scale-90">
+                                <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
+                                <div className="flex flex-col items-center">
+                                    <span
+                                        className="text-slate-900 font-semibold tracking-tight text-xl">Rendering...</span>
+                                    <span
+                                        className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
+                                        {getProcessingStatus(planPrediction?.status, elapsed)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="panel-header flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="panel-meta">
                             <p>Technical Visualization</p>
@@ -662,17 +718,19 @@ function VisualizerContent() {
                                 className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
                                 <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Left Side</span>
                                 <select
-                                    className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                    className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none w-full max-w-[256px] md:w-64 pr-2"
                                     value={leftImage || ""}
                                     onChange={(e) => setLeftImage(e.target.value)}
                                 >
-                                    {project?.source_image_url && <option value={project.source_image_url}
-                                                                          className="bg-white text-black">Original
-                                        2D</option>}
-                                    {planVariants.map((v, i) => (
+                                    {project?.source_image_url && (
+                                        <option value={project.source_image_url} className="bg-white text-black">
+                                            Original 2D Plan
+                                        </option>
+                                    )}
+                                    {planVariants.map((v) => (
                                         <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
                                                 className="bg-white text-black">
-                                            Variant {i + 1}
+                                            {getVariantLabel(v)}
                                         </option>
                                     ))}
                                 </select>
@@ -681,17 +739,19 @@ function VisualizerContent() {
                                 className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
                                 <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Right Side</span>
                                 <select
-                                    className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                    className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none w-full max-w-[256px] md:w-64 pr-2"
                                     value={rightImage || ""}
                                     onChange={(e) => setRightImage(e.target.value)}
                                 >
-                                    {project?.source_image_url && <option value={project.source_image_url}
-                                                                          className="bg-white text-black">Original
-                                        2D</option>}
-                                    {planVariants.map((v, i) => (
+                                    {project?.source_image_url && (
+                                        <option value={project.source_image_url} className="bg-white text-black">
+                                            Original 2D Plan
+                                        </option>
+                                    )}
+                                    {planVariants.map((v) => (
                                         <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
                                                 className="bg-white text-black">
-                                            Variant {i + 1}
+                                            {getVariantLabel(v)}
                                         </option>
                                     ))}
                                 </select>
@@ -760,43 +820,111 @@ function VisualizerContent() {
                         )}
                     </div>
 
-                    {planVariants.length > 0 && (
+                    {planVariants.length >= 0 && (
                         <div className="mt-6">
-                            <p className="text-xs uppercase opacity-50 font-bold mb-2">Technical Variants</p>
-                            <div className="flex gap-2 overflow-x-auto pb-2">
+                            <p className="text-xs uppercase opacity-50 font-bold mb-2">Plan Styles</p>
+                            <div className="flex gap-3 overflow-x-auto pb-4">
                                 {project?.source_image_url && (
                                     <div
-                                        className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${leftImage === project.source_image_url || rightImage === project.source_image_url ? 'border-primary' : 'border-transparent'}`}
-                                        onClick={(e) => {
-                                            if (e.altKey) setLeftImage(project.source_image_url);
-                                            else setRightImage(project.source_image_url);
+                                        className={`relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${leftImage === project.source_image_url || rightImage === project.source_image_url ? 'border-indigo-500' : 'border-transparent'}`}
+                                        onClick={() => {
+                                            setRightImage(project.source_image_url);
+                                            toast.info("Original Plan selected for Style B");
                                         }}
                                     >
                                         <img src={project.source_image_url} alt="Original source plan"
                                              className="w-full h-full object-cover"/>
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                            <span className="text-[10px] text-white font-bold">Original</span>
+                                        <div
+                                            className="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider shadow-sm">
+                                            Original
                                         </div>
+
+                                        {/* Selection Badge */}
+                                        {(leftImage === project.source_image_url || rightImage === project.source_image_url) && (
+                                            <div
+                                                className="absolute top-1 right-1 flex gap-0.5">
+                                                {leftImage === project.source_image_url && (
+                                                    <div
+                                                        className="w-2.5 h-2.5 bg-indigo-500 rounded-full border border-white shadow-sm"
+                                                        title="Active in Style A"/>
+                                                )}
+                                                {rightImage === project.source_image_url && (
+                                                    <div
+                                                        className="w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white shadow-sm"
+                                                        title="Active in Style B"/>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 {planVariants.map((v, i) => {
                                     const imgUrl = v.upscaled_image_url || v.rendered_image_url;
-                                    const isActive = leftImage === imgUrl || rightImage === imgUrl;
-                                    return (
-                                        <div
-                                            key={v.id}
-                                            className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${isActive ? 'border-primary' : 'border-transparent'}`}
-                                            onClick={(e) => {
-                                                if (e.altKey) setLeftImage(imgUrl);
-                                                else setRightImage(imgUrl);
-                                            }}
-                                        >
-                                            <img src={imgUrl} alt={`${selectedStyle.name} variant ${i + 1}`}
-                                                 className="w-full h-full object-cover"/>
-                                            <div className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 px-1">
-                                                <span className="text-[10px] text-white">V{i + 1}</span>
+                                    const isActiveLeft = leftImage === imgUrl;
+                                    const isActiveRight = rightImage === imgUrl;
+                                    const isActive = isActiveLeft || isActiveRight;
+
+                                    const tooltipContent = (
+                                        <div className="flex flex-col gap-1 p-1">
+                                            <div className="flex items-center gap-2">
+                                                <Home size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Theme:</span>
+                                                <span>{ROOM_STYLES.find(s => s.id === v.style_id)?.name || v.style_id}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Layers size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Space:</span>
+                                                <span>{PROJECT_CONTEXTS.find(c => c.id === v.project_context)?.name || v.project_context}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Info size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Flooring:</span>
+                                                <span>{FLOORING_MATERIALS.find(f => f.id === v.flooring_id)?.name || v.flooring_id}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Sun size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Mood:</span>
+                                                <span>{LIGHTING_MOODS.find(l => l.id === v.lighting_id)?.name || v.lighting_id}</span>
                                             </div>
                                         </div>
+                                    );
+
+                                    return (
+                                        <Tooltip key={v.id} content={tooltipContent}>
+                                            <div
+                                                className={`relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${isActive ? 'border-indigo-500' : 'border-transparent'}`}
+                                                onClick={() => {
+                                                    setRightImage(imgUrl);
+                                                    toast.info(`Variant ${i + 1} selected for Style B`);
+                                                }}
+                                            >
+                                                <img src={imgUrl} alt={`Plan Variant ${i + 1}`}
+                                                     className="w-full h-full object-cover"/>
+
+                                                {/* Selection Badge */}
+                                                {isActive && (
+                                                    <div
+                                                        className="absolute top-1 right-1 flex gap-0.5">
+                                                        {isActiveLeft && (
+                                                            <div
+                                                                className="w-2.5 h-2.5 bg-indigo-500 rounded-full border border-white shadow-sm"
+                                                                title="Active in Style A"/>
+                                                        )}
+                                                        {isActiveRight && (
+                                                            <div
+                                                                className="w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white shadow-sm"
+                                                                title="Active in Style B"/>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <div className="absolute bottom-1 left-1">
+                                                    <span
+                                                        className="text-[9px] bg-black/60 text-white font-bold px-1.5 py-0.5 rounded-sm backdrop-blur-[2px]">
+                                                        V{i + 1}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </Tooltip>
                                     );
                                 })}
                             </div>
@@ -832,32 +960,32 @@ function VisualizerContent() {
                             <div className="flex items-center gap-4">
                                 <div
                                     className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
-                                    <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Style A</span>
+                                    <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Left Style</span>
                                     <select
-                                        className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                        className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none w-full max-w-[256px] md:w-64 pr-2"
                                         value={isoLeftImage || ""}
                                         onChange={(e) => setIsoLeftImage(e.target.value)}
                                     >
                                         {isoVariants.map((v, i) => (
                                             <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
                                                     className="bg-white text-black">
-                                                {v.style_id?.toUpperCase() || `ISO ${i + 1}`}
+                                                {getVariantLabel(v)}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                                 <div
                                     className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
-                                    <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Style B</span>
+                                    <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Right Style</span>
                                     <select
-                                        className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none !w-32 pr-2"
+                                        className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none w-full max-w-[256px] md:w-64 pr-2"
                                         value={isoRightImage || ""}
                                         onChange={(e) => setIsoRightImage(e.target.value)}
                                     >
                                         {isoVariants.map((v, i) => (
                                             <option key={v.id} value={v.upscaled_image_url || v.rendered_image_url}
                                                     className="bg-white text-black">
-                                                {v.style_id?.toUpperCase() || `ISO ${i + 1}`}
+                                                {getVariantLabel(v)}
                                             </option>
                                         ))}
                                     </select>
@@ -891,26 +1019,75 @@ function VisualizerContent() {
 
                         <div className="mt-6">
                             <p className="text-xs uppercase opacity-50 font-bold mb-2">Isometric Styles</p>
-                            <div className="flex gap-2 overflow-x-auto pb-2">
+                            <div className="flex gap-3 overflow-x-auto pb-4">
                                 {isoVariants.map((v, i) => {
                                     const imgUrl = v.upscaled_image_url || v.rendered_image_url;
-                                    const isActive = isoLeftImage === imgUrl || isoRightImage === imgUrl;
-                                    return (
-                                        <div
-                                            key={v.id}
-                                            className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${isActive ? 'border-primary' : 'border-transparent'}`}
-                                            onClick={(e) => {
-                                                if (e.altKey) setIsoLeftImage(imgUrl);
-                                                else setIsoRightImage(imgUrl);
-                                            }}
-                                        >
-                                            <img src={imgUrl} alt={`Isometric ${v.style_id}`}
-                                                 className="w-full h-full object-cover"/>
-                                            <div className="absolute bottom-0 inset-x-0 bg-black/60 py-0.5 px-1">
-                                                <span
-                                                    className="text-[10px] text-white uppercase">{v.style_id?.substring(0, 3)}</span>
+                                    const isActiveLeft = isoLeftImage === imgUrl;
+                                    const isActiveRight = isoRightImage === imgUrl;
+                                    const isActive = isActiveLeft || isActiveRight;
+
+                                    const tooltipContent = (
+                                        <div className="flex flex-col gap-1 p-1">
+                                            <div className="flex items-center gap-2">
+                                                <Home size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Theme:</span>
+                                                <span>{ROOM_STYLES.find(s => s.id === v.style_id)?.name || v.style_id}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Layers size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Space:</span>
+                                                <span>{PROJECT_CONTEXTS.find(c => c.id === v.project_context)?.name || v.project_context}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Info size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Flooring:</span>
+                                                <span>{FLOORING_MATERIALS.find(f => f.id === v.flooring_id)?.name || v.flooring_id}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Sun size={12} className="text-indigo-400"/>
+                                                <span className="font-bold">Mood:</span>
+                                                <span>{LIGHTING_MOODS.find(l => l.id === v.lighting_id)?.name || v.lighting_id}</span>
                                             </div>
                                         </div>
+                                    );
+
+                                    return (
+                                        <Tooltip key={v.id} content={tooltipContent}>
+                                            <div
+                                                className={`relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${isActive ? 'border-indigo-500' : 'border-transparent'}`}
+                                                onClick={() => {
+                                                    setIsoRightImage(imgUrl);
+                                                    toast.info(`Isometric Variant ${i + 1} selected for Style B`);
+                                                }}
+                                            >
+                                                <img src={imgUrl} alt={`Isometric Variant ${i + 1}`}
+                                                     className="w-full h-full object-cover"/>
+
+                                                {/* Selection Badge */}
+                                                {isActive && (
+                                                    <div
+                                                        className="absolute top-1 right-1 flex gap-0.5">
+                                                        {isActiveLeft && (
+                                                            <div
+                                                                className="w-2.5 h-2.5 bg-indigo-500 rounded-full border border-white shadow-sm"
+                                                                title="Active in Style A"/>
+                                                        )}
+                                                        {isActiveRight && (
+                                                            <div
+                                                                className="w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white shadow-sm"
+                                                                title="Active in Style B"/>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <div className="absolute bottom-1 left-1">
+                                                    <span
+                                                        className="text-[9px] bg-black/60 text-white font-bold px-1.5 py-0.5 rounded-sm backdrop-blur-[2px]">
+                                                        V{i + 1}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </Tooltip>
                                     );
                                 })}
                             </div>

@@ -6,9 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="7e96b4aa-3362-44f4-9edb-011641672f4b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/generate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/generate/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ContactButton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ContactButton.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/VisualizerToolbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/VisualizerToolbar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/Select.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/Select.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/ui/Tooltip.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/Tooltip.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -127,7 +128,7 @@
       <workItem from="1777109958027" duration="8478000" />
       <workItem from="1777706123897" duration="2736000" />
       <workItem from="1778433563075" duration="1760000" />
-      <workItem from="1778435420031" duration="2781000" />
+      <workItem from="1778435420031" duration="7231000" />
     </task>
     <servers />
   </component>
