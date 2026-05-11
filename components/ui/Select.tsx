@@ -18,9 +18,19 @@ interface SelectProps {
     icon?: ReactNode;
     disabled?: boolean;
     position?: 'top' | 'bottom';
+    compact?: boolean;
 }
 
-export function Select({value, onValueChange, options, label, icon, disabled, position = 'bottom'}: SelectProps) {
+export function Select({
+                           value,
+                           onValueChange,
+                           options,
+                           label,
+                           icon,
+                           disabled,
+                           position = 'bottom',
+                           compact
+                       }: SelectProps) {
     const [open, setOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const selectedOption = options.find((opt) => opt.id === value);
@@ -36,9 +46,10 @@ export function Select({value, onValueChange, options, label, icon, disabled, po
     }, []);
 
     return (
-        <div className="flex flex-col gap-1.5" ref={containerRef}>
+        <div className={cn("flex flex-col gap-1.5", compact && "lg:gap-1.5 gap-0")} ref={containerRef}>
             {label &&
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1">{label}</span>}
+                <span
+                    className={cn("text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1", compact && "hidden lg:block")}>{label}</span>}
             <div className="relative">
                 <button
                     type="button"
@@ -46,6 +57,7 @@ export function Select({value, onValueChange, options, label, icon, disabled, po
                     onClick={() => setOpen(!open)}
                     className={cn(
                         "flex items-center gap-2 px-3 py-2 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-sm font-semibold transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px] justify-between backdrop-blur-sm shadow-sm",
+                        compact && "min-w-0 lg:min-w-[140px] px-2 lg:px-3",
                         open && "bg-white/90 dark:bg-slate-800/90 border-indigo-500/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]"
                     )}
                 >
@@ -60,10 +72,11 @@ export function Select({value, onValueChange, options, label, icon, disabled, po
                                 {icon}
                             </motion.div>
                         )}
-                        <span className="truncate tracking-tight">{selectedOption?.name || 'Select...'}</span>
+                        <span
+                            className={cn("truncate tracking-tight", compact && "hidden lg:block")}>{selectedOption?.name || 'Select...'}</span>
                     </div>
                     <ChevronDown
-                        className={cn("w-4 h-4 text-slate-400 transition-transform duration-200", open && "rotate-180")}/>
+                        className={cn("w-4 h-4 text-slate-400 transition-transform duration-200", compact && "hidden lg:block", open && "rotate-180")}/>
                 </button>
 
                 <AnimatePresence>

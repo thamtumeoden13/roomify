@@ -7,7 +7,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 interface TooltipProps {
-    content: string;
+    content: ReactNode;
     children: ReactNode;
     disabled?: boolean;
 }
@@ -24,7 +24,7 @@ export function Tooltip({content, children, disabled}: TooltipProps) {
             {children}
             {isVisible && !disabled && (
                 <div
-                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-50 animate-in fade-in zoom-in duration-150 origin-bottom">
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md z-50 animate-in fade-in zoom-in duration-150 origin-bottom shadow-xl border border-white/10">
                     {content}
                     <div
                         className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"/>
