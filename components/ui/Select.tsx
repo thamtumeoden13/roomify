@@ -56,8 +56,8 @@ export function Select({
                     disabled={disabled}
                     onClick={() => setOpen(!open)}
                     className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-sm font-semibold transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px] justify-between backdrop-blur-sm shadow-sm",
-                        compact && "min-w-0 lg:min-w-[140px] px-2 lg:px-3",
+                        "flex items-center gap-2 px-3 py-2 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-sm font-semibold transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed min-w-35 justify-between backdrop-blur-sm shadow-sm",
+                        compact && "min-w-0 lg:min-w-35 px-2 lg:px-3",
                         open && "bg-white/90 dark:bg-slate-800/90 border-indigo-500/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]"
                     )}
                 >
@@ -87,7 +87,7 @@ export function Select({
                             exit={{opacity: 0, y: position === 'top' ? 10 : -10}}
                             transition={{duration: 0.15, ease: "easeOut"}}
                             className={cn(
-                                "absolute left-0 w-full min-w-[180px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-2xl py-1 z-50 overflow-hidden",
+                                "absolute left-0 w-full min-w-45 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-2xl py-1 z-50 overflow-hidden",
                                 position === 'top' ? "bottom-full mb-2 origin-bottom" : "top-full mt-2 origin-top"
                             )}>
                             {options.map((option) => (
