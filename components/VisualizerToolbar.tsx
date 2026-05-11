@@ -190,11 +190,11 @@ export default function VisualizerToolbar({
             className="fixed bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 z-50 w-[95%] lg:w-auto max-w-[98%] lg:max-w-[95%]"
         >
             <div
-                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-[2rem] lg:rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-1.5 md:p-2 lg:p-4 flex flex-row items-center justify-between gap-1 md:gap-2 lg:gap-6 transition-all px-2 md:px-4">
+                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-[2rem] lg:rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-1.5 md:p-2 lg:p-4 flex flex-row lg:flex-col xl:flex-row items-center justify-between lg:justify-center xl:justify-between gap-1 md:gap-2 lg:gap-4 xl:gap-6 transition-all px-2 md:px-4">
 
                 {/* Left Group: Configuration */}
                 <div
-                    className="flex flex-row items-center gap-1 md:gap-2 lg:gap-4 w-auto justify-start lg:pr-6 shrink-0">
+                    className="grid grid-cols-4 lg:grid-cols-2 xl:flex xl:flex-row items-center gap-1 md:gap-2 lg:gap-4 w-auto justify-start lg:pr-0 xl:pr-6 shrink-0">
                     <Select
                         label="Space"
                         value={selectedContext.id}
@@ -237,11 +237,11 @@ export default function VisualizerToolbar({
                     />
                 </div>
 
-                <div className="hidden lg:block h-10 w-px bg-slate-200/30 mx-2 shrink-0"/>
+                <div className="hidden xl:block h-10 w-px bg-slate-200/30 mx-2 shrink-0"/>
 
                 {/* Center Group: Primary Action */}
                 <div
-                    className="flex-1 flex flex-col items-center gap-1 lg:gap-2 py-0 lg:px-6 min-w-0 shrink-0">
+                    className="flex-1 flex flex-col items-center gap-1 lg:gap-2 py-0 lg:px-2 xl:px-6 min-w-0 shrink-0">
                     <motion.div
                         animate={isSettingsChanged && !isPlanProcessing ? {scale: [1, 1.02, 1]} : {}}
                         transition={isSettingsChanged ? {duration: 2, repeat: Infinity, ease: "easeInOut"} : {}}
@@ -306,11 +306,11 @@ export default function VisualizerToolbar({
                     )}
                 </div>
 
-                <div className="hidden lg:block h-10 w-px bg-slate-200/30 mx-2 shrink-0"/>
+                <div className="hidden xl:block h-10 w-px bg-slate-200/30 mx-2 shrink-0"/>
 
                 {/* Right Group: Utilities */}
                 <div
-                    className="flex items-center gap-1 md:gap-2 lg:gap-3 w-auto justify-end lg:pl-6 shrink-0">
+                    className="flex items-center gap-1 md:gap-2 lg:gap-3 w-auto justify-end lg:pl-0 xl:pl-6 shrink-0">
                     <Tooltip
                         content={!currentPlanExists ? "Please generate the 3D Plan view first to unlock the Isometric model." : "3D Isometric View"}>
                         <motion.div whileHover={{y: -2}}>
@@ -331,13 +331,13 @@ export default function VisualizerToolbar({
                                     <Box className="w-3.5 h-3.5 lg:w-4 h-4 text-indigo-500"/>
                                 )}
                                 <span
-                                    className="hidden lg:inline">{isIsoProcessing ? "Creating..." : "3D Isometric"}</span>
+                                    className="hidden xl:inline">{isIsoProcessing ? "Creating..." : "3D Isometric"}</span>
                                 <span
-                                    className="hidden sm:inline lg:hidden">{isIsoProcessing ? "Creating..." : "3D"}</span>
+                                    className="hidden sm:inline xl:hidden">{isIsoProcessing ? "Creating..." : "3D"}</span>
 
                                 {isIsoProcessing && (
                                     <div
-                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"/>
+                                        className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer"/>
                                 )}
                             </Button>
                         </motion.div>
@@ -357,9 +357,9 @@ export default function VisualizerToolbar({
                                     <Zap
                                         className={`w-3.5 h-3.5 lg:w-4 h-4 ${credits === 0 ? 'text-slate-400 fill-slate-400' : 'text-amber-500 fill-amber-500'}`}/>
                                 )}
-                                <span className="hidden lg:inline">{isUpscaling ? "Enhancing..." : "4K Upscale"}</span>
+                                <span className="hidden xl:inline">{isUpscaling ? "Enhancing..." : "4K Upscale"}</span>
                                 <span
-                                    className="hidden sm:inline lg:hidden">{isUpscaling ? "Enhancing..." : "4K"}</span>
+                                    className="hidden sm:inline xl:hidden">{isUpscaling ? "Enhancing..." : "4K"}</span>
                             </Button>
                         </motion.div>
                     </Tooltip>
