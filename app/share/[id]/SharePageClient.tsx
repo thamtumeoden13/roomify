@@ -26,6 +26,8 @@ export default function SharePageClient({
     const [project, setProject] = useState<any>(initialProject);
     const [variants, setVariants] = useState<any[]>(initialVariants);
 
+    const getHighResUrl = (v: any) => v?.upscaled_image_url || v?.rendered_image_url;
+
     // Filtering variants
     const planVariants = variants.filter(v => v.view_id === 'plan' || !v.view_id);
     const isoVariants = variants.filter(v => v.view_id === 'isometric');
@@ -179,7 +181,7 @@ export default function SharePageClient({
                                     itemOne={<ReactCompareSliderImage src={project.source_image_url} alt="Original Plan"
                                                                       loading="eager"/>}
                                     itemTwo={<ReactCompareSliderImage
-                                        src={selectedPlan.upscaled_image_url || selectedPlan.rendered_image_url}
+                                        src={getHighResUrl(selectedPlan)}
                                         alt="3D Render" loading="eager"/>}
                                     className="aspect-[4/3] md:aspect-video"
                                 />
@@ -300,7 +302,7 @@ export default function SharePageClient({
                                                     selectedPlan?.id === v.id ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-transparent hover:border-slate-200"
                                                 }`}
                                             >
-                                                <img src={v.rendered_image_url} alt="Variant"
+                                                <img src={getHighResUrl(v)} alt="Variant"
                                                      className="w-full h-full object-cover"/>
                                                 <div
                                                     className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-lg">
@@ -382,10 +384,10 @@ export default function SharePageClient({
                                     className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative transition-all">
                                     <ReactCompareSlider
                                         itemOne={<ReactCompareSliderImage
-                                            src={isoLeft?.upscaled_image_url || isoLeft?.rendered_image_url}
+                                            src={getHighResUrl(isoLeft)}
                                             alt="Style A" loading="lazy"/>}
                                         itemTwo={<ReactCompareSliderImage
-                                            src={isoRight?.upscaled_image_url || isoRight?.rendered_image_url}
+                                            src={getHighResUrl(isoRight)}
                                             alt="Style B" loading="lazy"/>}
                                         className="aspect-[4/3] md:aspect-video"
                                     />
@@ -412,7 +414,7 @@ export default function SharePageClient({
                                                         isActive ? "border-indigo-600 ring-4 ring-indigo-600/10 scale-[0.98]" : "border-transparent hover:border-slate-200"
                                                     }`}
                                                 >
-                                                    <img src={v.rendered_image_url} alt="Isometric preview"
+                                                    <img src={getHighResUrl(v)} alt="Isometric preview"
                                                          className="w-full h-full object-cover transition-transform group-hover:scale-110"/>
                                                     <div
                                                         className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>

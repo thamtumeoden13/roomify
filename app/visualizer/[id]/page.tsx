@@ -2,7 +2,18 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState, Suspense} from "react";
-import {RefreshCcw, Sparkles, X, ThumbsUp, ThumbsDown, Info, Home, Layers, Sun} from "lucide-react";
+import {RefreshCcw, Sparkles, X, ThumbsUp, ThumbsDown, Info, Home, Layers, Sun, Trash2} from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/AlertDialog";
 import RoomifyLogo from "@/components/RoomifyLogo";
 import {toast} from "sonner";
 import Button from "@/components/ui/Button";
@@ -48,6 +59,7 @@ function VisualizerContent() {
     const [isPublic, setIsPublic] = useState(false);
     const [showcaseId, setShowcaseId] = useState<string | null>(null);
     const [elapsed, setElapsed] = useState(0);
+    const [selectedVariant, setSelectedVariant] = useState<any>(null);
     const {refreshCredits} = useCredits();
 
     const getVariantLabel = (v: any) => {
@@ -62,6 +74,8 @@ function VisualizerContent() {
         if (!variant) return url === project?.source_image_url ? "Original 2D Plan" : "Selected Plan";
         return getVariantLabel(variant);
     };
+
+    const getHighResUrl = (v: any) => v?.upscaled_image_url || v?.rendered_image_url;
 
     // Variant Filtering
     const planVariants = variants.filter(v => v.view_id === 'plan' || !v.view_id);
@@ -96,7 +110,10 @@ function VisualizerContent() {
     };
 
     const handleUpscale = async () => {
-        if (!currentImage || !id) return;
+        const imageToUpscale = selectedVariant ? getHighResUrl(selectedVariant) : currentImage;
+        const renderIdToUse = selectedVariant?.id || null;
+
+        if (!imageToUpscale || !id) return;
 
         try {
             setIsUpscaling(true);
@@ -104,8 +121,8 @@ function VisualizerContent() {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
-                    image: currentImage,
-                    renderId: id
+                    image: imageToUpscale,
+                    renderId: renderIdToUse || id // Fallback to project ID if no variant selected, but ideally we want the render ID
                 }),
             });
 
@@ -154,7 +171,7 @@ function VisualizerContent() {
 
             if (prediction.status === "succeeded") {
                 // Refresh variants and credits
-                if (id) fetchVariants(id as string);
+                if (id) await fetchVariants(id as string);
 
                 // Add a small delay to allow database triggers/RPCs to finish
                 setTimeout(() => {
@@ -164,12 +181,24 @@ function VisualizerContent() {
                 // Update project thumbnail
                 const {data: updatedRecord} = await supabase
                     .from("renders")
-                    .select("upscaled_image_url, project_id")
+                    .select("id, upscaled_image_url, project_id, view_id")
                     .eq("upscale_prediction_id", prediction.id)
                     .single();
 
                 if (updatedRecord?.upscaled_image_url) {
                     setCurrentImage(updatedRecord.upscaled_image_url);
+
+                    // Update the selected variant reference to the new upscaled version
+                    const updatedVariant = variants.find(v => v.upscale_prediction_id === prediction.id) ||
+                        variants.find(v => v.id === updatedRecord.id);
+                    if (updatedVariant) setSelectedVariant(updatedVariant);
+
+                    if (updatedRecord.view_id === 'plan' || !updatedRecord.view_id) {
+                        setRightImage(updatedRecord.upscaled_image_url);
+                    } else if (updatedRecord.view_id === 'isometric') {
+                        setIsoRightImage(updatedRecord.upscaled_image_url);
+                    }
+
                     if (updatedRecord.project_id) {
                         await supabase
                             .from("projects")
@@ -191,6 +220,99 @@ function VisualizerContent() {
         } finally {
             setIsUpscaling(false);
             setUpscalePrediction(null);
+        }
+    };
+
+    const handleDeleteVariant = async (variantId: string) => {
+        try {
+            const variantToDelete = variants.find(v => v.id === variantId);
+            if (!variantToDelete) return;
+
+            // 1. Delete from Supabase Database
+            const {error: dbError} = await supabase
+                .from("renders")
+                .delete()
+                .eq("id", variantId);
+
+            if (dbError) throw dbError;
+
+            // 2. Optional: Delete from Supabase Storage
+            const getFileName = (url: string) => url.split('/').pop()?.split('?')[0];
+
+            if (variantToDelete.rendered_image_url) {
+                const fileName = getFileName(variantToDelete.rendered_image_url);
+                if (fileName) {
+                    await supabase.storage.from("renders").remove([fileName]);
+                }
+            }
+            if (variantToDelete.upscaled_image_url) {
+                const fileName = getFileName(variantToDelete.upscaled_image_url);
+                if (fileName) {
+                    await supabase.storage.from("renders").remove([fileName]);
+                }
+            }
+
+            // 3. Update local state
+            const updatedVariants = variants.filter(v => v.id !== variantId);
+            setVariants(updatedVariants);
+
+            // 3.5 Update project rendered_image_url if it was the deleted variant
+            if (project?.rendered_image_url === variantToDelete.upscaled_image_url ||
+                project?.rendered_image_url === variantToDelete.rendered_image_url) {
+
+                // Find another suitable thumbnail for the project
+                const otherVariants = updatedVariants.filter(v => v.id !== variantId);
+                let newThumbnail = null;
+                if (otherVariants.length > 0) {
+                    const latest = otherVariants[otherVariants.length - 1];
+                    newThumbnail = latest.upscaled_image_url || latest.rendered_image_url;
+                }
+
+                await supabase
+                    .from("projects")
+                    .update({rendered_image_url: newThumbnail})
+                    .eq("id", project.id);
+
+                setProject({...project, rendered_image_url: newThumbnail});
+            }
+
+            // 4. Fallback for comparison sliders
+            const deletedUrl = variantToDelete.upscaled_image_url || variantToDelete.rendered_image_url;
+            const isPlan = variantToDelete.view_id === 'plan' || !variantToDelete.view_id;
+
+            if (isPlan) {
+                if (rightImage === deletedUrl) {
+                    const remainingPlan = updatedVariants.filter(v => v.view_id === 'plan' || !v.view_id);
+                    if (remainingPlan.length > 0) {
+                        setRightImage(getHighResUrl(remainingPlan[remainingPlan.length - 1]));
+                    } else {
+                        setRightImage(project?.source_image_url || null);
+                    }
+                }
+                if (leftImage === deletedUrl) {
+                    setLeftImage(project?.source_image_url || null);
+                }
+            } else {
+                if (isoRightImage === deletedUrl || isoLeftImage === deletedUrl) {
+                    const remainingIso = updatedVariants.filter(v => v.view_id === 'isometric');
+                    if (isoRightImage === deletedUrl) {
+                        setIsoRightImage(remainingIso.length > 0 ? getHighResUrl(remainingIso[remainingIso.length - 1]) : null);
+                    }
+                    if (isoLeftImage === deletedUrl) {
+                        setIsoLeftImage(remainingIso.length > 1 ? getHighResUrl(remainingIso[remainingIso.length - 2]) : null);
+                    }
+                }
+            }
+
+            if (currentImage === deletedUrl) {
+                const remaining = updatedVariants.length > 0 ? updatedVariants[updatedVariants.length - 1] : null;
+                setCurrentImage(remaining ? getHighResUrl(remaining) : null);
+            }
+
+            toast.success("Variant deleted successfully");
+        } catch (error: any) {
+            console.error("Error deleting variant:", error);
+            toast.error(`Failed to delete variant: ${error.message}`);
         }
     };
 
@@ -366,9 +488,11 @@ function VisualizerContent() {
             if (prediction.isCacheHit) {
                 if (isPlan) {
                     setCurrentImage(prediction.output);
+                    setRightImage(prediction.output);
                     setPlanPrediction(prediction);
                     setIsPlanProcessing(false);
                 } else {
+                    setIsoRightImage(prediction.output);
                     setIsoPrediction(prediction);
                     setIsIsoProcessing(false);
                 }
@@ -432,7 +556,7 @@ function VisualizerContent() {
 
             if (prediction.status === "succeeded") {
                 // Refresh variants and credits
-                if (id) fetchVariants(id as string);
+                if (id) await fetchVariants(id as string);
 
                 // Add a small delay to allow database triggers/RPCs to finish
                 setTimeout(() => {
@@ -441,15 +565,17 @@ function VisualizerContent() {
 
                 const {data: updatedRecord} = await supabase
                     .from("renders")
-                    .select("rendered_image_url, project_id, view_id")
+                    .select("rendered_image_url, upscaled_image_url, project_id, view_id")
                     .eq("prediction_id", prediction.id)
                     .single();
 
-                if (updatedRecord?.rendered_image_url) {
+                if (updatedRecord) {
+                    const finalUrl = getHighResUrl(updatedRecord);
                     if (updatedRecord.view_id === 'plan' || !updatedRecord.view_id) {
-                        setCurrentImage(updatedRecord.rendered_image_url);
+                        setCurrentImage(finalUrl);
+                        setRightImage(finalUrl);
                     } else if (updatedRecord.view_id === 'isometric') {
-                        setIsoRightImage(updatedRecord.rendered_image_url);
+                        setIsoRightImage(finalUrl);
                     }
 
                     if (updatedRecord.project_id) {
@@ -464,6 +590,7 @@ function VisualizerContent() {
                     const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
                     if (isPlan) {
                         setCurrentImage(renderedUrl);
+                        setRightImage(renderedUrl);
                     } else {
                         setIsoRightImage(renderedUrl);
                     }
@@ -493,7 +620,7 @@ function VisualizerContent() {
         if (id) {
             fetchVariants(id as string);
         }
-    }, [id, currentImage]);
+    }, [id]);
 
     useEffect(() => {
         if (project?.source_image_url && !leftImage) {
@@ -612,14 +739,29 @@ function VisualizerContent() {
                 .from("renders")
                 .select("*")
                 .eq("project_id", id)
+                .eq("status", "succeeded") // Only show succeeded ones as currentImage candidate
                 .order("created_at", {ascending: false});
 
             if (existingRenders && existingRenders.length > 0) {
                 const latest = existingRenders[0];
                 if (latest.status === "succeeded" && (latest.upscaled_image_url || latest.rendered_image_url)) {
                     setCurrentImage(latest.upscaled_image_url || latest.rendered_image_url);
+                    setSelectedVariant(latest);
                     return;
-                } else if (latest.status === "processing" || latest.status === "starting") {
+                }
+            }
+
+            // If no successful renders, also check if there are ANY renders that might be processing
+            const {data: allRenders} = await supabase
+                .from("renders")
+                .select("*")
+                .eq("project_id", id)
+                .order("created_at", {ascending: false})
+                .limit(1);
+
+            if (allRenders && allRenders.length > 0) {
+                const latest = allRenders[0];
+                if (latest.status === "processing" || latest.status === "starting") {
                     resumePrediction(latest.prediction_id);
                     return;
                 }
@@ -666,6 +808,35 @@ function VisualizerContent() {
                             <h2>{project?.name || "Loading..."}</h2>
                             <p className="note">Created by You</p>
                         </div>
+
+                        {selectedVariant && (
+                            <div className="flex flex-wrap gap-4 mt-4 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase font-bold text-zinc-400">Style</span>
+                                    <span className="text-sm font-medium text-zinc-900">
+                                        {ROOM_STYLES.find(s => s.id === selectedVariant.style_id)?.name || selectedVariant.style_id}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase font-bold text-zinc-400">Mood</span>
+                                    <span className="text-sm font-medium text-zinc-900">
+                                        {LIGHTING_MOODS.find(l => l.id === selectedVariant.lighting_id)?.name || selectedVariant.lighting_id}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase font-bold text-zinc-400">Flooring</span>
+                                    <span className="text-sm font-medium text-zinc-900">
+                                        {FLOORING_MATERIALS.find(f => f.id === selectedVariant.flooring_id)?.name || selectedVariant.flooring_id}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase font-bold text-zinc-400">Context</span>
+                                    <span className="text-sm font-medium text-zinc-900">
+                                        {PROJECT_CONTEXTS.find(c => c.id === selectedVariant.project_context)?.name || selectedVariant.project_context}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className={`render-area ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
@@ -848,15 +1019,17 @@ function VisualizerContent() {
                     </div>
 
                     {planVariants.length >= 0 && (
-                        <div className="mt-6">
+                        <div className="mt-6 p-4">
                             <p className="text-xs uppercase opacity-50 font-bold mb-2">Plan Styles</p>
                             <div className="flex gap-3 overflow-x-auto pb-4">
                                 {project?.source_image_url && (
                                     <div
-                                        className={`relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${leftImage === project.source_image_url || rightImage === project.source_image_url ? 'border-indigo-500' : 'border-transparent'}`}
+                                        className={`relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${(leftImage === project.source_image_url || rightImage === project.source_image_url || !selectedVariant) ? 'border-indigo-500' : 'border-transparent'}`}
                                         onClick={() => {
                                             setRightImage(project.source_image_url);
-                                            toast.info("Original Plan selected for Style B");
+                                            setCurrentImage(project.source_image_url);
+                                            setSelectedVariant(null);
+                                            toast.info("Original Plan selected");
                                         }}
                                     >
                                         <img src={project.source_image_url} alt="Original source plan"
@@ -885,10 +1058,10 @@ function VisualizerContent() {
                                     </div>
                                 )}
                                 {planVariants.map((v, i) => {
-                                    const imgUrl = v.upscaled_image_url || v.rendered_image_url;
+                                    const imgUrl = getHighResUrl(v);
                                     const isActiveLeft = leftImage === imgUrl;
                                     const isActiveRight = rightImage === imgUrl;
-                                    const isActive = isActiveLeft || isActiveRight;
+                                    const isActive = isActiveLeft || isActiveRight || selectedVariant?.id === v.id;
 
                                     const tooltipContent = (
                                         <div className="flex flex-col gap-1 p-1">
@@ -918,14 +1091,63 @@ function VisualizerContent() {
                                     return (
                                         <Tooltip key={v.id} content={tooltipContent}>
                                             <div
-                                                className={`relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${isActive ? 'border-indigo-500' : 'border-transparent'}`}
+                                                className={`group relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${(isActive || selectedVariant?.id === v.id) ? 'border-indigo-500' : 'border-transparent'}`}
                                                 onClick={() => {
                                                     setRightImage(imgUrl);
-                                                    toast.info(`Variant ${i + 1} selected for Style B`);
+                                                    setCurrentImage(imgUrl);
+                                                    setSelectedVariant(v);
+
+                                                    // Sync Toolbar
+                                                    const style = ROOM_STYLES.find(s => s.id === v.style_id);
+                                                    if (style) setSelectedStyle(style);
+
+                                                    const flooring = FLOORING_MATERIALS.find(f => f.id === v.flooring_id);
+                                                    if (flooring) setSelectedFlooring(flooring);
+
+                                                    const mood = LIGHTING_MOODS.find(l => l.id === v.lighting_id);
+                                                    if (mood) setSelectedLighting(mood);
+
+                                                    const context = PROJECT_CONTEXTS.find(c => c.id === v.project_context);
+                                                    if (context) setSelectedContext(context);
+
+                                                    toast.info(`Variant ${i + 1} selected`);
                                                 }}
                                             >
                                                 <img src={imgUrl} alt={`Plan Variant ${i + 1}`}
                                                      className="w-full h-full object-cover"/>
+
+                                                {/* Delete Button */}
+                                                <div
+                                                    className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <button
+                                                                className="p-1 bg-red-500/80 hover:bg-red-600 text-white rounded-md backdrop-blur-sm"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <Trash2 size={12}/>
+                                                            </button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Delete Variant?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    This action cannot be undone. This will permanently
+                                                                    delete this render variant from our servers.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() => handleDeleteVariant(v.id)}
+                                                                    className="bg-red-500 hover:bg-red-600"
+                                                                >
+                                                                    Delete
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
 
                                                 {/* Selection Badge */}
                                                 {isActive && (
@@ -1044,14 +1266,14 @@ function VisualizerContent() {
                             )}
                         </div>
 
-                        <div className="mt-6">
+                        <div className="mt-6 p-4">
                             <p className="text-xs uppercase opacity-50 font-bold mb-2">Isometric Styles</p>
                             <div className="flex gap-3 overflow-x-auto pb-4">
                                 {isoVariants.map((v, i) => {
-                                    const imgUrl = v.upscaled_image_url || v.rendered_image_url;
+                                    const imgUrl = getHighResUrl(v);
                                     const isActiveLeft = isoLeftImage === imgUrl;
                                     const isActiveRight = isoRightImage === imgUrl;
-                                    const isActive = isActiveLeft || isActiveRight;
+                                    const isActive = isActiveLeft || isActiveRight || selectedVariant?.id === v.id;
 
                                     const tooltipContent = (
                                         <div className="flex flex-col gap-1 p-1">
@@ -1081,14 +1303,63 @@ function VisualizerContent() {
                                     return (
                                         <Tooltip key={v.id} content={tooltipContent}>
                                             <div
-                                                className={`relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${isActive ? 'border-indigo-500' : 'border-transparent'}`}
+                                                className={`group relative w-24 h-24 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:ring-2 hover:ring-indigo-500/50 ${(isActive || selectedVariant?.id === v.id) ? 'border-indigo-500' : 'border-transparent'}`}
                                                 onClick={() => {
                                                     setIsoRightImage(imgUrl);
-                                                    toast.info(`Isometric Variant ${i + 1} selected for Style B`);
+                                                    setCurrentImage(imgUrl);
+                                                    setSelectedVariant(v);
+
+                                                    // Sync Toolbar
+                                                    const style = ROOM_STYLES.find(s => s.id === v.style_id);
+                                                    if (style) setSelectedStyle(style);
+
+                                                    const flooring = FLOORING_MATERIALS.find(f => f.id === v.flooring_id);
+                                                    if (flooring) setSelectedFlooring(flooring);
+
+                                                    const mood = LIGHTING_MOODS.find(l => l.id === v.lighting_id);
+                                                    if (mood) setSelectedLighting(mood);
+
+                                                    const context = PROJECT_CONTEXTS.find(c => c.id === v.project_context);
+                                                    if (context) setSelectedContext(context);
+
+                                                    toast.info(`Isometric Variant ${i + 1} selected`);
                                                 }}
                                             >
                                                 <img src={imgUrl} alt={`Isometric Variant ${i + 1}`}
                                                      className="w-full h-full object-cover"/>
+
+                                                {/* Delete Button */}
+                                                <div
+                                                    className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <button
+                                                                className="p-1 bg-red-500/80 hover:bg-red-600 text-white rounded-md backdrop-blur-sm"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <Trash2 size={12}/>
+                                                            </button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Delete Variant?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    This action cannot be undone. This will permanently
+                                                                    delete this render variant from our servers.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() => handleDeleteVariant(v.id)}
+                                                                    className="bg-red-500 hover:bg-red-600"
+                                                                >
+                                                                    Delete
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
 
                                                 {/* Selection Badge */}
                                                 {isActive && (
