@@ -987,14 +987,12 @@ function VisualizerContent() {
                                 <ReactCompareSlider
                                     defaultValue={50}
                                     itemOne={<ReactCompareSliderImage
-                                        loader={supabaseLoader}
-                                        src={leftImage}
+                                        src={supabaseLoader({src: leftImage, width: 1200})}
                                         alt="Before: Original floor plan"
                                         className="compare-img"
                                     />}
                                     itemTwo={<ReactCompareSliderImage
-                                        loader={supabaseLoader}
-                                        src={rightImage}
+                                        src={supabaseLoader({src: rightImage, width: 1200})}
                                         alt="After: AI 3D architectural render"
                                         className="compare-img"
                                     />}
@@ -1295,14 +1293,12 @@ function VisualizerContent() {
                                     <ReactCompareSlider
                                         defaultValue={50}
                                         itemOne={<ReactCompareSliderImage
-                                            loader={supabaseLoader}
-                                            src={isoLeftImage}
+                                            src={supabaseLoader({src: isoLeftImage, width: 1200})}
                                             alt="Style A"
                                             className="compare-img"
                                         />}
                                         itemTwo={<ReactCompareSliderImage
-                                            loader={supabaseLoader}
-                                            src={isoRightImage}
+                                            src={supabaseLoader({src: isoRightImage, width: 1200})}
                                             alt="Style B"
                                             className="compare-img"
                                         />}

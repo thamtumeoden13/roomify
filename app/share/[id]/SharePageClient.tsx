@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
+import supabaseLoader from "@/lib/supabase-loader";
 import {Sparkles, ArrowRight, Heart, Eye, Share2, Info, Home, Layers, Sun} from "lucide-react";
 import {toast} from "sonner";
 import Button from "@/components/ui/Button";
@@ -178,11 +179,16 @@ export default function SharePageClient({
                             className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative group transition-all">
                             {selectedPlan ? (
                                 <ReactCompareSlider
-                                    itemOne={<ReactCompareSliderImage src={project.source_image_url} alt="Original Plan"
-                                                                      loading="eager"/>}
+                                    itemOne={<ReactCompareSliderImage
+                                        src={supabaseLoader({src: project.source_image_url, width: 1200})}
+                                        alt="Original Plan"
+                                        loading="eager"
+                                    />}
                                     itemTwo={<ReactCompareSliderImage
-                                        src={getHighResUrl(selectedPlan)}
-                                        alt="3D Render" loading="eager"/>}
+                                        src={supabaseLoader({src: getHighResUrl(selectedPlan), width: 1200})}
+                                        alt="3D Render"
+                                        loading="eager"
+                                    />}
                                     className="aspect-[4/3] md:aspect-video"
                                 />
                             ) : (
@@ -302,7 +308,8 @@ export default function SharePageClient({
                                                     selectedPlan?.id === v.id ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-transparent hover:border-slate-200"
                                                 }`}
                                             >
-                                                <img src={getHighResUrl(v)} alt="Variant"
+                                                <img src={supabaseLoader({src: getHighResUrl(v), width: 200})}
+                                                     alt="Variant"
                                                      className="w-full h-full object-cover"/>
                                                 <div
                                                     className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-lg">
@@ -384,11 +391,15 @@ export default function SharePageClient({
                                     className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative transition-all">
                                     <ReactCompareSlider
                                         itemOne={<ReactCompareSliderImage
-                                            src={getHighResUrl(isoLeft)}
-                                            alt="Style A" loading="lazy"/>}
+                                            src={supabaseLoader({src: getHighResUrl(isoLeft), width: 1200})}
+                                            alt="Style A"
+                                            loading="lazy"
+                                        />}
                                         itemTwo={<ReactCompareSliderImage
-                                            src={getHighResUrl(isoRight)}
-                                            alt="Style B" loading="lazy"/>}
+                                            src={supabaseLoader({src: getHighResUrl(isoRight), width: 1200})}
+                                            alt="Style B"
+                                            loading="lazy"
+                                        />}
                                         className="aspect-[4/3] md:aspect-video"
                                     />
                                 </div>
@@ -414,7 +425,8 @@ export default function SharePageClient({
                                                         isActive ? "border-indigo-600 ring-4 ring-indigo-600/10 scale-[0.98]" : "border-transparent hover:border-slate-200"
                                                     }`}
                                                 >
-                                                    <img src={getHighResUrl(v)} alt="Isometric preview"
+                                                    <img src={supabaseLoader({src: getHighResUrl(v), width: 400})}
+                                                         alt="Isometric preview"
                                                          className="w-full h-full object-cover transition-transform group-hover:scale-110"/>
                                                     <div
                                                         className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
