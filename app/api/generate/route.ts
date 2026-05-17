@@ -1,6 +1,13 @@
 import Replicate from "replicate";
 import {NextResponse} from "next/server";
-import {ROOMIFY_NEGATIVE_PROMPT} from "@/lib/constants";
+import {
+    CAMERA_VIEWS,
+    FLOORING_MATERIALS,
+    LIGHTING_MOODS,
+    PROJECT_CONTEXTS,
+    ROOM_STYLES,
+    ROOMIFY_RENDER_PROMPT
+} from "@/lib/constants";
 import {supabase} from "@/lib/supabase";
 
 const replicate = new Replicate({
@@ -42,71 +49,61 @@ export async function POST(req: Request) {
         const {data: profile} = await supabase.from("profiles").select("credits").eq("id", user.id).single();
         if (!profile || profile.credits < 1) return NextResponse.json({error: "Out of credits"}, {status: 403});
 
-        // 3. THIẾT LẬP CHIẾN THUẬT RENDER DỰA TRÊN VIEW_ID
-        let baseSeed = (viewId === "plan") ? 363109 : 665380;
-        let basePromptAnchor = "";
-        let conditionScale = 0.45;
-        let guidanceScale = 12;
-        let negativePromptExtension = "";
+        // 3. THIẾT LẬP CHIẾN THUẬT RENDER
+        // Find objects from constants based on IDs or fallback to [0]
+        const selectedStyle = ROOM_STYLES.find(s => s.id === styleId) || ROOM_STYLES[0];
+        const selectedContext = PROJECT_CONTEXTS.find(c => c.id === contextId) || PROJECT_CONTEXTS[0];
+        const selectedFlooring = FLOORING_MATERIALS.find(f => f.id === flooringId) || FLOORING_MATERIALS[0];
+        const selectedLighting = LIGHTING_MOODS.find(l => l.id === lightingId) || LIGHTING_MOODS[0];
+        const selectedView = CAMERA_VIEWS.find(v => v.id === viewId) || CAMERA_VIEWS[0];
 
-        if (viewId === "plan") {
-            // VIEW PHẲNG: Tập trung vào độ chính xác mặt bằng
-            basePromptAnchor = "Professional 3D floor plan, top-down orthographic view, 90-degree overhead visualization.";
-            conditionScale = 0.45;
-            guidanceScale = 12;
-        } else if (viewId === "isometric") {
-            // VIEW NGHIÊNG: Ép AI tạo mô hình sa bàn (Single Story)
-            basePromptAnchor = "A professional 3D ISOMETRIC DIORAMA of a SINGLE-STORY interior, 45-degree angled view, architectural scale model, roofless cutaway.";
-            conditionScale = 0.28; // Tận dụng Seed 665380 để xoay camera
-            guidanceScale = 22;    // Ép AI nghe lời "Isometric"
-            negativePromptExtension = ", multi-story, second floor, stairs, roof, ceiling, top-down, straight overhead";
-        } else if (viewId === "perspective") {
-            // VIEW CINEMATIC: Tạo chiều sâu ảnh chụp
-            basePromptAnchor = "A stunning 3D perspective interior photograph, camera looking deep into the rooms, wide-angle cinematic shot, dramatic spatial volume.";
-            conditionScale = 0.22; // Độ tự do cao nhất để tạo điểm tụ
-            guidanceScale = 25;
-            negativePromptExtension = ", flat plan, 2D layout, map view, top-down, blueprint";
-        }
+        // Split ROOMIFY_RENDER_PROMPT into its structural parts
+        // Based on constants.ts, it has sections: 3D STRUCTURE, FURNITURE, SURFACE CLEANUP, QUALITY, FINAL EXECUTION
+        const promptParts = ROOMIFY_RENDER_PROMPT.split('\n');
+        const structureFurniture = promptParts.filter(line => line.startsWith('3D STRUCTURE:') || line.startsWith('FURNITURE:')).join(' ');
+        const qualityCleanup = promptParts.filter(line => line.startsWith('SURFACE CLEANUP:') || line.startsWith('QUALITY:') || line.startsWith('FINAL EXECUTION:')).join(' ');
 
-        // 4. LẮP GHÉP MASTER PROMPT DYNAMIC (Không dùng hằng số fixed nữa)
         const masterPrompt = `
-            ${basePromptAnchor}
-            Architectural visualization of a ${projectContext || "space"}.
-            Interior Style: ${styleKeywords}.
-            Flooring: ${flooringKeywords}.
-            Lighting: ${lightingKeywords}.
-            
-            TECHNICAL RULES: Strictly hide all 2D labels and floor markings. 
-            Replace all text with seamless ${flooringKeywords}. 
-            Extrude white structural walls with consistent height. 
-            Ensure photorealistic materials and soft shadows.
-        `.trim().replace(/\s+/g, ' '); // Làm sạch khoảng trắng thừa
+            ${selectedView.keywords}
+            ${structureFurniture}
+            STYLE: ${selectedStyle.keywords}
+            MATERIALS: The entire floor is a solid slab of ${selectedFlooring.keywords}.
+            LIGHTING: ${selectedLighting.keywords}
+            ${qualityCleanup}
+        `.trim().replace(/\s+/g, ' ');
 
-        // 5. Khởi tạo Prediction với SEED CỐ ĐỊNH 665380
+        // 5. Khởi tạo Prediction với google/nano-banana
+        // Model uses image_input as an array of strings
         const prediction = await replicate.predictions.create({
-            version: "06d6fae3b75ab68a28cd2900afa6033166910dd09fd9751047043a5bbb4c184b",
+            model: "google/nano-banana",
             input: {
-                image: image,
+                image_input: [image],
                 prompt: masterPrompt,
-                negative_prompt: ROOMIFY_NEGATIVE_PROMPT + negativePromptExtension,
-                condition_scale: conditionScale,
-                num_inference_steps: 50,
-                guidance_scale: guidanceScale,
-                scheduler: "K_EULER_ANCESTRAL",
-                seed: baseSeed,
+                aspect_ratio: "match_input_image",
+                output_format: "png",
             },
         });
 
         if (prediction?.error) return NextResponse.json({error: prediction.error}, {status: 500});
 
-        // 6. Database & Credits Update (giữ nguyên)
+        // 6. Database & Credits Update
         await supabase.rpc("decrement_credits", {target_user_id: user.id, amount: 1});
         const renderData = {
-            prediction_id: prediction.id, project_id: project_id, project_name: projectName || "Untitled Project",
-            source_image_url: image, status: prediction.status, prompt: masterPrompt,
-            style_id: styleId, project_context: contextId, flooring_id: flooringId,
-            lighting_id: lightingId, view_id: viewId, user_id: user?.id, seed: baseSeed,
-            rendered_image_url: null, upscaled_image_url: null
+            prediction_id: prediction.id,
+            project_id: project_id,
+            project_name: projectName || "Untitled Project",
+            source_image_url: image,
+            status: prediction.status,
+            prompt: masterPrompt,
+            style_id: styleId,
+            project_context: contextId,
+            flooring_id: flooringId,
+            lighting_id: lightingId,
+            view_id: viewId,
+            user_id: user?.id,
+            seed: null, // Handle missing seed gracefully
+            rendered_image_url: null,
+            upscaled_image_url: null
         };
         if (existingRender) await supabase.from("renders").update(renderData).match({id: existingRender.id});
         else await supabase.from("renders").insert(renderData);

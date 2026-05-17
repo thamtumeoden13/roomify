@@ -12,6 +12,7 @@ import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMER
 import VisualizerToolbar from "@/components/VisualizerToolbar";
 import {useCredits} from "@/lib/hooks/useCredits";
 import {Tooltip} from "@/components/ui/Tooltip";
+import {processFloorPlan} from "@/lib/utils";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -310,11 +311,37 @@ function VisualizerContent() {
                 setIsIsoProcessing(true);
             }
 
+            // --- IMAGE PRE-PROCESSING ---
+            // Process the floor plan to remove/blur text for better AI results
+            let imageToUse = project.source_image_url;
+            try {
+                const processedBlob = await processFloorPlan(project.source_image_url);
+                if (processedBlob) {
+                    const fileName = `processed_${Math.random().toString(36).slice(2, 11)}.png`;
+                    const formData = new FormData();
+                    formData.append('file', new File([processedBlob], fileName, {type: 'image/png'}));
+
+                    const uploadRes = await fetch(`/api/upload?filename=${fileName}`, {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json();
+                        imageToUse = uploadData.url;
+                        console.log("Using processed image for generation:", imageToUse);
+                    }
+                }
+            } catch (procError) {
+                console.error("Failed to process image, falling back to original:", procError);
+            }
+            // --- END PRE-PROCESSING ---
+
             const response = await fetch("/api/generate", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
-                    image: project.source_image_url,
+                    image: imageToUse,
                     project_id: id,
                     projectName: project.name,
                     styleKeywords: styleToUse.keywords,

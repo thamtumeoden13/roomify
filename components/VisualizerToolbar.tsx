@@ -317,7 +317,7 @@ export default function VisualizerToolbar({
                             <Button
                                 variant="outline"
                                 onClick={() => onGenerateWithReset('isometric')}
-                                disabled={isIsoProcessing || isUpscaling || !currentPlanExists || (credits !== null && credits === 0)}
+                                disabled={true}//{isIsoProcessing || isUpscaling || !currentPlanExists || (credits !== null && credits === 0)}
                                 className={cn(
                                     "relative overflow-hidden px-2.5 md:px-3 lg:px-5 py-2.5 h-10 lg:h-11 rounded-xl lg:rounded-2xl transition-all duration-300 font-bold text-[10px] lg:text-xs uppercase tracking-wider flex items-center gap-1.5 lg:gap-2",
                                     isIsoProcessing

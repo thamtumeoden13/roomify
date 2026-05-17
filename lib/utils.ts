@@ -148,3 +148,68 @@ export const imageUrlToPngBlob = async (url: string): Promise<Blob | null> => {
         return null;
     }
 };
+
+/**
+ * Processes a floor plan image using Canvas to reduce text ghosting.
+ * Appliques a subtle Gaussian blur to "soften" text and labels
+ * which helps models like google/nano-banana ignore them.
+ */
+export const processFloorPlan = async (file: File | string): Promise<Blob | null> => {
+    if (typeof window === "undefined") return null;
+
+    try {
+        let source: HTMLImageElement | HTMLCanvasElement;
+        let width: number;
+        let height: number;
+
+        if (typeof file === 'string') {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = file;
+            });
+            source = img;
+            width = img.naturalWidth;
+            height = img.naturalHeight;
+        } else {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            await new Promise((resolve, reject) => {
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    resolve(null);
+                };
+                img.onerror = reject;
+                img.src = url;
+            });
+            source = img;
+            width = img.naturalWidth;
+            height = img.naturalHeight;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+
+        // 1. Draw original image
+        ctx.drawImage(source, 0, 0, width, height);
+
+        // 2. Apply a light blur
+        // A blur of 0.5px is enough to "soften" text and labels 
+        // without destroying the architectural lines.
+        ctx.filter = 'blur(0.5px)';
+        ctx.drawImage(canvas, 0, 0);
+        ctx.filter = 'none';
+
+        return await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((result) => resolve(result), "image/png");
+        });
+    } catch (error) {
+        console.error("Error processing floor plan:", error);
+        return null;
+    }
+};
