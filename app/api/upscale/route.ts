@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
         // Initialize upscale prediction
         const prediction = await replicate.predictions.create({
-            model: "nightmareai/real-esrgan",
+            version: "3febd19381dd7e1f52a3ed3260b5b0a5636353de45e37e7c1c3cd814b24077a3",
             input: {
                 image: image,
                 scale: 4,
