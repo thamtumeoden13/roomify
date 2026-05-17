@@ -3,6 +3,7 @@
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState, Suspense} from "react";
 import {RefreshCcw, Sparkles, X, ThumbsUp, ThumbsDown, Info, Home, Layers, Sun, Trash2} from "lucide-react";
+import dynamic from "next/dynamic";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,7 +18,18 @@ import {
 import RoomifyLogo from "@/components/RoomifyLogo";
 import {toast} from "sonner";
 import Button from "@/components/ui/Button";
-import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
+import Image from "next/image";
+import supabaseLoader from "@/lib/supabase-loader";
+
+const ReactCompareSlider = dynamic(() => import("react-compare-slider").then(mod => mod.ReactCompareSlider), {
+    ssr: false,
+    loading: () => <div className="aspect-video bg-zinc-900 animate-pulse rounded-2xl"/>
+});
+
+const ReactCompareSliderImage = dynamic(() => import("react-compare-slider").then(mod => mod.ReactCompareSliderImage), {
+    ssr: false
+});
+
 import {supabase} from "@/lib/supabase";
 import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMERA_VIEWS} from "@/lib/constants";
 import VisualizerToolbar from "@/components/VisualizerToolbar";
@@ -839,16 +851,28 @@ function VisualizerContent() {
                         )}
                     </div>
 
-                    <div className={`render-area ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
+                    <div
+                        className={`render-area relative overflow-hidden ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
                         {currentImage ? (
-                            <img src={currentImage} alt={`${selectedStyle.name} style AI architectural render`}
-                                 className="render-img" loading="eager"/>
+                            <Image
+                                loader={supabaseLoader}
+                                src={currentImage}
+                                alt={`${selectedStyle.name} style AI architectural render`}
+                                fill
+                                className="object-contain"
+                                priority
+                            />
                         ) : (
-                            <div className="render-placeholder">
+                            <div className="render-placeholder relative w-full h-full">
                                 {project?.source_image_url && (
-                                    <img src={project.source_image_url} alt="Original floor plan"
-                                         className="render-fallback"
-                                         loading="eager"/>
+                                    <Image
+                                        loader={supabaseLoader}
+                                        src={project.source_image_url}
+                                        alt="Original floor plan"
+                                        fill
+                                        className="object-contain"
+                                        priority
+                                    />
                                 )}
                             </div>
                         )}
@@ -962,11 +986,18 @@ function VisualizerContent() {
                             <div style={{position: "relative", width: "100%", height: "auto"}}>
                                 <ReactCompareSlider
                                     defaultValue={50}
-                                    itemOne={<ReactCompareSliderImage src={leftImage} alt="Before: Original floor plan"
-                                                                      className="compare-img"/>}
-                                    itemTwo={<ReactCompareSliderImage src={rightImage}
-                                                                      alt="After: AI 3D architectural render"
-                                                                      className="compare-img"/>}
+                                    itemOne={<ReactCompareSliderImage
+                                        loader={supabaseLoader}
+                                        src={leftImage}
+                                        alt="Before: Original floor plan"
+                                        className="compare-img"
+                                    />}
+                                    itemTwo={<ReactCompareSliderImage
+                                        loader={supabaseLoader}
+                                        src={rightImage}
+                                        alt="After: AI 3D architectural render"
+                                        className="compare-img"
+                                    />}
                                 />
                                 {planPrediction?.status === "succeeded" && (
                                     <div
@@ -1009,10 +1040,15 @@ function VisualizerContent() {
                                 )}
                             </div>
                         ) : (
-                            <div className="compare-fallback">
+                            <div className="compare-fallback relative w-full aspect-video">
                                 {project?.source_image_url && (
-                                    <img src={project.source_image_url} alt="Before: Original floor plan"
-                                         className="compare-img object-cover"/>
+                                    <Image
+                                        loader={supabaseLoader}
+                                        src={project.source_image_url}
+                                        alt="Before: Original floor plan"
+                                        fill
+                                        className="compare-img object-cover"
+                                    />
                                 )}
                             </div>
                         )}
@@ -1032,10 +1068,15 @@ function VisualizerContent() {
                                             toast.info("Original Plan selected");
                                         }}
                                     >
-                                        <img src={project.source_image_url} alt="Original source plan"
-                                             className="w-full h-full object-cover"/>
+                                        <Image
+                                            loader={supabaseLoader}
+                                            src={project.source_image_url}
+                                            alt="Original source plan"
+                                            fill
+                                            className="object-cover"
+                                        />
                                         <div
-                                            className="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider shadow-sm">
+                                            className="absolute top-1 left-1 bg-indigo-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider shadow-sm z-10">
                                             Original
                                         </div>
 
@@ -1113,8 +1154,14 @@ function VisualizerContent() {
                                                     toast.info(`Variant ${i + 1} selected`);
                                                 }}
                                             >
-                                                <img src={imgUrl} alt={`Plan Variant ${i + 1}`}
-                                                     className="w-full h-full object-cover"/>
+                                                <Image
+                                                    loader={supabaseLoader}
+                                                    src={imgUrl}
+                                                    alt={`Plan Variant ${i + 1}`}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="96px"
+                                                />
 
                                                 {/* Delete Button */}
                                                 <div
@@ -1247,16 +1294,29 @@ function VisualizerContent() {
                                 <div style={{position: "relative", width: "100%", height: "auto"}}>
                                     <ReactCompareSlider
                                         defaultValue={50}
-                                        itemOne={<ReactCompareSliderImage src={isoLeftImage} alt="Style A"
-                                                                          className="compare-img"/>}
-                                        itemTwo={<ReactCompareSliderImage src={isoRightImage} alt="Style B"
-                                                                          className="compare-img"/>}
+                                        itemOne={<ReactCompareSliderImage
+                                            loader={supabaseLoader}
+                                            src={isoLeftImage}
+                                            alt="Style A"
+                                            className="compare-img"
+                                        />}
+                                        itemTwo={<ReactCompareSliderImage
+                                            loader={supabaseLoader}
+                                            src={isoRightImage}
+                                            alt="Style B"
+                                            className="compare-img"
+                                        />}
                                     />
                                 </div>
                             ) : isoRightImage ? (
-                                <div className="compare-fallback">
-                                    <img src={isoRightImage} alt="Isometric variant"
-                                         className="compare-img object-cover"/>
+                                <div className="compare-fallback relative w-full aspect-video">
+                                    <Image
+                                        loader={supabaseLoader}
+                                        src={isoRightImage}
+                                        alt="Isometric variant"
+                                        fill
+                                        className="compare-img object-cover"
+                                    />
                                 </div>
                             ) : (
                                 <div
@@ -1325,8 +1385,14 @@ function VisualizerContent() {
                                                     toast.info(`Isometric Variant ${i + 1} selected`);
                                                 }}
                                             >
-                                                <img src={imgUrl} alt={`Isometric Variant ${i + 1}`}
-                                                     className="w-full h-full object-cover"/>
+                                                <Image
+                                                    loader={supabaseLoader}
+                                                    src={imgUrl}
+                                                    alt={`Isometric Variant ${i + 1}`}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="96px"
+                                                />
 
                                                 {/* Delete Button */}
                                                 <div

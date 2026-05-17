@@ -1,6 +1,7 @@
 "use client";
 
 import React, {useState, useEffect} from "react";
+import dynamic from "next/dynamic";
 import {
     ArrowRight,
     Upload as UploadIcon,
@@ -11,10 +12,21 @@ import {
     X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
+import Image from "next/image";
+
+const ReactCompareSlider = dynamic(() => import("react-compare-slider").then(mod => mod.ReactCompareSlider), {
+    ssr: false,
+    loading: () => <div className="aspect-video bg-slate-100 animate-pulse rounded-[2.5rem]"/>
+});
+
+const ReactCompareSliderImage = dynamic(() => import("react-compare-slider").then(mod => mod.ReactCompareSliderImage), {
+    ssr: false
+});
+
 import {motion} from "framer-motion";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+import supabaseLoader from "@/lib/supabase-loader";
 import Footer from "@/components/Footer";
 import {supabase} from "@/lib/supabase";
 import {Heart, Eye, Sparkles, User} from "lucide-react";
@@ -223,9 +235,10 @@ export default function LandingPage() {
                                 >
                                     <ReactCompareSlider
                                         itemOne={<ReactCompareSliderImage src={showcaseImages[0].before}
-                                                                          alt="2D Floor Plan" loading="eager"/>}
-                                        itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after} alt="3D Render"
-                                                                          loading="eager"/>}
+                                                                          alt="2D Floor Plan - Original Room Layout"/>}
+                                        itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after}
+                                                                          alt="3D Render - AI Transformed Architecture Visualization"
+                                        />}
                                         className="aspect-video"
                                     />
                                     <div
@@ -269,9 +282,11 @@ export default function LandingPage() {
                                         key={idx}
                                         className="relative shrink-0 w-80 h-48 rounded-xl overflow-hidden group border border-slate-200 shadow-md"
                                     >
-                                        <img
+                                        <Image
                                             src={item.image}
-                                            alt={item.label}
+                                            alt={`${item.label} Architectural Style - Roomify Visualization`}
+                                            fill
+                                            sizes="320px"
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
                                         <div
@@ -562,17 +577,21 @@ export default function LandingPage() {
                                                     className="relative h-full flex flex-col rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
                                                     {/* Image Container with Hover Effect */}
                                                     <div className="relative aspect-4/3 overflow-hidden">
-                                                        <img
+                                                        <Image
+                                                            loader={supabaseLoader}
                                                             src={imageUrl}
-                                                            alt={render.project_name || "AI Render"}
+                                                            alt={`${render.project_name || "AI Architectural Render"} - Roomify Showcase`}
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                             className="absolute inset-0 w-full h-full object-cover group-hover:opacity-0 transition-opacity duration-500"
-                                                            loading={i < 4 ? "eager" : "lazy"}
                                                         />
-                                                        <img
+                                                        <Image
+                                                            loader={supabaseLoader}
                                                             src={render.source_image_url}
-                                                            alt="Original"
+                                                            alt="Original 2D Plan"
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                             className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                                                            loading={i < 4 ? "eager" : "lazy"}
                                                         />
 
                                                         {/* Badges */}

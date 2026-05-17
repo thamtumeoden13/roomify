@@ -5,6 +5,8 @@ import {supabase} from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import {Clock, ArrowRight} from "lucide-react";
 import {useRouter} from "next/navigation";
+import Image from "next/image";
+import supabaseLoader from "@/lib/supabase-loader";
 
 export default function HistoryPage() {
     const [renders, setRenders] = useState<any[]>([]);
@@ -64,11 +66,14 @@ export default function HistoryPage() {
                                 onClick={() => router.push(`/visualizer/${render.id}?image=${encodeURIComponent(render.source_image_url)}&name=${encodeURIComponent(render.project_name || "")}`)}
                             >
                                 <div className="aspect-video relative overflow-hidden bg-zinc-800">
-                                    <img
+                                    <Image
+                                        loader={supabaseLoader}
                                         src={render.rendered_image_url || render.source_image_url}
-                                        alt={render.project_name}
+                                        alt={render.project_name || "AI Architectural Render"}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        loading="eager"
+                                        priority={render === renders[0]}
                                     />
                                     <div className="absolute top-3 right-3">
                                         <span className={`px-2 py-1 text-xs rounded-full ${

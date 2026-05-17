@@ -7,6 +7,7 @@ import {Toaster} from "sonner";
 import {CreditProvider} from "@/lib/context/CreditContext";
 import {Analytics} from "@vercel/analytics/react";
 import {ContactButton} from "@/components/ContactButton";
+import Script from "next/script";
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
@@ -71,8 +72,30 @@ export default function RootLayout({
                                    }: Readonly<{
     children: ReactNode;
 }>) {
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": ["SoftwareApplication", "Product"],
+        "name": "Roomify",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Windows, macOS, iOS, Android",
+        "description": metadata.description,
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free credits available"
+        }
+    };
+
     return (
         <html lang="en" data-scroll-behavior="smooth" className={cn("font-sans", geist.variable)}>
+        <head>
+            <Script
+                id="json-ld"
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{__html: JSON.stringify(jsonLd)}}
+            />
+        </head>
         <body className={`${geist.variable} ${instrumentSerif.variable} antialiased`}>
         <CreditProvider>
             {children}
