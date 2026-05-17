@@ -8,6 +8,7 @@ import {CreditProvider} from "@/lib/context/CreditContext";
 import {Analytics} from "@vercel/analytics/react";
 import {ContactButton} from "@/components/ContactButton";
 import Script from "next/script";
+import {LazyMotion, domAnimation} from "framer-motion";
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
@@ -97,12 +98,14 @@ export default function RootLayout({
             />
         </head>
         <body className={`${geist.variable} ${instrumentSerif.variable} antialiased`}>
-        <CreditProvider>
-            {children}
-            <ContactButton/>
-            <Analytics/>
-            <Toaster position="bottom-right" richColors/>
-        </CreditProvider>
+        <LazyMotion features={domAnimation}>
+            <CreditProvider>
+                {children}
+                <ContactButton/>
+                <Analytics/>
+                <Toaster position="bottom-right" richColors/>
+            </CreditProvider>
+        </LazyMotion>
         </body>
         </html>
     );

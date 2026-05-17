@@ -17,7 +17,7 @@ import Link from "next/link";
 import {supabase} from "@/lib/supabase";
 import {useRouter} from "next/navigation";
 import {useCredits} from "@/lib/hooks/useCredits";
-import {motion, AnimatePresence} from "framer-motion";
+import {m, AnimatePresence} from "framer-motion";
 import {
     Sheet,
     SheetContent,
@@ -70,7 +70,7 @@ function Navbar() {
                     : "bg-transparent border-transparent py-5"
             }`}
         >
-            <motion.div
+            <m.div
                 initial={{y: -20, opacity: 0}}
                 animate={{y: 0, opacity: 1}}
                 transition={{duration: 0.5}}
@@ -222,7 +222,7 @@ function Navbar() {
                         </Sheet>
                     </div>
                 </div>
-            </motion.div>
+            </m.div>
         </header>
     )
 }

@@ -23,13 +23,14 @@ const ReactCompareSliderImage = dynamic(() => import("react-compare-slider").the
     ssr: false
 });
 
-import {motion} from "framer-motion";
+import {m} from "framer-motion";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import supabaseLoader from "@/lib/supabase-loader";
 import Footer from "@/components/Footer";
 import {supabase} from "@/lib/supabase";
 import {Heart, Eye, Sparkles, User} from "lucide-react";
+import {useRef} from "react";
 
 export default function LandingPage() {
     const [user, setUser] = useState<any>(null);
@@ -39,6 +40,26 @@ export default function LandingPage() {
     const [trendingItems, setTrendingItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdminUser, setIsAdminUser] = useState(false);
+    const [inView, setInView] = useState(false);
+    const sliderRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setInView(true);
+                    observer.disconnect();
+                }
+            },
+            {rootMargin: '200px'}
+        );
+
+        if (sliderRef.current) {
+            observer.observe(sliderRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         setMounted(true);
@@ -68,6 +89,9 @@ export default function LandingPage() {
         window.addEventListener("scroll", handleScroll);
 
         const fetchShowcase = async () => {
+            if (window.scrollY < 100) {
+                await new Promise(r => setTimeout(r, 2000));
+            }
             setIsLoading(true);
             try {
                 const {data, error} = await supabase
@@ -136,7 +160,7 @@ export default function LandingPage() {
         <div className="min-h-screen bg-[#F9FAFB] text-slate-900 selection:bg-primary/30">
             <Navbar/>
             {/* Slide Down Animation for Page Load */}
-            <motion.div
+            <m.div
                 initial={{y: -100, opacity: 0}}
                 animate={{y: 0, opacity: 1}}
                 transition={{duration: 0.8, ease: "easeOut"}}
@@ -147,24 +171,16 @@ export default function LandingPage() {
                 <section
                     className="relative min-h-[90vh] flex items-center pt-32 pb-20 md:pt-48 md:pb-40 overflow-hidden">
                     {/* Subtle Grid Pattern - Infinite Scroll */}
-                    <motion.div
+                    <m.div
                         className="absolute inset-0 z-0 pointer-events-none opacity-40"
                         style={{
                             backgroundImage: `linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)`,
                             backgroundSize: '60px 60px',
                         }}
-                        animate={{
-                            backgroundPositionY: [0, 60],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "linear"
-                        }}
                     >
                         <div
                             className="absolute inset-0 bg-linear-to-b from-[#F9FAFB]/0 via-[#F9FAFB]/50 to-[#F9FAFB]"/>
-                    </motion.div>
+                    </m.div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden">
                         <div
@@ -174,7 +190,7 @@ export default function LandingPage() {
                     </div>
 
                     <div className="container mx-auto px-6 text-center relative z-10">
-                        <motion.div
+                        <m.div
                             initial={{opacity: 0, y: 30}}
                             animate={{opacity: 1, y: 0}}
                             transition={{duration: 0.8}}
@@ -193,7 +209,7 @@ export default function LandingPage() {
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
                                 <Link href="/dashboard">
-                                    <motion.div
+                                    <m.div
                                         animate={{
                                             scale: [1, 1.05, 1],
                                         }}
@@ -207,32 +223,29 @@ export default function LandingPage() {
                                                 className="w-full sm:w-auto h-14 px-8 text-base bg-primary hover:bg-primary-dark shadow-xl shadow-primary/20 transition-all duration-300">
                                             Get Started <ArrowRight className="ml-2 w-5 h-5"/>
                                         </Button>
-                                    </motion.div>
+                                    </m.div>
                                 </Link>
                                 <Button variant="outline" size="lg"
                                         className="w-full sm:w-auto h-14 px-8 text-base border-slate-200 text-slate-900 hover:bg-slate-50">
                                     Watch Demo
                                 </Button>
                             </div>
-                        </motion.div>
+                        </m.div>
 
                         {/* Visual Slider with Light Glassmorphism */}
-                        {mounted && (
-                            <div className="relative mt-20">
-                                {/* Glowing Aura */}
-                                <div
-                                    className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
+                        <div ref={sliderRef} className="relative mt-20">
+                            {/* Glowing Aura */}
+                            <div
+                                className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
 
-                                <motion.div
-                                    style={{
-                                        y: typeof window !== 'undefined' ? (window.scrollY * 0.1) : 0
-                                    }}
-                                    initial={{opacity: 0, scale: 0.95}}
-                                    whileInView={{opacity: 1, scale: 1}}
-                                    viewport={{once: true}}
-                                    transition={{duration: 1}}
-                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-white/5 backdrop-blur-sm"
-                                >
+                            <m.div
+                                initial={{opacity: 0, scale: 0.95}}
+                                whileInView={{opacity: 1, scale: 1}}
+                                viewport={{once: true}}
+                                transition={{duration: 1}}
+                                className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-white/5 backdrop-blur-sm"
+                            >
+                                {mounted && inView ? (
                                     <ReactCompareSlider
                                         itemOne={<ReactCompareSliderImage src={showcaseImages[0].before}
                                                                           alt="2D Floor Plan - Original Room Layout"/>}
@@ -241,16 +254,18 @@ export default function LandingPage() {
                                         />}
                                         className="aspect-video"
                                     />
-                                    <div
-                                        className="absolute z-10 bottom-8 left-8 right-8 flex justify-between pointer-events-none">
+                                ) : (
+                                    <div className="aspect-video bg-slate-100 animate-pulse rounded-[2.5rem]"/>
+                                )}
+                                <div
+                                    className="absolute z-10 bottom-8 left-8 right-8 flex justify-between pointer-events-none">
                                     <span
                                         className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-white/20 text-white">Original Plan</span>
-                                        <span
-                                            className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white">AI Vision</span>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        )}
+                                    <span
+                                        className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white">AI Vision</span>
+                                </div>
+                            </m.div>
+                        </div>
                     </div>
                 </section>
 
@@ -263,7 +278,7 @@ export default function LandingPage() {
 
                     <div className="flex overflow-hidden">
                         {mounted && (
-                            <motion.div
+                            <m.div
                                 animate={{
                                     x: [0, -1035],
                                 }}
@@ -296,7 +311,7 @@ export default function LandingPage() {
                                         </div>
                                     </div>
                                 ))}
-                            </motion.div>
+                            </m.div>
                         )}
                     </div>
                 </section>
@@ -313,7 +328,7 @@ export default function LandingPage() {
                         {/* Connection Line */}
                         <div className="absolute top-[60%] left-[10%] right-[10%] h-0.5 hidden md:block z-0">
                             <svg className="w-full h-24 overflow-visible">
-                                <motion.path
+                                <m.path
                                     d="M 0 50 Q 250 -50 500 50 T 1000 50"
                                     fill="transparent"
                                     stroke="url(#gradient-line)"
@@ -356,7 +371,7 @@ export default function LandingPage() {
                                     icon: <Zap className="w-8 h-8"/>
                                 }
                             ].map((item, i) => (
-                                <motion.div
+                                <m.div
                                     key={i}
                                     initial={{opacity: 0, y: 30}}
                                     whileInView={{opacity: 1, y: 0}}
@@ -382,7 +397,7 @@ export default function LandingPage() {
                                     >
                                         {item.step}
                                     </span>
-                                </motion.div>
+                                </m.div>
                             ))}
                         </div>
                     </div>
@@ -409,7 +424,7 @@ export default function LandingPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[300px]">
                             {/* Feature 1: AI Precision (Large) */}
-                            <motion.div
+                            <m.div
                                 initial={{opacity: 0, y: 20}}
                                 whileInView={{opacity: 1, y: 0}}
                                 viewport={{once: true}}
@@ -430,10 +445,10 @@ export default function LandingPage() {
                                         relationships, ensuring every render respects your original dimensions.
                                     </p>
                                 </div>
-                            </motion.div>
+                            </m.div>
 
                             {/* Feature 2: 4K Upscaling (Tall) */}
-                            <motion.div
+                            <m.div
                                 initial={{opacity: 0, y: 20}}
                                 whileInView={{opacity: 1, y: 0}}
                                 viewport={{once: true}}
@@ -457,10 +472,10 @@ export default function LandingPage() {
                                         <span className="text-xs font-mono uppercase tracking-widest">Enhancing Details...</span>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </m.div>
 
                             {/* Feature 3: Multiple Variants (Small) */}
-                            <motion.div
+                            <m.div
                                 initial={{opacity: 0, y: 20}}
                                 whileInView={{opacity: 1, y: 0}}
                                 viewport={{once: true}}
@@ -478,10 +493,10 @@ export default function LandingPage() {
                                         possibility in seconds.
                                     </p>
                                 </div>
-                            </motion.div>
+                            </m.div>
 
                             {/* Feature 4: Cloud Storage (Small) */}
-                            <motion.div
+                            <m.div
                                 initial={{opacity: 0, y: 20}}
                                 whileInView={{opacity: 1, y: 0}}
                                 viewport={{once: true}}
@@ -499,7 +514,7 @@ export default function LandingPage() {
                                         anywhere in the world.
                                     </p>
                                 </div>
-                            </motion.div>
+                            </m.div>
                         </div>
                     </div>
                 </section>
@@ -533,7 +548,7 @@ export default function LandingPage() {
                                     const isTrending = item.view_count > 50 || item.vote_count > 10;
 
                                     return (
-                                        <motion.div
+                                        <m.div
                                             key={item.id}
                                             {...fadeIn}
                                             transition={{delay: i * 0.05}}
@@ -642,7 +657,7 @@ export default function LandingPage() {
                                                     </div>
                                                 </div>
                                             </Link>
-                                        </motion.div>
+                                        </m.div>
                                     );
                                 })}
                             </div>
