@@ -22,6 +22,7 @@ import {
     Sunset,
     Lamp,
     Focus,
+    Globe,
 } from 'lucide-react';
 import {Select} from '@/components/ui/Select';
 import {Tooltip} from '@/components/ui/Tooltip';
@@ -311,6 +312,8 @@ export default function VisualizerToolbar({
                 {/* Right Group: Utilities */}
                 <div
                     className="flex items-center gap-1 md:gap-2 lg:gap-3 w-auto justify-end lg:pl-0 xl:pl-6 shrink-0">
+
+
                     <Tooltip
                         content={!currentPlanExists ? "Please generate the 3D Plan view first to unlock the Isometric model." : "3D Isometric View"}>
                         <motion.div whileHover={{y: -2}}>
@@ -365,7 +368,24 @@ export default function VisualizerToolbar({
                     </Tooltip>
 
                     <div className="h-8 w-px bg-slate-200/30 mx-1 hidden lg:block shrink-0"/>
-
+                    <Tooltip content={isPublic ? "Hide from Gallery" : "Share to Gallery"}>
+                        <motion.div whileHover={{y: -2}}>
+                            <Button
+                                variant="outline"
+                                onClick={() => onTogglePublic(!isPublic)}
+                                className={cn(
+                                    "relative overflow-hidden px-2.5 md:px-3 lg:px-5 py-2.5 h-10 lg:h-11 rounded-xl lg:rounded-2xl transition-all duration-300 font-bold text-[10px] lg:text-xs uppercase tracking-wider flex items-center gap-1.5 lg:gap-2",
+                                    isPublic
+                                        ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-600 dark:text-indigo-400 shadow-[0_0_15px_rgba(79,70,229,0.2)]"
+                                        : "bg-white/10 backdrop-blur-md border-[1.5px] border-slate-200/80 dark:border-slate-700/80 hover:border-slate-400 dark:hover:border-slate-500 text-slate-700 dark:text-slate-200 shadow-sm"
+                                )}
+                            >
+                                <Globe
+                                    className={cn("w-3.5 h-3.5 lg:w-4 h-4", isPublic ? "text-indigo-500" : "text-slate-400")}/>
+                                <span className="hidden sm:inline">Gallery</span>
+                            </Button>
+                        </motion.div>
+                    </Tooltip>
                     <div className="flex items-center gap-0.5">
                         <Tooltip content="Export Image">
                             <motion.div whileHover={{y: -2}}>
