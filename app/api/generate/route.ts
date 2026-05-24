@@ -74,6 +74,7 @@ export async function POST(req: Request) {
 
         // 5. Khởi tạo Prediction với google/nano-banana
         // Model uses image_input as an array of strings
+        const webhookUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/replicate`;
         const prediction = await replicate.predictions.create({
             model: "google/nano-banana",
             input: {
@@ -82,6 +83,8 @@ export async function POST(req: Request) {
                 aspect_ratio: "match_input_image",
                 output_format: "png",
             },
+            webhook: webhookUrl,
+            webhook_events_filter: ["completed"],
         });
 
         if (prediction?.error) return NextResponse.json({error: prediction.error}, {status: 500});

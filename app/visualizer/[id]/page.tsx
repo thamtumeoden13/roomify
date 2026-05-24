@@ -148,6 +148,8 @@ function VisualizerContent() {
                 throw new Error(data.error);
             }
 
+            setUpscalePrediction(data);
+
             if (data.alreadyExists) {
                 setCurrentImage(data.output);
                 toast.info("This image has already been upscaled!");
@@ -155,7 +157,6 @@ function VisualizerContent() {
                 return;
             }
 
-            await resumeUpscale(data.id);
         } catch (error: any) {
             console.error("Upscale failed:", error);
             toast.error(`Upscale failed: ${error.message}`);
@@ -163,82 +164,6 @@ function VisualizerContent() {
         }
     };
 
-    const resumeUpscale = async (predictionId: string) => {
-        try {
-            setIsUpscaling(true);
-            let predictionResponse = await fetch("/api/predictions/" + predictionId);
-            let prediction = await predictionResponse.json();
-
-            if (predictionResponse.status !== 200) {
-                throw new Error(prediction.error);
-            }
-
-            setUpscalePrediction(prediction);
-
-            // Polling mechanism
-            while (prediction.status !== "succeeded" && prediction.status !== "failed") {
-                await sleep(2000);
-                const response = await fetch("/api/predictions/" + prediction.id);
-                prediction = await response.json();
-                if (response.status !== 200) {
-                    throw new Error(prediction.error);
-                }
-                setUpscalePrediction(prediction);
-            }
-
-            if (prediction.status === "succeeded") {
-                // Refresh variants and credits
-                if (id) await fetchVariants(id as string);
-
-                // Add a small delay to allow database triggers/RPCs to finish
-                setTimeout(() => {
-                    refreshCredits();
-                }, 1000);
-
-                // Update project thumbnail
-                const {data: updatedRecord} = await supabase
-                    .from("renders")
-                    .select("id, upscaled_image_url, project_id, view_id")
-                    .eq("upscale_prediction_id", prediction.id)
-                    .single();
-
-                if (updatedRecord?.upscaled_image_url) {
-                    setCurrentImage(updatedRecord.upscaled_image_url);
-
-                    // Update the selected variant reference to the new upscaled version
-                    const updatedVariant = variants.find(v => v.upscale_prediction_id === prediction.id) ||
-                        variants.find(v => v.id === updatedRecord.id);
-                    if (updatedVariant) setSelectedVariant(updatedVariant);
-
-                    if (updatedRecord.view_id === 'plan' || !updatedRecord.view_id) {
-                        setRightImage(updatedRecord.upscaled_image_url);
-                    } else if (updatedRecord.view_id === 'isometric') {
-                        setIsoRightImage(updatedRecord.upscaled_image_url);
-                    }
-
-                    if (updatedRecord.project_id) {
-                        await supabase
-                            .from("projects")
-                            .update({rendered_image_url: updatedRecord.upscaled_image_url})
-                            .eq("id", updatedRecord.project_id);
-                    }
-                } else {
-                    const output = prediction.output;
-                    const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
-                    setCurrentImage(renderedUrl);
-                }
-                toast.success("Image successfully upscaled to 4K!");
-            } else {
-                throw new Error("Upscale prediction failed");
-            }
-        } catch (error: any) {
-            console.error("Resuming upscale failed:", error);
-            toast.error(`Upscale failed: ${error.message}`);
-        } finally {
-            setIsUpscaling(false);
-            setUpscalePrediction(null);
-        }
-    };
 
     const handleDeleteVariant = async (variantId: string) => {
         try {
@@ -522,7 +447,6 @@ function VisualizerContent() {
 
             window.history.replaceState({}, "", `/visualizer/${id}?${params.toString()}`);
 
-            await resumePrediction(prediction.id, viewIdToUse);
         } catch (error) {
             console.error("Generation failed:", error);
             toast.error("Failed to generate 3D view. Please try again.");
@@ -534,100 +458,12 @@ function VisualizerContent() {
         }
     };
 
-    const resumePrediction = async (predictionId: string, viewId: string = 'plan') => {
-        const isPlan = viewId === 'plan';
-        try {
-            if (isPlan) {
-                setIsPlanProcessing(true);
-            } else {
-                setIsIsoProcessing(true);
-            }
-
-            let predictionResponse = await fetch("/api/predictions/" + predictionId);
-            let prediction = await predictionResponse.json();
-
-            if (predictionResponse.status !== 200) {
-                throw new Error(prediction.error);
-            }
-
-            if (isPlan) {
-                setPlanPrediction(prediction);
-            } else {
-                setIsoPrediction(prediction);
-            }
-
-            // Polling mechanism
-            while (prediction.status !== "succeeded" && prediction.status !== "failed") {
-                await sleep(2000);
-                const response = await fetch("/api/predictions/" + prediction.id);
-                prediction = await response.json();
-                if (response.status !== 200) {
-                    throw new Error(prediction.error);
-                }
-                if (isPlan) {
-                    setPlanPrediction(prediction);
-                } else {
-                    setIsoPrediction(prediction);
-                }
-            }
-
-            if (prediction.status === "succeeded") {
-                // Refresh variants and credits
-                if (id) await fetchVariants(id as string);
-
-                // Add a small delay to allow database triggers/RPCs to finish
-                setTimeout(() => {
-                    refreshCredits();
-                }, 1000);
-
-                const {data: updatedRecord} = await supabase
-                    .from("renders")
-                    .select("rendered_image_url, upscaled_image_url, project_id, view_id")
-                    .eq("prediction_id", prediction.id)
-                    .single();
-
-                if (updatedRecord) {
-                    const finalUrl = getHighResUrl(updatedRecord);
-                    if (updatedRecord.view_id === 'plan' || !updatedRecord.view_id) {
-                        setCurrentImage(finalUrl);
-                        setRightImage(finalUrl);
-                    } else if (updatedRecord.view_id === 'isometric') {
-                        setIsoRightImage(finalUrl);
-                    }
-
-                    if (updatedRecord.project_id) {
-                        await supabase
-                            .from("projects")
-                            .update({rendered_image_url: updatedRecord.rendered_image_url})
-                            .eq("id", updatedRecord.project_id);
-                    }
-                } else {
-                    // Fallback to Replicate URL if database update isn't reflected yet
-                    const output = prediction.output;
-                    const renderedUrl = Array.isArray(output) ? output[output.length - 1] : output;
-                    if (isPlan) {
-                        setCurrentImage(renderedUrl);
-                        setRightImage(renderedUrl);
-                    } else {
-                        setIsoRightImage(renderedUrl);
-                    }
-                }
-            } else {
-                throw new Error("Prediction failed");
-            }
-        } catch (error) {
-            console.error("Resuming prediction failed:", error);
-            toast.error("Failed to resume 3D view. Please try again.");
-        } finally {
-            if (isPlan) {
-                setIsPlanProcessing(false);
-            } else {
-                setIsIsoProcessing(false);
-            }
-        }
-    };
     const getProcessingStatus = (status: string, elapsed: number) => {
+        if (status === "succeeded") return "Render Complete!";
+        if (status === "failed") return "Render Failed.";
         if (status === "starting") return "Initializing AI Engine...";
+        if (status === "processing") return "AI is generating your 3D render...";
+
         if (elapsed < 3000) return "Step 1 (0-20%): Analyzing floor plan architecture...";
         if (elapsed < 8000) return `Step 2 (20-60%): Applying ${selectedFlooring.name} and ${selectedStyle.name}...`;
         if (elapsed < 14000) return `Step 3 (60-90%): Calculating ${selectedLighting.name} shadows...`;
@@ -779,14 +615,19 @@ function VisualizerContent() {
             if (allRenders && allRenders.length > 0) {
                 const latest = allRenders[0];
                 if (latest.status === "processing" || latest.status === "starting") {
-                    resumePrediction(latest.prediction_id);
+                    if (latest.view_id === 'isometric') {
+                        setIsIsoProcessing(true);
+                    } else {
+                        setIsPlanProcessing(true);
+                    }
                     return;
                 }
             }
 
             const predictionId = searchParams.get("predictionId");
             if (predictionId) {
-                resumePrediction(predictionId);
+                // Wait for realtime subscription
+                setIsPlanProcessing(true);
             } else {
                 runGeneration();
             }
@@ -794,6 +635,82 @@ function VisualizerContent() {
 
         init();
     }, [project, searchParams, id]);
+
+    useEffect(() => {
+        if (!id) return;
+
+        const channel = supabase
+            .channel(`project-renders-${id}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "renders",
+                    filter: `project_id=eq.${id}`,
+                },
+                async (payload) => {
+                    console.log("Realtime update received:", payload);
+                    const newStatus = payload.new.status;
+                    const oldStatus = payload.old.status;
+                    const predictionId = payload.new.prediction_id;
+                    const upscalePredictionId = payload.new.upscale_prediction_id;
+
+                    console.log(`Status change for project ${id}: ${oldStatus} -> ${newStatus}`);
+                    console.log(`Payload IDs - prediction_id: ${predictionId}, upscale_prediction_id: ${upscalePredictionId}`);
+
+                    // Update the correct prediction state
+                    if (predictionId) {
+                        if (payload.new.view_id === 'isometric') {
+                            console.log("Updating isoPrediction state");
+                            setIsoPrediction(payload.new);
+                        } else {
+                            console.log("Updating planPrediction state");
+                            setPlanPrediction(payload.new);
+                        }
+                    }
+
+                    if (upscalePredictionId) {
+                        console.log("Updating upscalePrediction state");
+                        setUpscalePrediction(payload.new);
+                    }
+
+                    if (newStatus === "succeeded") {
+                        await fetchVariants(id as string);
+
+                        const finalUrl = payload.new.upscaled_image_url || payload.new.rendered_image_url;
+                        const viewId = payload.new.view_id;
+
+                        if (viewId === "plan" || !viewId) {
+                            setCurrentImage(finalUrl);
+                            setRightImage(finalUrl);
+                        } else if (viewId === "isometric") {
+                            setIsoRightImage(finalUrl);
+                        }
+
+                        setIsPlanProcessing(false);
+                        setIsIsoProcessing(false);
+                        setIsUpscaling(false);
+                        // States already updated above
+                        refreshCredits();
+                        toast.success("Design updated successfully!");
+                    } else if (newStatus === "failed") {
+                        setIsPlanProcessing(false);
+                        setIsIsoProcessing(false);
+                        setIsUpscaling(false);
+                        // States already updated above
+                        toast.error("Generation failed. Please try again.");
+                    }
+                }
+            )
+            .subscribe((status) => {
+                console.log(`Realtime subscription status for project ${id}:`, status);
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [id]);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;

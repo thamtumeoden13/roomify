@@ -25,10 +25,14 @@ CREATE TABLE IF NOT EXISTS renders (
     lighting_id TEXT,
     view_id TEXT,
     rating INTEGER,
+    error TEXT,
     upscaled_image_url TEXT,
     upscale_prediction_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Enable Realtime for renders
+ALTER PUBLICATION supabase_realtime ADD TABLE renders;
 
 -- Set up Row Level Security (RLS) for projects
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;

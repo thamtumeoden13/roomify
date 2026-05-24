@@ -60,6 +60,7 @@ export async function POST(req: Request) {
         // --- END CREDIT CHECK ---
 
         // Initialize upscale prediction
+        const webhookUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/replicate`;
         const prediction = await replicate.predictions.create({
             version: "3febd19381dd7e1f52a3ed3260b5b0a5636353de45e37e7c1c3cd814b24077a3",
             input: {
@@ -67,6 +68,8 @@ export async function POST(req: Request) {
                 scale: 4,
                 face_enhance: false,
             },
+            webhook: webhookUrl,
+            webhook_events_filter: ["completed"],
         });
 
         if (prediction?.error) {
