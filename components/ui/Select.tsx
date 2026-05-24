@@ -49,7 +49,7 @@ export function Select({
         <div className={cn("flex flex-col gap-1.5", compact && "lg:gap-1.5 gap-0")} ref={containerRef}>
             {label &&
                 <span
-                    className={cn("text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1", compact && "hidden lg:block")}>{label}</span>}
+                    className={cn("text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1", compact && "hidden xl:block")}>{label}</span>}
             <div className="relative">
                 <button
                     type="button"
@@ -57,7 +57,7 @@ export function Select({
                     onClick={() => setOpen(!open)}
                     className={cn(
                         "flex items-center gap-2 px-3 py-2 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-sm font-semibold transition-all hover:bg-white/60 dark:hover:bg-slate-800/60 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed min-w-35 justify-between backdrop-blur-sm shadow-sm",
-                        compact && "min-w-0 lg:min-w-35 px-2 lg:px-3",
+                        compact && "min-w-0 xl:min-w-35 px-1.5 md:px-2 xl:px-3",
                         open && "bg-white/90 dark:bg-slate-800/90 border-indigo-500/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]"
                     )}
                 >
@@ -73,10 +73,10 @@ export function Select({
                             </motion.div>
                         )}
                         <span
-                            className={cn("truncate tracking-tight", compact && "hidden lg:block")}>{selectedOption?.name || 'Select...'}</span>
+                            className={cn("truncate tracking-tight", compact && "hidden xl:block")}>{selectedOption?.name || 'Select...'}</span>
                     </div>
                     <ChevronDown
-                        className={cn("w-4 h-4 text-slate-400 transition-transform duration-200", compact && "hidden lg:block", open && "rotate-180")}/>
+                        className={cn("w-4 h-4 text-slate-400 transition-transform duration-200", compact && "hidden xl:block", open && "rotate-180")}/>
                 </button>
 
                 <AnimatePresence>

@@ -46,6 +46,7 @@ function VisualizerContent() {
     const [selectedFlooring, setSelectedFlooring] = useState(FLOORING_MATERIALS[0]);
     const [selectedLighting, setSelectedLighting] = useState(LIGHTING_MOODS[1]); // Default to Natural Daylight
     const [selectedView, setSelectedView] = useState(CAMERA_VIEWS[0]);
+    const [customInstructions, setCustomInstructions] = useState("");
     const [rating, setRating] = useState<number | null>(null);
     const [variants, setVariants] = useState<any[]>([]);
     const [leftImage, setLeftImage] = useState<string | null>(null);
@@ -418,7 +419,8 @@ function VisualizerContent() {
                     lightingId: lightingToUse.id,
                     viewKeywords: viewToUse.keywords,
                     viewId: viewIdToUse,
-                    forceNew
+                    forceNew,
+                    customInstructions
                 }),
             });
 
@@ -1425,6 +1427,8 @@ function VisualizerContent() {
                 isPublic={isPublic}
                 onTogglePublic={handleTogglePublic}
                 currentPlanExists={currentPlanExists}
+                customInstructions={customInstructions}
+                onCustomInstructionsChange={setCustomInstructions}
             />
         </div>
     );

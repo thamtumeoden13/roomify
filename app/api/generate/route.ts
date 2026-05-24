@@ -19,7 +19,8 @@ export async function POST(req: Request) {
         const {
             image, project_id, projectName, styleKeywords, styleId,
             projectContext, contextId, flooringKeywords, flooringId,
-            lightingKeywords, lightingId, viewKeywords, viewId = "plan", forceNew
+            lightingKeywords, lightingId, viewKeywords, viewId = "plan", forceNew,
+            customInstructions
         } = await req.json();
 
         if (!image) return NextResponse.json({error: "Image is required"}, {status: 400});
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
             STYLE: ${selectedStyle.keywords}
             MATERIALS: The entire floor is a solid slab of ${selectedFlooring.keywords}.
             LIGHTING: ${selectedLighting.keywords}
+            ${customInstructions ? `USER REQUEST: ${customInstructions}` : ""}
             ${qualityCleanup}
         `.trim().replace(/\s+/g, ' ');
 
@@ -103,6 +105,7 @@ export async function POST(req: Request) {
             flooring_id: flooringId,
             lighting_id: lightingId,
             view_id: viewId,
+            custom_instructions: customInstructions,
             user_id: user?.id,
             seed: null, // Handle missing seed gracefully
             rendered_image_url: null,

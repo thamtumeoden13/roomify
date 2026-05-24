@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS renders (
     flooring_id TEXT,
     lighting_id TEXT,
     view_id TEXT,
+    custom_instructions TEXT,
     rating INTEGER,
     error TEXT,
     upscaled_image_url TEXT,
