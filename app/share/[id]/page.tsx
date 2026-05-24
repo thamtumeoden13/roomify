@@ -63,29 +63,20 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
         : `${style} 3D Interior Design | Roomify AI`;
 
     const description = `Experience this stunning ${style} 3D transformation on Roomify. Upload your own 2D floor plan and get a photorealistic render in seconds for free!`;
-    const ogImage = selectedRender?.upscaled_image_url || selectedRender?.rendered_image_url || project.source_image_url;
 
     return {
+        metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
         title,
         description,
         openGraph: {
             title,
             description,
-            images: [
-                {
-                    url: ogImage,
-                    width: 1200,
-                    height: 630,
-                    alt: project.name,
-                },
-            ],
             type: "website",
         },
         twitter: {
             card: "summary_large_image",
             title,
             description,
-            images: [ogImage],
         },
     };
 }
