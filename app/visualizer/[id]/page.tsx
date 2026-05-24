@@ -2,7 +2,21 @@
 
 import {useRouter, useSearchParams, useParams} from "next/navigation";
 import {useEffect, useRef, useState, Suspense} from "react";
-import {RefreshCcw, Sparkles, X, ThumbsUp, ThumbsDown, Info, Home, Layers, Sun, Trash2} from "lucide-react";
+import {
+    RefreshCcw,
+    Sparkles,
+    X,
+    ThumbsUp,
+    ThumbsDown,
+    Info,
+    Home,
+    Layers,
+    Sun,
+    Trash2,
+    Edit,
+    Check,
+    Eraser
+} from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -23,7 +37,8 @@ import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMER
 import VisualizerToolbar from "@/components/VisualizerToolbar";
 import {useCredits} from "@/lib/hooks/useCredits";
 import {Tooltip} from "@/components/ui/Tooltip";
-import {processFloorPlan} from "@/lib/utils";
+import {cn, processFloorPlan} from "@/lib/utils";
+import InpaintCanvas, {type InpaintCanvasHandle} from "@/components/InpaintCanvas";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -55,6 +70,11 @@ function VisualizerContent() {
     // New Comparison States for Isometric
     const [isoLeftImage, setIsoLeftImage] = useState<string | null>(null);
     const [isoRightImage, setIsoRightImage] = useState<string | null>(null);
+
+    // Edit Mode States
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [brushSize, setBrushSize] = useState(20);
+    const inpaintCanvasRef = useRef<InpaintCanvasHandle>(null);
 
     const [imgOffsets, setImgOffsets] = useState({top: 16, right: 16});
 
@@ -376,29 +396,40 @@ function VisualizerContent() {
                 setIsIsoProcessing(true);
             }
 
+            // --- INPAINT MASK CAPTURE ---
+            let maskToUse = null;
+            if (isEditMode) {
+                maskToUse = inpaintCanvasRef.current?.getMask();
+                console.log("In-painting mode active, mask captured:", maskToUse ? "Yes (Base64)" : "No");
+            }
+
             // --- IMAGE PRE-PROCESSING ---
             // Process the floor plan to remove/blur text for better AI results
-            let imageToUse = project.source_image_url;
-            try {
-                const processedBlob = await processFloorPlan(project.source_image_url);
-                if (processedBlob) {
-                    const fileName = `processed_${Math.random().toString(36).slice(2, 11)}.png`;
-                    const formData = new FormData();
-                    formData.append('file', new File([processedBlob], fileName, {type: 'image/png'}));
+            let imageToUse = isEditMode ? rightImage : project.source_image_url;
 
-                    const uploadRes = await fetch(`/api/upload?filename=${fileName}`, {
-                        method: 'POST',
-                        body: formData,
-                    });
+            // Chỉ apply pre-processing nếu không phải in-paint mode
+            if (!isEditMode) {
+                try {
+                    const processedBlob = await processFloorPlan(project.source_image_url);
+                    if (processedBlob) {
+                        const fileName = `processed_${Math.random().toString(36).slice(2, 11)}.png`;
+                        const formData = new FormData();
+                        formData.append('file', new File([processedBlob], fileName, {type: 'image/png'}));
 
-                    if (uploadRes.ok) {
-                        const uploadData = await uploadRes.json();
-                        imageToUse = uploadData.url;
-                        console.log("Using processed image for generation:", imageToUse);
+                        const uploadRes = await fetch(`/api/upload?filename=${fileName}`, {
+                            method: 'POST',
+                            body: formData,
+                        });
+
+                        if (uploadRes.ok) {
+                            const uploadData = await uploadRes.json();
+                            imageToUse = uploadData.url;
+                            console.log("Using processed image for generation:", imageToUse);
+                        }
                     }
+                } catch (procError) {
+                    console.error("Failed to process image, falling back to original:", procError);
                 }
-            } catch (procError) {
-                console.error("Failed to process image, falling back to original:", procError);
             }
             // --- END PRE-PROCESSING ---
 
@@ -407,6 +438,7 @@ function VisualizerContent() {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     image: imageToUse,
+                    mask: maskToUse,
                     project_id: id,
                     projectName: project.name,
                     styleKeywords: styleToUse.keywords,
@@ -860,7 +892,7 @@ function VisualizerContent() {
                             <p>Technical Visualization</p>
                             <h3>Side by Side</h3>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 z-50">
                             <div
                                 className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
                                 <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">Left Side</span>
@@ -906,8 +938,65 @@ function VisualizerContent() {
                         </div>
                     </div>
 
-                    <div className="compare-stage bg-slate-50 dark:bg-zinc-100">
-                        {leftImage && rightImage ? (
+                    <div className={cn("compare-stage bg-slate-50 dark:bg-zinc-100", isEditMode && "!max-h-none")}>
+                        {isEditMode && rightImage ? (
+                            <div className="relative w-full h-full flex flex-col">
+                                <div
+                                    className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-[60]">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex flex-col gap-1">
+                                            <span
+                                                className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Brush Size: {brushSize}px</span>
+                                            <input
+                                                type="range"
+                                                min="5"
+                                                max="100"
+                                                value={brushSize}
+                                                onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                                                className="w-32 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => inpaintCanvasRef.current?.clear()}
+                                            className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors flex items-center gap-2 text-xs font-bold uppercase"
+                                        >
+                                            <Eraser size={16}/>
+                                            Clear
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setIsEditMode(false)}
+                                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors text-xs font-bold uppercase"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const mask = inpaintCanvasRef.current?.getMask();
+                                                if (mask) {
+                                                    runGeneration();
+                                                    setIsEditMode(false);
+                                                } else {
+                                                    toast.error("Please paint an area to edit first");
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors flex items-center gap-2 text-xs font-bold uppercase shadow-lg shadow-indigo-500/20"
+                                        >
+                                            <Check size={16}/>
+                                            Apply Changes
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex-1 relative overflow-hidden min-h-125 pb-32">
+                                    <InpaintCanvas
+                                        ref={inpaintCanvasRef}
+                                        image={rightImage}
+                                        brushSize={brushSize}
+                                    />
+                                </div>
+                            </div>
+                        ) : leftImage && rightImage ? (
                             <div className="relative w-full h-full flex items-center justify-center">
                                 <ReactCompareSlider
                                     defaultValue={50}
@@ -934,6 +1023,15 @@ function VisualizerContent() {
                                     <div
                                         style={{top: `${imgOffsets.top}px`, right: `${imgOffsets.right}px`}}
                                         className="absolute z-20 flex flex-col items-end gap-3 pointer-events-none transition-all duration-300">
+                                        <div className="flex flex-col gap-2 pointer-events-auto">
+                                            <button
+                                                onClick={() => setIsEditMode(true)}
+                                                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur p-3 rounded-2xl shadow-xl border border-white/20 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 transition-colors font-bold uppercase text-[10px] tracking-wider"
+                                            >
+                                                <Edit className="w-4 h-4"/>
+                                                Edit Area (In-paint)
+                                            </button>
+                                        </div>
                                         <div
                                             className="bg-white/90 dark:bg-slate-900/90 backdrop-blur p-3 rounded-2xl shadow-xl border border-white/20 flex flex-col gap-3 pointer-events-auto">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Rate
