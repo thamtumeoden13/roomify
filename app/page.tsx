@@ -8,7 +8,6 @@ import {
     Zap,
     Maximize,
     ShieldCheck,
-    X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
@@ -17,12 +16,11 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Footer from "@/components/Footer";
 import {supabase} from "@/lib/supabase";
-import {Heart, Eye, Sparkles, User} from "lucide-react";
+import ShowcaseCard from "@/components/ShowcaseCard";
 
 export default function LandingPage() {
     const [user, setUser] = useState<any>(null);
     const [isScrolled, setIsScrolled] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [trendingItems, setTrendingItems] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -83,17 +81,14 @@ export default function LandingPage() {
         };
     }, []);
 
-    const fadeIn = {
-        initial: {opacity: 0, y: 20},
-        whileInView: {opacity: 1, y: 0},
-        viewport: {once: true},
-        transition: {duration: 0.6}
-    };
+    const firstTrendingWithImages = trendingItems.find(
+        (item) => item.render?.source_image_url && item.render?.rendered_image_url
+    );
 
-    const showcaseImages = trendingItems.length > 0 ? trendingItems.map(item => ({
-        before: item.render?.source_image_url,
-        after: item.render?.rendered_image_url,
-    })) : [
+    const showcaseImages = firstTrendingWithImages ? [{
+        before: firstTrendingWithImages.render.source_image_url,
+        after: firstTrendingWithImages.render.rendered_image_url,
+    }] : [
         {
             before: "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/inputs/p26t4n95h.webp",
             after: "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/outputs/jbw5zr7pyxrmt0cxwyzby097vr.png",
@@ -123,17 +118,18 @@ export default function LandingPage() {
     return (
         <div className="min-h-screen bg-[#F9FAFB] text-slate-900 selection:bg-primary/30">
             <Navbar/>
-            {/* Slide Down Animation for Page Load */}
-            <motion.div
-                initial={{y: -100, opacity: 0}}
-                animate={{y: 0, opacity: 1}}
-                transition={{duration: 0.8, ease: "easeOut"}}
-                className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-60"
-            />
             <main>
+                {/* Slide Down Animation for Page Load */}
+                <motion.div
+                    initial={{y: -100, opacity: 0}}
+                    animate={{y: 0, opacity: 1}}
+                    transition={{duration: 0.8, ease: "easeOut"}}
+                    className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-60"
+                />
+
                 {/* Hero Section */}
                 <section
-                    className="relative min-h-[90vh] flex items-center pt-32 pb-20 md:pt-48 md:pb-40 overflow-hidden">
+                    className="relative min-h-[90vh] flex items-center pt-32 pb-20 md:pt-48 md:pb-40">
                     {/* Subtle Grid Pattern - Infinite Scroll */}
                     <motion.div
                         className="absolute inset-0 z-0 pointer-events-none opacity-40"
@@ -167,19 +163,21 @@ export default function LandingPage() {
                             animate={{opacity: 1, y: 0}}
                             transition={{duration: 0.8}}
                         >
-              <span
-                  className="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 rounded-full">
-                The Future of Visualization
-              </span>
+                          <span
+                              className="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 rounded-full">
+                            The Future of Visualization
+                          </span>
                             <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-6 text-slate-900">
-                                Transform 2D Floor Plans into <br className="hidden md:block"/> Stunning 3D Renders in
+                                Transform 2D Floor Plans into <br className="hidden md:block"/> Stunning 3D Renders
+                                in
                                 Seconds
                             </h1>
                             <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-                                Empowering architects, real estate agents, and homeowners with AI-driven architectural
+                                Empowering architects, real estate agents, and homeowners with AI-driven
+                                architectural
                                 visualization.
                             </p>
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 md:mb-24">
                                 <Link href="/dashboard">
                                     <motion.div
                                         animate={{
@@ -206,7 +204,7 @@ export default function LandingPage() {
 
                         {/* Visual Slider with Light Glassmorphism */}
                         {mounted && (
-                            <div className="relative mt-20">
+                            <div className="relative mt-12 md:mt-20">
                                 {/* Glowing Aura */}
                                 <div
                                     className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
@@ -219,21 +217,33 @@ export default function LandingPage() {
                                     whileInView={{opacity: 1, scale: 1}}
                                     viewport={{once: true}}
                                     transition={{duration: 1}}
-                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-white/5 backdrop-blur-sm"
+                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full"
                                 >
                                     <ReactCompareSlider
                                         itemOne={<ReactCompareSliderImage src={showcaseImages[0].before}
-                                                                          alt="2D Floor Plan" loading="eager"/>}
-                                        itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after} alt="3D Render"
-                                                                          loading="eager"/>}
-                                        className="aspect-video"
+                                                                          alt="2D Floor Plan"
+                                                                          style={{
+                                                                              objectFit: 'contain',
+                                                                              width: '100%',
+                                                                              height: 'auto',
+                                                                              maxHeight: '80vh'
+                                                                          }}/>}
+                                        itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after}
+                                                                          alt="3D Render"
+                                                                          style={{
+                                                                              objectFit: 'contain',
+                                                                              width: '100%',
+                                                                              height: 'auto',
+                                                                              maxHeight: '80vh'
+                                                                          }}/>}
+                                        className="w-full h-auto"
                                     />
                                     <div
-                                        className="absolute z-10 bottom-8 left-8 right-8 flex justify-between pointer-events-none">
-                                    <span
-                                        className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-white/20 text-white">Original Plan</span>
+                                        className="absolute z-10 bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 flex justify-between pointer-events-none">
+                                <span
+                                    className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-white/20 text-white shadow-lg">Original Plan</span>
                                         <span
-                                            className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white">AI Vision</span>
+                                            className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
                                     </div>
                                 </motion.div>
                             </div>
@@ -276,8 +286,8 @@ export default function LandingPage() {
                                         />
                                         <div
                                             className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-4">
-                                        <span
-                                            className="text-sm font-semibold tracking-wide uppercase text-white">{item.label}</span>
+                                    <span
+                                        className="text-sm font-semibold tracking-wide uppercase text-white">{item.label}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -292,7 +302,8 @@ export default function LandingPage() {
                     <div className="container mx-auto px-6 relative">
                         <div className="text-center mb-24 max-w-3xl mx-auto">
                             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900">How It Works</h2>
-                            <p className="text-lg text-slate-600">Professional architectural rendering made simple.</p>
+                            <p className="text-lg text-slate-600">Professional architectural rendering made
+                                simple.</p>
                         </div>
 
                         {/* Connection Line */}
@@ -365,8 +376,8 @@ export default function LandingPage() {
                                         className="absolute -bottom-4 -right-2 text-[10rem] font-black text-slate-200/20 leading-none select-none transition-colors group-hover:text-primary/10"
                                         style={{fontFamily: 'serif'}}
                                     >
-                                        {item.step}
-                                    </span>
+                                    {item.step}
+                                </span>
                                 </motion.div>
                             ))}
                         </div>
@@ -433,7 +444,8 @@ export default function LandingPage() {
                                     </div>
                                     <h3 className="text-2xl font-bold mb-4">4K Upscaling</h3>
                                     <p className="text-slate-400 leading-relaxed mb-8">
-                                        Transform standard renders into crystal-clear 4K masterpieces ready for high-end
+                                        Transform standard renders into crystal-clear 4K masterpieces ready for
+                                        high-end
                                         presentations and print.
                                     </p>
                                     <div
@@ -480,7 +492,8 @@ export default function LandingPage() {
                                     </div>
                                     <h3 className="text-2xl font-bold mb-4">Secure Cloud Storage</h3>
                                     <p className="text-slate-400 leading-relaxed">
-                                        All your projects and renders are safely stored and accessible from any device,
+                                        All your projects and renders are safely stored and accessible from any
+                                        device,
                                         anywhere in the world.
                                     </p>
                                 </div>
@@ -507,125 +520,35 @@ export default function LandingPage() {
                         {isLoading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div key={i} className="aspect-4/5 rounded-3xl bg-slate-100 animate-pulse"/>
+                                    <div key={i} className="aspect-[16/10] rounded-3xl bg-slate-100 animate-pulse"/>
                                 ))}
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {trendingItems.map((item, i) => {
-                                    const render = item.render;
-                                    const imageUrl = render.upscaled_image_url || render.rendered_image_url;
-                                    const isTrending = item.view_count > 50 || item.vote_count > 10;
-
-                                    return (
-                                        <motion.div
-                                            key={item.id}
-                                            {...fadeIn}
-                                            transition={{delay: i * 0.05}}
-                                            className="h-full group/item relative"
-                                        >
-                                            {isAdminUser && (
-                                                <div
-                                                    className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="bg-white/90 backdrop-blur-md border-slate-200 text-red-600 hover:bg-red-50 h-8 w-8 p-0 flex items-center justify-center rounded-full"
-                                                        onClick={async (e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            if (confirm('Unapprove this item?')) {
-                                                                const res = await fetch('/api/admin/approve', {
-                                                                    method: 'POST',
-                                                                    headers: {'Content-Type': 'application/json'},
-                                                                    body: JSON.stringify({
-                                                                        showcaseId: item.id,
-                                                                        action: 'unapprove'
-                                                                    }),
-                                                                });
-                                                                if (res.ok) {
-                                                                    // Update the list or re-fetch
-                                                                    setTrendingItems(prev => prev.map(ti => ti.id === item.id ? {
-                                                                        ...ti,
-                                                                        is_admin_approved: false
-                                                                    } : ti));
-                                                                }
-                                                            }
-                                                        }}
-                                                    >
-                                                        <X className="w-4 h-4"/>
-                                                    </Button>
-                                                </div>
-                                            )}
-                                            <Link href={`/share/${item.id}`} className="block h-full group">
-                                                <div
-                                                    className="relative h-full flex flex-col rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
-                                                    {/* Image Container with Hover Effect */}
-                                                    <div className="relative aspect-4/3 overflow-hidden">
-                                                        <img
-                                                            src={imageUrl}
-                                                            alt={render.project_name || "AI Render"}
-                                                            className="absolute inset-0 w-full h-full object-cover group-hover:opacity-0 transition-opacity duration-500"
-                                                            loading={i < 4 ? "eager" : "lazy"}
-                                                        />
-                                                        <img
-                                                            src={render.source_image_url}
-                                                            alt="Original"
-                                                            className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                                                            loading={i < 4 ? "eager" : "lazy"}
-                                                        />
-
-                                                        {/* Badges */}
-                                                        <div className="absolute top-4 left-4 flex flex-col gap-2">
-                                                            {item.is_admin_approved && (
-                                                                <span
-                                                                    className="bg-amber-400 text-amber-950 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
-                                                                    <Sparkles className="w-3 h-3"/> Staff Pick
-                                                                </span>
-                                                            )}
-                                                            {isTrending && (
-                                                                <span
-                                                                    className="bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
-                                                                    🔥 Trending
-                                                                </span>
-                                                            )}
-                                                        </div>
-
-                                                        <div
-                                                            className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm border border-white/20 capitalize">
-                                                            {render.style_id || "Japandi"}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Card Footer */}
-                                                    <div
-                                                        className="p-5 border-t border-slate-50 flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div
-                                                                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                                                                <User className="w-4 h-4 text-slate-400"/>
-                                                            </div>
-                                                            <span
-                                                                className="text-sm font-bold text-slate-700">User_{item.user_id.substring(0, 4)}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-4 text-slate-400">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <Heart className="w-4 h-4"/>
-                                                                <span
-                                                                    className="text-xs font-bold">{item.vote_count}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-1.5">
-                                                                <Eye className="w-4 h-4"/>
-                                                                <span
-                                                                    className="text-xs font-bold">{item.view_count}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </motion.div>
-                                    );
-                                })}
+                                {trendingItems.map((item, i) => (
+                                    <ShowcaseCard
+                                        key={item.id}
+                                        item={item}
+                                        index={i}
+                                        isAdminUser={isAdminUser}
+                                        onUnapprove={async (itemId) => {
+                                            const res = await fetch('/api/admin/approve', {
+                                                method: 'POST',
+                                                headers: {'Content-Type': 'application/json'},
+                                                body: JSON.stringify({
+                                                    showcaseId: itemId,
+                                                    action: 'unapprove'
+                                                }),
+                                            });
+                                            if (res.ok) {
+                                                setTrendingItems(prev => prev.map(ti => ti.id === itemId ? {
+                                                    ...ti,
+                                                    is_admin_approved: false
+                                                } : ti));
+                                            }
+                                        }}
+                                    />
+                                ))}
                             </div>
                         )}
                     </div>
@@ -655,7 +578,6 @@ export default function LandingPage() {
                     </div>
                 </section>
             </main>
-
             <Footer/>
         </div>
     );

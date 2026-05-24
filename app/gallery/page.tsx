@@ -169,7 +169,28 @@ export default function GalleryPage() {
                     <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
                         <AnimatePresence mode="popLayout">
                             {items.map((item, index) => (
-                                <ShowcaseCard key={item.id} item={item} index={index % PAGE_SIZE}/>
+                                <ShowcaseCard
+                                    key={item.id}
+                                    item={item}
+                                    index={index % PAGE_SIZE}
+                                    isAdminUser={isAdminUser}
+                                    onUnapprove={async (itemId) => {
+                                        const res = await fetch('/api/admin/approve', {
+                                            method: 'POST',
+                                            headers: {'Content-Type': 'application/json'},
+                                            body: JSON.stringify({
+                                                showcaseId: itemId,
+                                                action: 'unapprove'
+                                            }),
+                                        });
+                                        if (res.ok) {
+                                            setItems(prev => prev.map(ti => ti.id === itemId ? {
+                                                ...ti,
+                                                is_admin_approved: false
+                                            } : ti));
+                                        }
+                                    }}
+                                />
                             ))}
                         </AnimatePresence>
                     </div>

@@ -374,7 +374,7 @@
         }
 
         .panel {
-            @apply bg-white rounded-xl border border-zinc-200 shadow-2xl overflow-hidden;
+            @apply bg-white rounded-[2rem] border border-zinc-200 shadow-2xl overflow-hidden;
 
             .panel-header {
                 @apply flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 border-b border-zinc-100;
@@ -431,10 +431,10 @@
             }
 
             .render-area {
-                @apply relative bg-slate-50 min-h-105;
+                @apply relative bg-slate-50 w-full flex items-center justify-center;
 
                 .render-img {
-                    @apply w-full h-full object-contain transition-all duration-700 opacity-100 scale-100;
+                    @apply w-full h-auto object-contain transition-all duration-700 opacity-100 scale-100;
                 }
 
                 &.is-processing {
@@ -444,11 +444,11 @@
                 }
 
                 .render-placeholder {
-                    @apply w-full h-full flex items-center justify-center;
+                    @apply w-full flex items-center justify-center;
                 }
 
                 .render-fallback {
-                    @apply w-full h-full object-contain opacity-50;
+                    @apply w-full h-auto object-contain opacity-50;
                 }
 
                 .render-overlay {
@@ -473,7 +473,7 @@
             }
 
             &.compare {
-                @apply shadow-xl;
+                @apply shadow-2xl rounded-[2rem];
 
                 .panel-header {
                     @apply flex items-center justify-between;
@@ -484,15 +484,15 @@
                 }
 
                 .compare-stage {
-                    @apply relative bg-slate-50 overflow-hidden flex items-center justify-center;
+                    @apply relative bg-slate-50 overflow-hidden flex items-center justify-center w-full max-h-[calc(100vh-280px)];
                 }
 
                 .compare-fallback {
-                    @apply flex items-center justify-center;
+                    @apply flex items-center justify-center w-full h-full;
                 }
 
                 .compare-img {
-                    @apply w-full h-auto block;
+                    @apply w-full h-full max-h-[calc(100vh-280px)] object-contain block;
                 }
             }
         }
@@ -615,10 +615,10 @@
                         @apply relative bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full;
 
                         .preview {
-                            @apply aspect-4/3 overflow-hidden bg-slate-100 relative;
+                            @apply aspect-4/3 overflow-hidden bg-slate-50 relative flex items-center justify-center;
 
                             img {
-                                @apply w-full h-full object-cover group-hover:scale-105 transition-transform duration-700;
+                                @apply w-full h-full object-contain group-hover:scale-105 transition-transform duration-700;
                             }
 
                             .badge {

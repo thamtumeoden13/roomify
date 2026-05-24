@@ -3,7 +3,8 @@
 import {useEffect, useState} from "react";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
-import {Sparkles, ArrowRight, Heart, Eye, Share2, Info, Home, Layers, Sun} from "lucide-react";
+import {ArrowRight, Heart, Share2, Info, Home, Layers, Sun, Sparkles} from "lucide-react";
+import Navbar from "@/components/Navbar";
 import {toast} from "sonner";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
@@ -134,38 +135,9 @@ export default function SharePageClient({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen bg-slate-50 flex flex-col pt-20">
             {/* Header */}
-            <header className="bg-white border-b border-slate-200 py-4 px-6 sticky top-0 z-10">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="bg-indigo-600 p-1.5 rounded-lg">
-                            <Sparkles className="w-5 h-5 text-white"/>
-                        </div>
-                        <span className="font-bold text-xl tracking-tight text-slate-900">Roomify</span>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        {showcase && (
-                            <div className="flex items-center bg-slate-100 rounded-full px-4 py-2 gap-4 mr-4">
-                                <div className="flex items-center gap-1.5">
-                                    <Heart
-                                        className={`w-4 h-4 ${hasVoted ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`}/>
-                                    <span className="text-sm font-bold text-slate-700">{voteCount}</span>
-                                </div>
-                                <div className="w-[1px] h-3 bg-slate-300"/>
-                                <div className="flex items-center gap-1.5">
-                                    <Eye className="w-4 h-4 text-slate-400"/>
-                                    <span className="text-sm font-bold text-slate-700">{showcase.view_count}</span>
-                                </div>
-                            </div>
-                        )}
-                        <div className="text-right">
-                            <h1 className="text-sm font-semibold text-slate-900">{project.name}</h1>
-                            <p className="text-xs text-slate-500">{showcase ? 'Community Showcase' : 'Shared Design'}</p>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <Navbar minimal={true}/>
 
             {/* Main Content */}
             <main className="flex-1 max-w-7xl mx-auto w-full p-6 md:p-12 space-y-16">
@@ -175,19 +147,19 @@ export default function SharePageClient({
                     {/* Hero Slider */}
                     <div className="lg:col-span-2 space-y-8">
                         <div
-                            className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative group transition-all">
+                            className="bg-slate-50 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative group transition-all w-full h-auto max-h-[80vh]">
                             {selectedPlan ? (
                                 <ReactCompareSlider
                                     itemOne={<ReactCompareSliderImage src={project.source_image_url} alt="Original Plan"
-                                                                      loading="eager"/>}
+                                                                      loading="eager" className="object-contain"/>}
                                     itemTwo={<ReactCompareSliderImage
                                         src={getHighResUrl(selectedPlan)}
-                                        alt="3D Render" loading="eager"/>}
-                                    className="aspect-[4/3] md:aspect-video"
+                                        alt="3D Render" loading="eager" className="object-contain"/>}
+                                    className="w-full h-full"
                                 />
                             ) : (
                                 <div
-                                    className="aspect-[4/3] md:aspect-video bg-slate-100 flex items-center justify-center">
+                                    className="w-full h-auto max-h-[80vh] bg-slate-50 flex items-center justify-center">
                                     <img src={project.source_image_url} alt="Original Plan"
                                          className="max-h-full object-contain" loading="eager"/>
                                 </div>
@@ -298,12 +270,12 @@ export default function SharePageClient({
                                         <Tooltip key={v.id} content={tooltipContent}>
                                             <button
                                                 onClick={() => setSelectedPlan(v)}
-                                                className={`relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all ${
+                                                className={`relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all bg-slate-50 ${
                                                     selectedPlan?.id === v.id ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-transparent hover:border-slate-200"
                                                 }`}
                                             >
                                                 <img src={getHighResUrl(v)} alt="Variant"
-                                                     className="w-full h-full object-cover"/>
+                                                     className="w-full h-full object-contain"/>
                                                 <div
                                                     className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-lg">
                                                     V{i + 1}
@@ -381,56 +353,65 @@ export default function SharePageClient({
                             {/* Isometric Slider */}
                             <div className="lg:col-span-3">
                                 <div
-                                    className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative transition-all">
+                                    className="bg-slate-50 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative transition-all w-full h-auto max-h-[80vh]">
                                     <ReactCompareSlider
                                         itemOne={<ReactCompareSliderImage
                                             src={getHighResUrl(isoLeft)}
-                                            alt="Style A" loading="lazy"/>}
+                                            alt="Style A" loading="lazy" className="object-contain"/>}
                                         itemTwo={<ReactCompareSliderImage
                                             src={getHighResUrl(isoRight)}
-                                            alt="Style B" loading="lazy"/>}
-                                        className="aspect-[4/3] md:aspect-video"
+                                            alt="Style B" loading="lazy" className="object-contain"/>}
+                                        className="w-full h-full"
                                     />
                                 </div>
                             </div>
 
                             {/* Isometric Selector */}
                             <div className="space-y-6">
-                                <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100">
-                                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6">Choose
-                                        Styles</h3>
-                                    <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
-                                        {isoVariants.map((v, i) => {
-                                            const isActive = isoLeft?.id === v.id || isoRight?.id === v.id;
-                                            return (
-                                                <button
-                                                    key={v.id}
-                                                    onClick={() => {
-                                                        if (isoLeft?.id === v.id) return;
-                                                        setIsoLeft(isoRight);
-                                                        setIsoRight(v);
-                                                    }}
-                                                    className={`group relative aspect-video lg:aspect-[4/3] rounded-2xl overflow-hidden border-2 transition-all ${
-                                                        isActive ? "border-indigo-600 ring-4 ring-indigo-600/10 scale-[0.98]" : "border-transparent hover:border-slate-200"
-                                                    }`}
-                                                >
-                                                    <img src={getHighResUrl(v)} alt="Isometric preview"
-                                                         className="w-full h-full object-cover transition-transform group-hover:scale-110"/>
-                                                    <div
-                                                        className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
-                                                    <div className="absolute bottom-3 left-3 flex flex-col items-start">
-                                                        <span
-                                                            className="text-[10px] font-bold text-white uppercase tracking-wider">{getVariantDetails(v)?.style}</span>
-                                                    </div>
-                                                    {isoLeft?.id === v.id && <div
-                                                        className="absolute top-3 right-3 w-3 h-3 bg-white rounded-full border-2 border-indigo-600"
-                                                        title="Selected as A"/>}
-                                                    {isoRight?.id === v.id && <div
-                                                        className="absolute top-3 right-3 w-3 h-3 bg-indigo-600 rounded-full border-2 border-white"
-                                                        title="Selected as B"/>}
-                                                </button>
-                                            );
-                                        })}
+                                <div
+                                    className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex flex-col h-full">
+                                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6 sticky top-0 bg-white z-10 py-2">
+                                        Choose Styles
+                                    </h3>
+                                    <div className="relative overflow-hidden">
+                                        <div
+                                            className="grid grid-cols-2 lg:grid-cols-1 gap-4 overflow-y-auto max-h-[500px] lg:max-h-[60vh] pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+                                            {isoVariants.map((v, i) => {
+                                                const isActive = isoLeft?.id === v.id || isoRight?.id === v.id;
+                                                return (
+                                                    <button
+                                                        key={v.id}
+                                                        onClick={() => {
+                                                            if (isoLeft?.id === v.id) return;
+                                                            setIsoLeft(isoRight);
+                                                            setIsoRight(v);
+                                                        }}
+                                                        className={`group relative aspect-video lg:aspect-4/3 rounded-2xl overflow-hidden border-2 transition-all bg-slate-50 ${
+                                                            isActive ? "border-indigo-600 ring-4 ring-indigo-600/10 scale-[0.98]" : "border-transparent hover:border-slate-200"
+                                                        }`}
+                                                    >
+                                                        <img src={getHighResUrl(v)} alt="Isometric preview"
+                                                             className="w-full h-full object-contain transition-transform group-hover:scale-110"/>
+                                                        <div
+                                                            className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                                        <div
+                                                            className="absolute bottom-3 left-3 flex flex-col items-start">
+                                                            <span
+                                                                className="text-[10px] font-bold text-white uppercase tracking-wider">{getVariantDetails(v)?.style}</span>
+                                                        </div>
+                                                        {isoLeft?.id === v.id && <div
+                                                            className="absolute top-3 right-3 w-3 h-3 bg-white rounded-full border-2 border-indigo-600"
+                                                            title="Selected as A"/>}
+                                                        {isoRight?.id === v.id && <div
+                                                            className="absolute top-3 right-3 w-3 h-3 bg-indigo-600 rounded-full border-2 border-white"
+                                                            title="Selected as B"/>}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* Bottom fade indicator */}
+                                        <div
+                                            className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"/>
                                     </div>
                                 </div>
                             </div>

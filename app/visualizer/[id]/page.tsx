@@ -55,6 +55,23 @@ function VisualizerContent() {
     const [isoLeftImage, setIsoLeftImage] = useState<string | null>(null);
     const [isoRightImage, setIsoRightImage] = useState<string | null>(null);
 
+    const [imgOffsets, setImgOffsets] = useState({top: 16, right: 16});
+
+    const handleImageLoad = (e: any) => {
+        const img = e.target;
+        const container = img.closest('.compare-stage');
+        if (!img || !container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const imgRect = img.getBoundingClientRect();
+
+        // Calculate the top and right offsets relative to the container
+        const top = Math.max(16, imgRect.top - containerRect.top + 16);
+        const right = Math.max(16, containerRect.right - imgRect.right + 16);
+
+        setImgOffsets({top, right});
+    };
+
     const [showToast, setShowToast] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [showcaseId, setShowcaseId] = useState<string | null>(null);
@@ -839,16 +856,29 @@ function VisualizerContent() {
                         )}
                     </div>
 
-                    <div className={`render-area ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
+                    <div
+                        className={`render-area bg-slate-50 ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
                         {currentImage ? (
                             <img src={currentImage} alt={`${selectedStyle.name} style AI architectural render`}
-                                 className="render-img" loading="eager"/>
+                                 className="render-img" loading="eager"
+                                 style={{
+                                     width: '100%',
+                                     height: 'auto',
+                                     maxHeight: 'calc(100vh - 280px)',
+                                     objectFit: 'contain'
+                                 }}/>
                         ) : (
                             <div className="render-placeholder">
                                 {project?.source_image_url && (
                                     <img src={project.source_image_url} alt="Original floor plan"
                                          className="render-fallback"
-                                         loading="eager"/>
+                                         loading="eager"
+                                         style={{
+                                             width: '100%',
+                                             height: 'auto',
+                                             maxHeight: 'calc(100vh - 280px)',
+                                             objectFit: 'contain'
+                                         }}/>
                                 )}
                             </div>
                         )}
@@ -957,54 +987,80 @@ function VisualizerContent() {
                         </div>
                     </div>
 
-                    <div className="compare-stage">
+                    <div className="compare-stage bg-slate-50 dark:bg-zinc-100">
                         {leftImage && rightImage ? (
-                            <div style={{position: "relative", width: "100%", height: "auto"}}>
+                            <div className="relative w-full h-full flex items-center justify-center">
                                 <ReactCompareSlider
                                     defaultValue={50}
+                                    style={{width: "100%", height: "100%", maxHeight: "calc(100vh - 280px)"}}
                                     itemOne={<ReactCompareSliderImage src={leftImage} alt="Before: Original floor plan"
-                                                                      className="compare-img"/>}
+                                                                      className="compare-img"
+                                                                      onLoad={handleImageLoad}
+                                                                      style={{
+                                                                          objectFit: 'contain',
+                                                                          width: '100%',
+                                                                          height: '100%'
+                                                                      }}/>}
                                     itemTwo={<ReactCompareSliderImage src={rightImage}
                                                                       alt="After: AI 3D architectural render"
-                                                                      className="compare-img"/>}
+                                                                      className="compare-img"
+                                                                      onLoad={handleImageLoad}
+                                                                      style={{
+                                                                          objectFit: 'contain',
+                                                                          width: '100%',
+                                                                          height: '100%'
+                                                                      }}/>}
                                 />
                                 {planPrediction?.status === "succeeded" && (
                                     <div
-                                        className="absolute top-4 right-4 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur p-3 rounded-2xl shadow-xl border border-white/20 flex flex-col gap-3">
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Rate
-                                            this render</p>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={async () => {
-                                                    setRating(1);
-                                                    toast.success("Thanks for your feedback!");
-                                                    if (planPrediction?.id) {
-                                                        await supabase
-                                                            .from("renders")
-                                                            .update({feedback: 'thumbs_up'})
-                                                            .eq("prediction_id", planPrediction.id);
-                                                    }
-                                                }}
-                                                className={`p-2 rounded-xl transition-all ${rating === 1 ? 'bg-emerald-500 text-white' : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600'}`}
-                                            >
-                                                <ThumbsUp className="w-5 h-5"/>
-                                            </button>
-                                            <button
-                                                onClick={async () => {
-                                                    setRating(0);
-                                                    toast.success("We'll work on improving this style!");
-                                                    if (planPrediction?.id) {
-                                                        await supabase
-                                                            .from("renders")
-                                                            .update({feedback: 'thumbs_down'})
-                                                            .eq("prediction_id", planPrediction.id);
-                                                    }
-                                                }}
-                                                className={`p-2 rounded-xl transition-all ${rating === 0 ? 'bg-rose-500 text-white' : 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600'}`}
-                                            >
-                                                <ThumbsDown className="w-5 h-5"/>
-                                            </button>
+                                        style={{top: `${imgOffsets.top}px`, right: `${imgOffsets.right}px`}}
+                                        className="absolute z-20 flex flex-col items-end gap-3 pointer-events-none transition-all duration-300">
+                                        <div
+                                            className="bg-white/90 dark:bg-slate-900/90 backdrop-blur p-3 rounded-2xl shadow-xl border border-white/20 flex flex-col gap-3 pointer-events-auto">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Rate
+                                                this render</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={async () => {
+                                                        setRating(1);
+                                                        toast.success("Thanks for your feedback!");
+                                                        if (planPrediction?.id) {
+                                                            await supabase
+                                                                .from("renders")
+                                                                .update({feedback: 'thumbs_up'})
+                                                                .eq("prediction_id", planPrediction.id);
+                                                        }
+                                                    }}
+                                                    className={`p-2 rounded-xl transition-all ${rating === 1 ? 'bg-emerald-500 text-white' : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600'}`}
+                                                >
+                                                    <ThumbsUp className="w-5 h-5"/>
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        setRating(0);
+                                                        toast.success("We'll work on improving this style!");
+                                                        if (planPrediction?.id) {
+                                                            await supabase
+                                                                .from("renders")
+                                                                .update({feedback: 'thumbs_down'})
+                                                                .eq("prediction_id", planPrediction.id);
+                                                        }
+                                                    }}
+                                                    className={`p-2 rounded-xl transition-all ${rating === 0 ? 'bg-rose-500 text-white' : 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600'}`}
+                                                >
+                                                    <ThumbsDown className="w-5 h-5"/>
+                                                </button>
+                                            </div>
                                         </div>
+
+                                        {/* Staff Pick Badge - Conditionally shown if public and approved */}
+                                        {isPublic && showcaseId && (
+                                            <div
+                                                className="bg-amber-400 text-amber-950 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-2 pointer-events-auto animate-in fade-in slide-in-from-right-4 duration-500">
+                                                <Sparkles className="w-4 h-4"/>
+                                                Staff Pick
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -1012,7 +1068,7 @@ function VisualizerContent() {
                             <div className="compare-fallback">
                                 {project?.source_image_url && (
                                     <img src={project.source_image_url} alt="Before: Original floor plan"
-                                         className="compare-img object-cover"/>
+                                         className="compare-img"/>
                                 )}
                             </div>
                         )}
@@ -1242,25 +1298,46 @@ function VisualizerContent() {
                             </div>
                         </div>
 
-                        <div className="compare-stage">
+                        <div className="compare-stage bg-slate-50 dark:bg-zinc-100">
                             {isoLeftImage && isoRightImage ? (
-                                <div style={{position: "relative", width: "100%", height: "auto"}}>
+                                <div className="relative w-full h-full flex items-center justify-center">
                                     <ReactCompareSlider
                                         defaultValue={50}
+                                        style={{width: "100%", height: "100%", maxHeight: "calc(100vh - 280px)"}}
                                         itemOne={<ReactCompareSliderImage src={isoLeftImage} alt="Style A"
-                                                                          className="compare-img"/>}
+                                                                          className="compare-img"
+                                                                          onLoad={handleImageLoad}
+                                                                          style={{
+                                                                              objectFit: 'contain',
+                                                                              width: '100%',
+                                                                              height: '100%'
+                                                                          }}/>}
                                         itemTwo={<ReactCompareSliderImage src={isoRightImage} alt="Style B"
-                                                                          className="compare-img"/>}
+                                                                          className="compare-img"
+                                                                          onLoad={handleImageLoad}
+                                                                          style={{
+                                                                              objectFit: 'contain',
+                                                                              width: '100%',
+                                                                              height: '100%'
+                                                                          }}/>}
                                     />
+                                    {isPublic && showcaseId && (
+                                        <div
+                                            style={{top: `${imgOffsets.top}px`, right: `${imgOffsets.right}px`}}
+                                            className="absolute z-20 bg-amber-400 text-amber-950 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-500 transition-all">
+                                            <Sparkles className="w-4 h-4"/>
+                                            Staff Pick
+                                        </div>
+                                    )}
                                 </div>
                             ) : isoRightImage ? (
                                 <div className="compare-fallback">
                                     <img src={isoRightImage} alt="Isometric variant"
-                                         className="compare-img object-cover"/>
+                                         className="compare-img"/>
                                 </div>
                             ) : (
                                 <div
-                                    className="compare-fallback bg-slate-100 dark:bg-slate-800 flex items-center justify-center h-[400px] rounded-2xl">
+                                    className="compare-fallback bg-slate-100 dark:bg-slate-800 flex items-center justify-center min-h-[400px] rounded-2xl">
                                     <p className="text-slate-400">Select isometric variants to compare</p>
                                 </div>
                             )}
