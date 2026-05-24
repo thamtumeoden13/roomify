@@ -142,7 +142,7 @@ export default function Dashboard() {
                                     <img src={project.rendered_image_url || project.source_image_url}
                                          alt="project preview"/>
 
-                                    <div id="badge">
+                                    <div className="badge">
                                         <span>{project.rendered_image_url ? "Rendered" : "Original"}</span>
                                     </div>
                                 </div>
