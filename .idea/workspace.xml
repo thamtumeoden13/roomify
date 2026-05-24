@@ -8,8 +8,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/generate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/generate/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/VisualizerToolbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/VisualizerToolbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supabase_migration.sql" beforeDir="false" afterPath="$PROJECT_DIR$/supabase_migration.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -129,7 +127,7 @@
       <workItem from="1778433563075" duration="1760000" />
       <workItem from="1778435420031" duration="8419000" />
       <workItem from="1778923259378" duration="10370000" />
-      <workItem from="1779625064068" duration="1468000" />
+      <workItem from="1779625064068" duration="3962000" />
     </task>
     <servers />
   </component>

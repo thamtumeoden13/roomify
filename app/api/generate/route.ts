@@ -17,7 +17,7 @@ const replicate = new Replicate({
 export async function POST(req: Request) {
     try {
         const {
-            image, project_id, projectName, styleKeywords, styleId,
+            image, mask, project_id, projectName, styleKeywords, styleId,
             projectContext, contextId, flooringKeywords, flooringId,
             lightingKeywords, lightingId, viewKeywords, viewId = "plan", forceNew,
             customInstructions
@@ -26,18 +26,23 @@ export async function POST(req: Request) {
         if (!image) return NextResponse.json({error: "Image is required"}, {status: 400});
 
         // 1. Check Cache Logic (giữ nguyên như cũ)
-        const query = supabase.from("renders").select("*")
-            .eq("style_id", styleId || "").eq("project_context", contextId || "")
-            .eq("flooring_id", flooringId || "").eq("lighting_id", lightingId || "")
-            .eq("view_id", viewId);
-        if (project_id) query.eq("project_id", project_id);
-        else query.eq("source_image_url", image);
-        const {data: existingRender} = await query.order("created_at", {ascending: false}).limit(1).maybeSingle();
+        // Không cache nếu đang in-paint để đảm bảo kết quả mới nhất
+        let existingRender = null;
+        if (!mask) {
+            const query = supabase.from("renders").select("*")
+                .eq("style_id", styleId || "").eq("project_context", contextId || "")
+                .eq("flooring_id", flooringId || "").eq("lighting_id", lightingId || "")
+                .eq("view_id", viewId);
+            if (project_id) query.eq("project_id", project_id);
+            else query.eq("source_image_url", image);
+            const {data} = await query.order("created_at", {ascending: false}).limit(1).maybeSingle();
+            existingRender = data;
+        }
 
         const {data: {user}} = await (await import("@/lib/supabase-server")).getServerUser();
         if (!user) return NextResponse.json({error: "Authentication required"}, {status: 401});
 
-        if (!forceNew && existingRender && existingRender.status === "succeeded") {
+        if (!mask && !forceNew && existingRender && existingRender.status === "succeeded") {
             return NextResponse.json({
                 ...existingRender,
                 id: existingRender.prediction_id,
@@ -74,20 +79,40 @@ export async function POST(req: Request) {
             ${qualityCleanup}
         `.trim().replace(/\s+/g, ' ');
 
-        // 5. Khởi tạo Prediction với google/nano-banana
-        // Model uses image_input as an array of strings
+        // 5. Khởi tạo Prediction
         const webhookUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/replicate`;
-        const prediction = await replicate.predictions.create({
-            model: "google/nano-banana",
-            input: {
-                image_input: [image],
-                prompt: masterPrompt,
-                aspect_ratio: "match_input_image",
-                output_format: "png",
-            },
-            webhook: webhookUrl,
-            webhook_events_filter: ["completed"],
-        });
+
+        let prediction;
+        if (mask) {
+            // Sử dụng model SDXL inpaint nếu có mask
+            prediction = await replicate.predictions.create({
+                model: "stability-ai/sdxl",
+                version: "39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+                input: {
+                    image: image,
+                    mask: mask,
+                    prompt: masterPrompt,
+                    num_outputs: 1,
+                    guidance_scale: 7.5,
+                    num_inference_steps: 50,
+                },
+                webhook: webhookUrl,
+                webhook_events_filter: ["completed"],
+            });
+        } else {
+            // Model google/nano-banana cho generation thông thường
+            prediction = await replicate.predictions.create({
+                model: "google/nano-banana",
+                input: {
+                    image_input: [image],
+                    prompt: masterPrompt,
+                    aspect_ratio: "match_input_image",
+                    output_format: "png",
+                },
+                webhook: webhookUrl,
+                webhook_events_filter: ["completed"],
+            });
+        }
 
         if (prediction?.error) return NextResponse.json({error: prediction.error}, {status: 500});
 
