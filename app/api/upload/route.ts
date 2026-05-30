@@ -26,7 +26,7 @@ export async function POST(request: Request): Promise<NextResponse> {
             .upload(filePath, file, {
                 contentType: file.type,
                 upsert: true,
-                cacheControl: '3600'
+                cacheControl: '31536000'
             });
 
         if (error) {
