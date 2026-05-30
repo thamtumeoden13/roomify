@@ -398,14 +398,26 @@ function VisualizerContent() {
 
             // --- INPAINT MASK CAPTURE ---
             let maskToUse = null;
+            let detectedWidth = undefined;
+            let detectedHeight = undefined;
+
             if (isEditMode) {
-                maskToUse = inpaintCanvasRef.current?.getMask();
+                if (!currentImage) {
+                    toast.error("Please generate a 3D view before using the Refine tool");
+                    return;
+                }
+                const maskData = inpaintCanvasRef.current?.getMask();
+                if (maskData) {
+                    maskToUse = maskData.mask;
+                    detectedWidth = maskData.width;
+                    detectedHeight = maskData.height;
+                }
                 console.log("In-painting mode active, mask captured:", maskToUse ? "Yes (Base64)" : "No");
             }
 
             // --- IMAGE PRE-PROCESSING ---
             // Process the floor plan to remove/blur text for better AI results
-            let imageToUse = isEditMode ? rightImage : project.source_image_url;
+            let imageToUse = (isEditMode && currentImage) ? currentImage : project.source_image_url;
 
             // Chỉ apply pre-processing nếu không phải in-paint mode
             if (!isEditMode) {
@@ -451,6 +463,8 @@ function VisualizerContent() {
                     lightingId: lightingToUse.id,
                     viewKeywords: viewToUse.keywords,
                     viewId: viewIdToUse,
+                    width: detectedWidth,
+                    height: detectedHeight,
                     forceNew,
                     customInstructions
                 }),
@@ -1019,7 +1033,7 @@ function VisualizerContent() {
                                                                           height: '100%'
                                                                       }}/>}
                                 />
-                                {planPrediction?.status === "succeeded" && (
+                                {rightImage && (
                                     <div
                                         style={{top: `${imgOffsets.top}px`, right: `${imgOffsets.right}px`}}
                                         className="absolute z-20 flex flex-col items-end gap-3 pointer-events-none transition-all duration-300">
