@@ -6,7 +6,8 @@ import {
     LIGHTING_MOODS,
     PROJECT_CONTEXTS,
     ROOM_STYLES,
-    ROOMIFY_RENDER_PROMPT
+    ROOMIFY_RENDER_PROMPT,
+    ROOMIFY_NEGATIVE_PROMPT
 } from "@/lib/constants";
 import {supabase} from "@/lib/supabase";
 
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
             image, mask, project_id, projectName, styleKeywords, styleId,
             projectContext, contextId, flooringKeywords, flooringId,
             lightingKeywords, lightingId, viewKeywords, viewId = "plan", forceNew,
-            customInstructions
+            customInstructions, width, height
         } = await req.json();
 
         if (!image) return NextResponse.json({error: "Image is required"}, {status: 400});
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
         const structureFurniture = promptParts.filter(line => line.startsWith('3D STRUCTURE:') || line.startsWith('FURNITURE:')).join(' ');
         const qualityCleanup = promptParts.filter(line => line.startsWith('SURFACE CLEANUP:') || line.startsWith('QUALITY:') || line.startsWith('FINAL EXECUTION:')).join(' ');
 
-        const masterPrompt = `
+        let masterPrompt = `
             ${selectedView.keywords}
             ${structureFurniture}
             STYLE: ${selectedStyle.keywords}
@@ -78,6 +79,10 @@ export async function POST(req: Request) {
             ${customInstructions ? `USER REQUEST: ${customInstructions}` : ""}
             ${qualityCleanup}
         `.trim().replace(/\s+/g, ' ');
+
+        if (mask) {
+            masterPrompt = `Flat and clean (top-down texture of ${selectedFlooring.name}:1.5), seamless wooden floor, architectural surface, no objects, no furniture, blank floor, 8k resolution.`.trim().replace(/\s+/g, ' ');
+        }
 
         // 5. Khởi tạo Prediction
         const webhookUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/replicate`;
@@ -92,9 +97,14 @@ export async function POST(req: Request) {
                     image: image,
                     mask: mask,
                     prompt: masterPrompt,
+                    negative_prompt: "(text, labels, numbers, letters, rug, carpet, furniture, shadows, blurred objects, walls, distorted, messy, human, animal:1.5)",
                     num_outputs: 1,
-                    guidance_scale: 7.5,
+                    guidance_scale: 15.0,
+                    prompt_strength: 0.55,
+                    mask_blur: 0.05,
                     num_inference_steps: 50,
+                    width: width,
+                    height: height,
                 },
                 webhook: webhookUrl,
                 webhook_events_filter: ["completed"],
