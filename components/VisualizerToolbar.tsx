@@ -1,7 +1,7 @@
 "use client";
 
 import React, {type ReactNode} from 'react';
-import {motion, useScroll, useMotionValueEvent} from 'framer-motion';
+import {m, useScroll, useMotionValueEvent} from 'framer-motion';
 import {
     Box,
     Video,
@@ -188,7 +188,7 @@ export default function VisualizerToolbar({
     }));
 
     return (
-        <motion.div
+        <m.div
             variants={{
                 visible: {y: 0, opacity: 1},
                 hidden: {y: "120%", opacity: 0}
@@ -254,7 +254,7 @@ export default function VisualizerToolbar({
                     {/* Center Action Group */}
                     <div className="flex items-center gap-2 lg:gap-3 shrink-0">
                         <div className="relative flex flex-col items-center">
-                            <motion.div
+                            <m.div
                                 animate={isSettingsChanged && !isPlanProcessing ? {scale: [1, 1.02, 1]} : {}}
                                 transition={isSettingsChanged ? {duration: 2, repeat: Infinity, ease: "easeInOut"} : {}}
                                 whileHover={{y: -2}}
@@ -300,7 +300,7 @@ export default function VisualizerToolbar({
                                         </div>
                                     </Button>
                                 </Tooltip>
-                            </motion.div>
+                            </m.div>
 
                             {/* Credits Badge pinned to Generate */}
                             {credits !== null && (
@@ -316,7 +316,7 @@ export default function VisualizerToolbar({
                         <Popover
                             position="top"
                             trigger={
-                                <motion.div whileHover={{y: -2}}>
+                                <m.div whileHover={{y: -2}}>
                                     <Button
                                         variant="outline"
                                         className={cn(
@@ -330,7 +330,7 @@ export default function VisualizerToolbar({
                                         <span
                                             className="hidden xl:inline text-xs font-bold uppercase tracking-wider">Refine</span>
                                     </Button>
-                                </motion.div>
+                                </m.div>
                             }
                         >
                             <div className="flex flex-col gap-3">
@@ -363,7 +363,7 @@ export default function VisualizerToolbar({
                     {/* Right Group: Utilities */}
                     <div className="flex items-center gap-1 md:gap-2 shrink-0">
                         <Tooltip content="3D Isometric View">
-                            <motion.div whileHover={{y: -2}}>
+                            <m.div whileHover={{y: -2}}>
                                 <Button
                                     variant="outline"
                                     onClick={() => onGenerateWithReset('isometric')}
@@ -380,12 +380,12 @@ export default function VisualizerToolbar({
                                     )}
                                     <span className="hidden xl:inline">3D Isometric</span>
                                 </Button>
-                            </motion.div>
+                            </m.div>
                         </Tooltip>
 
                         <Tooltip
                             content={isUpscaled ? "This design is already in Ultra HD resolution" : "Enhance to 4K: Sharpen textures and remove AI noise (Cost: 2 Credits)"}>
-                            <motion.div whileHover={{y: -2}}>
+                            <m.div whileHover={{y: -2}}>
                                 <Button
                                     variant="outline"
                                     onClick={onUpscale}
@@ -402,7 +402,7 @@ export default function VisualizerToolbar({
                                     ) : isUpscaled ? (
                                         <Check className="w-4 h-4 text-emerald-500"/>
                                     ) : (
-                                        <motion.div
+                                        <m.div
                                             animate={{
                                                 scale: [1, 1.2, 1],
                                                 opacity: [1, 0.8, 1]
@@ -415,19 +415,19 @@ export default function VisualizerToolbar({
                                         >
                                             <Zap
                                                 className={cn("w-4 h-4", credits === 0 ? "text-slate-400" : "text-amber-500 fill-amber-500")}/>
-                                        </motion.div>
+                                        </m.div>
                                     )}
                                     <span className="hidden xl:inline">
                                         {isUpscaled ? "Already 4K" : "4K Upscale"}
                                     </span>
                                 </Button>
-                            </motion.div>
+                            </m.div>
                         </Tooltip>
 
                         <div className="h-8 w-px bg-slate-200/30 mx-0.5 shrink-0"/>
 
                         <Tooltip content="Gallery">
-                            <motion.div whileHover={{y: -2}}>
+                            <m.div whileHover={{y: -2}}>
                                 <Button
                                     variant="outline"
                                     onClick={() => onTogglePublic(!isPublic)}
@@ -439,7 +439,7 @@ export default function VisualizerToolbar({
                                     <Globe className={cn("w-4 h-4", isPublic ? "text-indigo-500" : "text-slate-400")}/>
                                     <span className="hidden xl:inline">Gallery</span>
                                 </Button>
-                            </motion.div>
+                            </m.div>
                         </Tooltip>
 
                         <div className="flex items-center">
@@ -463,6 +463,6 @@ export default function VisualizerToolbar({
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </m.div>
     );
 }

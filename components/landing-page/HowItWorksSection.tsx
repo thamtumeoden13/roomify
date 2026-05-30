@@ -1,5 +1,5 @@
 import React from 'react';
-import {motion} from 'framer-motion';
+import {m} from 'framer-motion';
 import {Upload, Layers, Zap} from 'lucide-react';
 
 const HowItWorksSection = () => {
@@ -15,7 +15,7 @@ const HowItWorksSection = () => {
                 {/* Connection Line */}
                 <div className="absolute top-[60%] left-[10%] right-[10%] h-0.5 hidden md:block z-0">
                     <svg className="w-full h-24 overflow-visible">
-                        <motion.path
+                        <m.path
                             d="M 0 50 Q 250 -50 500 50 T 1000 50"
                             fill="transparent"
                             stroke="url(#gradient-line)"
@@ -58,7 +58,7 @@ const HowItWorksSection = () => {
                             icon: <Zap className="w-8 h-8"/>
                         }
                     ].map((item, i) => (
-                        <motion.div
+                        <m.div
                             key={i}
                             initial={{opacity: 0, y: 30}}
                             whileInView={{opacity: 1, y: 0}}
@@ -84,7 +84,7 @@ const HowItWorksSection = () => {
                             >
                             {item.step}
                         </span>
-                        </motion.div>
+                        </m.div>
                     ))}
                 </div>
             </div>

@@ -9,6 +9,7 @@ import {Analytics} from "@vercel/analytics/react";
 import {ContactButton} from "@/components/ContactButton";
 import {ScrollToTop} from "@/components/ScrollToTop";
 import FooterWrapper from "@/components/FooterWrapper";
+import {MotionProvider} from "@/components/MotionProvider";
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
@@ -77,12 +78,14 @@ export default function RootLayout({
         <html lang="en" data-scroll-behavior="smooth" className={cn("font-sans", geist.variable)}>
         <body className={`${geist.variable} ${instrumentSerif.variable} antialiased`}>
         <CreditProvider>
-            {children}
-            <FooterWrapper/>
-            <ContactButton/>
-            <ScrollToTop/>
-            <Analytics/>
-            <Toaster position="bottom-right" richColors/>
+            <MotionProvider>
+                {children}
+                <FooterWrapper/>
+                <ContactButton/>
+                <ScrollToTop/>
+                <Analytics/>
+                <Toaster position="bottom-right" richColors/>
+            </MotionProvider>
         </CreditProvider>
         </body>
         </html>

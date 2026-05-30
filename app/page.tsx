@@ -11,7 +11,7 @@ import {
     ShieldCheck,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import {motion} from "framer-motion";
+import {m} from "framer-motion";
 import Link from "next/link";
 import NextImage from "next/image";
 import Button from "@/components/ui/Button";
@@ -154,7 +154,7 @@ export default function LandingPage() {
             <Navbar/>
             <main>
                 {/* Slide Down Animation for Page Load */}
-                <motion.div
+                <m.div
                     initial={{y: -100, opacity: 0}}
                     animate={{y: 0, opacity: 1}}
                     transition={{duration: 0.8, ease: "easeOut"}}
@@ -165,14 +165,15 @@ export default function LandingPage() {
                 <section
                     className="relative min-h-[90vh] flex items-center pt-32 pb-20 md:pt-48 md:pb-40">
                     {/* Subtle Grid Pattern - Infinite Scroll */}
-                    <motion.div
+                    <m.div
                         className="absolute inset-0 z-0 pointer-events-none opacity-40"
                         style={{
                             backgroundImage: `linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)`,
                             backgroundSize: '60px 60px',
+                            willChange: 'transform',
                         }}
                         animate={{
-                            backgroundPositionY: [0, 60],
+                            y: [0, 60],
                         }}
                         transition={{
                             duration: 2,
@@ -182,7 +183,7 @@ export default function LandingPage() {
                     >
                         <div
                             className="absolute inset-0 bg-linear-to-b from-[#F9FAFB]/0 via-[#F9FAFB]/50 to-[#F9FAFB]"/>
-                    </motion.div>
+                    </m.div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden">
                         <div
@@ -192,9 +193,10 @@ export default function LandingPage() {
                     </div>
 
                     <div className="container mx-auto px-6 text-center relative z-10">
-                        <motion.div
+                        <m.div
                             initial={{opacity: 0, y: 30}}
-                            animate={{opacity: 1, y: 0}}
+                            whileInView={{opacity: 1, y: 0}}
+                            viewport={{once: true}}
                             transition={{duration: 0.8}}
                         >
                           <span
@@ -213,7 +215,7 @@ export default function LandingPage() {
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 md:mb-24">
                                 <Link href="/dashboard">
-                                    <motion.div
+                                    <m.div
                                         animate={{
                                             scale: [1, 1.05, 1],
                                         }}
@@ -227,14 +229,14 @@ export default function LandingPage() {
                                                 className="w-full sm:w-auto h-14 px-8 text-base bg-primary hover:bg-primary-dark shadow-xl shadow-primary/20 transition-all duration-300">
                                             Get Started <ArrowRight className="ml-2 w-5 h-5"/>
                                         </Button>
-                                    </motion.div>
+                                    </m.div>
                                 </Link>
                                 <Button variant="outline" size="lg"
                                         className="w-full sm:w-auto h-14 px-8 text-base border-slate-200 text-slate-900 hover:bg-slate-50">
                                     Watch Demo
                                 </Button>
                             </div>
-                        </motion.div>
+                        </m.div>
 
                         {/* Visual Slider with Light Glassmorphism */}
                         {mounted && (
@@ -243,7 +245,7 @@ export default function LandingPage() {
                                 <div
                                     className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
 
-                                <motion.div
+                                <m.div
                                     style={{
                                         y: typeof window !== 'undefined' ? (window.scrollY * 0.1) : 0
                                     }}
@@ -251,7 +253,7 @@ export default function LandingPage() {
                                     whileInView={{opacity: 1, scale: 1}}
                                     viewport={{once: true}}
                                     transition={{duration: 1}}
-                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full"
+                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full min-h-[500px] aspect-video"
                                 >
                                     <Suspense fallback={<div
                                         className="w-full h-[50vh] md:h-[80vh] bg-slate-200 animate-pulse rounded-[2.5rem]"/>}>
@@ -286,7 +288,7 @@ export default function LandingPage() {
                                         <span
                                             className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             </div>
                         )}
                     </div>

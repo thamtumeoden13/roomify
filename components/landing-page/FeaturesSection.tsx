@@ -1,5 +1,5 @@
 import React from 'react';
-import {motion} from 'framer-motion';
+import {m} from 'framer-motion';
 import {ArrowRight, Zap, Maximize, Layers, ShieldCheck} from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
@@ -26,7 +26,7 @@ const FeaturesSection = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[300px]">
                     {/* Feature 1: AI Precision (Large) */}
-                    <motion.div
+                    <m.div
                         initial={{opacity: 0, y: 20}}
                         whileInView={{opacity: 1, y: 0}}
                         viewport={{once: true}}
@@ -47,10 +47,10 @@ const FeaturesSection = () => {
                                 relationships, ensuring every render respects your original dimensions.
                             </p>
                         </div>
-                    </motion.div>
+                    </m.div>
 
                     {/* Feature 2: 4K Upscaling (Tall) */}
-                    <motion.div
+                    <m.div
                         initial={{opacity: 0, y: 20}}
                         whileInView={{opacity: 1, y: 0}}
                         viewport={{once: true}}
@@ -76,10 +76,10 @@ const FeaturesSection = () => {
                                     className="text-xs font-mono uppercase tracking-widest">Enhancing Details...</span>
                             </div>
                         </div>
-                    </motion.div>
+                    </m.div>
 
                     {/* Feature 3: Multiple Variants (Small) */}
-                    <motion.div
+                    <m.div
                         initial={{opacity: 0, y: 20}}
                         whileInView={{opacity: 1, y: 0}}
                         viewport={{once: true}}
@@ -97,10 +97,10 @@ const FeaturesSection = () => {
                                 possibility in seconds.
                             </p>
                         </div>
-                    </motion.div>
+                    </m.div>
 
                     {/* Feature 4: Cloud Storage (Small) */}
-                    <motion.div
+                    <m.div
                         initial={{opacity: 0, y: 20}}
                         whileInView={{opacity: 1, y: 0}}
                         viewport={{once: true}}
@@ -119,7 +119,7 @@ const FeaturesSection = () => {
                                 anywhere in the world.
                             </p>
                         </div>
-                    </motion.div>
+                    </m.div>
                 </div>
             </div>
         </section>

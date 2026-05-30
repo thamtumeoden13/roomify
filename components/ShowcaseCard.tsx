@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import {motion, AnimatePresence} from "framer-motion";
+import {m, AnimatePresence} from "framer-motion";
 import {Heart, Eye, User, Sparkles} from "lucide-react";
 import Link from "next/link";
 import NextImage from "next/image";
@@ -33,7 +33,7 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
     }, [highResImageUrl, initialImageUrl]);
 
     return (
-        <motion.div
+        <m.div
             initial={{opacity: 0, y: 20}}
             whileInView={{opacity: 1, y: 0}}
             viewport={{once: true}}
@@ -102,7 +102,7 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
                             {/* High Quality/Upscaled Image (fades in when ready) */}
                             <AnimatePresence>
                                 {currentImageUrl !== initialImageUrl && (
-                                    <motion.div
+                                    <m.div
                                         key="high-res"
                                         initial={{opacity: 0}}
                                         animate={{opacity: 1}}
@@ -116,7 +116,7 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
                                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                             className="object-contain"
                                         />
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
 
@@ -175,6 +175,6 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
                     </div>
                 </div>
             </Link>
-        </motion.div>
+        </m.div>
     );
 }

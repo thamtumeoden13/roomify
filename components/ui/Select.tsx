@@ -2,7 +2,7 @@ import React, {useState, useRef, useEffect, type ReactNode} from 'react';
 import {Check, ChevronDown} from 'lucide-react';
 import {clsx, type ClassValue} from 'clsx';
 import {twMerge} from 'tailwind-merge';
-import {motion, AnimatePresence} from 'framer-motion';
+import {m, AnimatePresence} from 'framer-motion';
 
 import {Tooltip} from '@/components/ui/Tooltip';
 
@@ -63,14 +63,14 @@ export function Select({
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
                         {icon && (
-                            <motion.div
+                            <m.div
                                 key={value}
                                 initial={{scale: 0.8, rotate: -10}}
                                 animate={{scale: 1, rotate: 0}}
                                 className="text-slate-500 dark:text-slate-400 shrink-0"
                             >
                                 {icon}
-                            </motion.div>
+                            </m.div>
                         )}
                         <span
                             className={cn("truncate tracking-tight", compact && "hidden xl:block")}>{selectedOption?.name || 'Select...'}</span>
@@ -81,7 +81,7 @@ export function Select({
 
                 <AnimatePresence>
                     {open && (
-                        <motion.div
+                        <m.div
                             initial={{opacity: 0, y: position === 'top' ? 10 : -10}}
                             animate={{opacity: 1, y: 0}}
                             exit={{opacity: 0, y: position === 'top' ? 10 : -10}}
@@ -121,7 +121,7 @@ export function Select({
                                     {value === option.id && <Check className="w-4 h-4"/>}
                                 </button>
                             ))}
-                        </motion.div>
+                        </m.div>
                     )}
                 </AnimatePresence>
             </div>

@@ -3,7 +3,7 @@
 import React, {useState, useEffect, useRef, useCallback} from "react";
 import {supabase} from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
-import {motion, AnimatePresence} from "framer-motion";
+import {m, AnimatePresence} from "framer-motion";
 import {Loader2} from "lucide-react";
 import Button from "@/components/ui/Button";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";

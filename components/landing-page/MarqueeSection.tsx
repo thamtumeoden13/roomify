@@ -1,5 +1,5 @@
 import React from 'react';
-import {motion} from 'framer-motion';
+import {m} from 'framer-motion';
 import NextImage from 'next/image';
 
 interface MarqueeItem {
@@ -20,7 +20,7 @@ const MarqueeSection = ({marqueeItems}: MarqueeSectionProps) => {
             </div>
 
             <div className="flex overflow-hidden">
-                <motion.div
+                <m.div
                     animate={{
                         x: [0, -1035],
                     }}
@@ -53,7 +53,7 @@ const MarqueeSection = ({marqueeItems}: MarqueeSectionProps) => {
                             </div>
                         </div>
                     ))}
-                </motion.div>
+                </m.div>
             </div>
         </section>
     );

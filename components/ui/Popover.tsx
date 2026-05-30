@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect, type ReactNode} from 'react';
-import {motion, AnimatePresence} from 'framer-motion';
+import {m, AnimatePresence} from 'framer-motion';
 import {twMerge} from 'tailwind-merge';
 import {clsx, type ClassValue} from 'clsx';
 
@@ -39,7 +39,7 @@ export function Popover({
 
             <AnimatePresence>
                 {open && (
-                    <motion.div
+                    <m.div
                         initial={{opacity: 0, scale: 0.95, y: position === 'top' ? 10 : -10}}
                         animate={{opacity: 1, scale: 1, y: 0}}
                         exit={{opacity: 0, scale: 0.95, y: position === 'top' ? 10 : -10}}
@@ -49,7 +49,7 @@ export function Popover({
                             position === 'top' ? "bottom-full mb-2 right-0 origin-bottom-right" : "top-full mt-2 right-0 origin-top-right"
                         )}>
                         {children}
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

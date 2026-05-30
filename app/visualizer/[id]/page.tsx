@@ -19,7 +19,7 @@ import {
     Eraser,
     AlertCircle
 } from "lucide-react";
-import {motion, AnimatePresence} from "framer-motion";
+import {m, AnimatePresence} from "framer-motion";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -870,7 +870,7 @@ function VisualizerContent() {
 
                         <AnimatePresence>
                             {isError && (
-                                <motion.div
+                                <m.div
                                     initial={{opacity: 0, scale: 0.9}}
                                     animate={{opacity: 1, scale: 1}}
                                     exit={{opacity: 0, scale: 0.9}}
@@ -910,11 +910,11 @@ function VisualizerContent() {
                                             </Button>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             )}
 
                             {isPlanProcessing && (
-                                <motion.div
+                                <m.div
                                     initial={{opacity: 0}}
                                     animate={{opacity: 1}}
                                     exit={{opacity: 0}}
@@ -932,11 +932,11 @@ function VisualizerContent() {
                                             </span>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             )}
 
                             {isUpscaling && (
-                                <motion.div
+                                <m.div
                                     initial={{opacity: 0}}
                                     animate={{opacity: 1}}
                                     exit={{opacity: 0}}
@@ -954,7 +954,7 @@ function VisualizerContent() {
                                             </span>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             )}
                         </AnimatePresence>
                     </div>
@@ -963,7 +963,7 @@ function VisualizerContent() {
                 <div className="panel compare mt-12 relative overflow-hidden">
                     <AnimatePresence>
                         {isError && (
-                            <motion.div
+                            <m.div
                                 initial={{opacity: 0}}
                                 animate={{opacity: 1}}
                                 exit={{opacity: 0}}
@@ -985,11 +985,11 @@ function VisualizerContent() {
                                         Dismiss
                                     </Button>
                                 </div>
-                            </motion.div>
+                            </m.div>
                         )}
 
                         {isPlanProcessing && (
-                            <motion.div
+                            <m.div
                                 initial={{opacity: 0}}
                                 animate={{opacity: 1}}
                                 exit={{opacity: 0}}
@@ -1007,7 +1007,7 @@ function VisualizerContent() {
                                         </span>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </m.div>
                         )}
                     </AnimatePresence>
                     <div className="panel-header flex flex-col md:flex-row md:items-center justify-between gap-4">

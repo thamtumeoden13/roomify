@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import {motion} from "framer-motion";
+import {m} from "framer-motion";
 import {ArrowRight, ArrowUpRight, Clock, Layers} from "lucide-react";
 import Button from "@/components/ui/Button";
 import Upload from "@/components/Upload";
@@ -127,7 +127,7 @@ export default function Dashboard() {
     return (
         <div className={"home bg-[#F9FAFB]"}>
             {/* Slide Down Animation for Page Load */}
-            <motion.div
+            <m.div
                 initial={{y: -100, opacity: 0}}
                 animate={{y: 0, opacity: 1}}
                 transition={{duration: 0.8, ease: "easeOut"}}
