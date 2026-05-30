@@ -4,7 +4,7 @@ import React, {useState, useEffect, useRef, useCallback} from "react";
 import {supabase} from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import {motion, AnimatePresence} from "framer-motion";
-import {Heart, Eye, Sparkles, User, ArrowUp, Loader2} from "lucide-react";
+import {Heart, Eye, Sparkles, User, Loader2} from "lucide-react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
@@ -28,7 +28,6 @@ export default function GalleryPage() {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [showBackToTop, setShowBackToTop] = useState(false);
     const [isAdminUser, setIsAdminUser] = useState(false);
     const pageRef = useRef(0);
 
@@ -80,8 +79,6 @@ export default function GalleryPage() {
 
     useEffect(() => {
         const handleScroll = () => {
-            setShowBackToTop(window.scrollY > 400);
-
             if (
                 window.innerHeight + document.documentElement.scrollTop >=
                 document.documentElement.offsetHeight - 500
@@ -112,10 +109,6 @@ export default function GalleryPage() {
         checkAdmin();
     }, []);
 
-    const scrollToTop = () => {
-        window.scrollTo({top: 0, behavior: "smooth"});
-    };
-
     return (
         <div className="min-h-screen bg-[#F9FAFB] text-slate-900">
             <Navbar/>
@@ -143,7 +136,7 @@ export default function GalleryPage() {
                                     value={style}
                                     className={`px-8 py-3 rounded-full transition-all duration-300 text-base font-semibold ${
                                         selectedStyle === style
-                                            ? "bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary-dark"
+                                            ? "bg-primary text-primary shadow-lg shadow-primary/20 hover:bg-primary-dark"
                                             : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                                     }`}
                                 >
@@ -208,20 +201,6 @@ export default function GalleryPage() {
                     </p>
                 )}
             </main>
-
-            <AnimatePresence>
-                {showBackToTop && (
-                    <motion.button
-                        initial={{opacity: 0, y: 20}}
-                        animate={{opacity: 1, y: 0}}
-                        exit={{opacity: 0, y: 20}}
-                        onClick={scrollToTop}
-                        className="fixed bottom-8 right-8 p-4 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-colors z-50"
-                    >
-                        <ArrowUp className="w-6 h-6"/>
-                    </motion.button>
-                )}
-            </AnimatePresence>
         </div>
     );
 }

@@ -5,6 +5,7 @@ import {useEffect, useRef, useState, Suspense} from "react";
 import {
     RefreshCcw,
     Sparkles,
+    Zap,
     X,
     ThumbsUp,
     ThumbsDown,
@@ -98,6 +99,7 @@ function VisualizerContent() {
     const [showcaseId, setShowcaseId] = useState<string | null>(null);
     const [elapsed, setElapsed] = useState(0);
     const [selectedVariant, setSelectedVariant] = useState<any>(null);
+    const isUpscaled = !!(selectedVariant?.upscaled_image_url || (currentImage && variants.find(v => v.upscaled_image_url === currentImage)));
     const {refreshCredits} = useCredits();
 
     const getVariantLabel = (v: any) => {
@@ -824,14 +826,24 @@ function VisualizerContent() {
                     <div
                         className={`render-area bg-slate-50 ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
                         {currentImage ? (
-                            <img src={currentImage} alt={`${selectedStyle.name} style AI architectural render`}
-                                 className="render-img" loading="eager"
-                                 style={{
-                                     width: '100%',
-                                     height: 'auto',
-                                     maxHeight: 'calc(100vh - 280px)',
-                                     objectFit: 'contain'
-                                 }}/>
+                            <div className="relative w-full h-full flex items-center justify-center">
+                                <img src={currentImage} alt={`${selectedStyle.name} style AI architectural render`}
+                                     className="render-img" loading="eager"
+                                     style={{
+                                         width: '100%',
+                                         height: 'auto',
+                                         maxHeight: 'calc(100vh - 280px)',
+                                         objectFit: 'contain'
+                                     }}/>
+                                {isUpscaled && (
+                                    <div
+                                        className="absolute top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full shadow-xl animate-in fade-in zoom-in duration-500">
+                                        <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400"/>
+                                        <span
+                                            className="text-[10px] font-black text-white tracking-[0.1em] uppercase">4K ULTRA HD</span>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <div className="render-placeholder">
                                 {project?.source_image_url && (
@@ -1253,11 +1265,17 @@ function VisualizerContent() {
                                                     </div>
                                                 )}
 
-                                                <div className="absolute bottom-1 left-1">
+                                                <div className="absolute bottom-1 left-1 flex items-center gap-1">
                                                     <span
                                                         className="text-[9px] bg-black/60 text-white font-bold px-1.5 py-0.5 rounded-sm backdrop-blur-[2px]">
                                                         V{i + 1}
                                                     </span>
+                                                    {v.upscaled_image_url && (
+                                                        <div
+                                                            className="flex items-center justify-center w-4 h-4 bg-amber-500 rounded-sm shadow-sm">
+                                                            <span className="text-[8px] font-black text-white">4K</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </Tooltip>
@@ -1486,11 +1504,17 @@ function VisualizerContent() {
                                                     </div>
                                                 )}
 
-                                                <div className="absolute bottom-1 left-1">
+                                                <div className="absolute bottom-1 left-1 flex items-center gap-1">
                                                     <span
                                                         className="text-[9px] bg-black/60 text-white font-bold px-1.5 py-0.5 rounded-sm backdrop-blur-[2px]">
                                                         V{i + 1}
                                                     </span>
+                                                    {v.upscaled_image_url && (
+                                                        <div
+                                                            className="flex items-center justify-center w-4 h-4 bg-amber-500 rounded-sm shadow-sm">
+                                                            <span className="text-[8px] font-black text-white">4K</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </Tooltip>
@@ -1535,6 +1559,7 @@ function VisualizerContent() {
                 isPlanProcessing={isPlanProcessing}
                 isIsoProcessing={isIsoProcessing}
                 isUpscaling={isUpscaling}
+                isUpscaled={isUpscaled}
                 hasCurrentImage={!!currentImage}
                 isPublic={isPublic}
                 onTogglePublic={handleTogglePublic}

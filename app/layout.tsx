@@ -7,6 +7,8 @@ import {Toaster} from "sonner";
 import {CreditProvider} from "@/lib/context/CreditContext";
 import {Analytics} from "@vercel/analytics/react";
 import {ContactButton} from "@/components/ContactButton";
+import {ScrollToTop} from "@/components/ScrollToTop";
+import FooterWrapper from "@/components/FooterWrapper";
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
@@ -76,7 +78,9 @@ export default function RootLayout({
         <body className={`${geist.variable} ${instrumentSerif.variable} antialiased`}>
         <CreditProvider>
             {children}
+            <FooterWrapper/>
             <ContactButton/>
+            <ScrollToTop/>
             <Analytics/>
             <Toaster position="bottom-right" richColors/>
         </CreditProvider>

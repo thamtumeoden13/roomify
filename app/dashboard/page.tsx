@@ -1,7 +1,6 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import {motion} from "framer-motion";
 import {ArrowRight, ArrowUpRight, Clock, Layers} from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -16,35 +15,109 @@ export default function Dashboard() {
     const router = useRouter();
     const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const ITEMS_PER_PAGE = 12;
 
-    useEffect(() => {
-        async function fetchProjects() {
-            const {data: {user}} = await supabase.auth.getUser();
+    const fetchProjects = async (pageNum: number, isInitial = false) => {
+        if (isInitial) setLoading(true);
+        else setLoadingMore(true);
 
-            if (!user) {
-                router.push("/login");
-                return;
-            }
+        const {data: {user}} = await supabase.auth.getUser();
 
-            let query = supabase
-                .from("projects")
-                .select("*")
-                .order("created_at", {ascending: false});
-
-            query = query.eq("user_id", user.id);
-
-            const {data, error} = await query;
-
-            if (error) {
-                console.error("Error fetching projects:", error);
-            } else if (data) {
-                setProjects(data);
-            }
-            setLoading(false);
+        if (!user) {
+            router.push("/login");
+            return;
         }
 
-        fetchProjects();
+        const from = pageNum * ITEMS_PER_PAGE;
+        const to = from + ITEMS_PER_PAGE - 1;
+
+        let query = supabase
+            .from("projects")
+            .select(`
+                *,
+                renders!project_id (
+                    rendered_image_url,
+                    upscaled_image_url,
+                    created_at
+                )
+            `)
+            .order("created_at", {ascending: false})
+            .range(from, to);
+
+        query = query.eq("user_id", user.id);
+
+        const {data, error} = await query;
+
+        if (error) {
+            console.error("Error fetching projects:", error);
+            setHasMore(false);
+        } else if (data) {
+            const projectsWithLatestRender = data.map((project: any) => {
+                let displayImageUrl = project.rendered_image_url;
+                let isUpscaled = false;
+
+                if (project.renders && project.renders.length > 0) {
+                    // Sort renders by created_at desc to find the latest
+                    const sortedRenders = [...project.renders].sort(
+                        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                    );
+
+                    // Check if any render has an upscaled version, or just take the latest
+                    const latestUpscaled = sortedRenders.find((r: any) => r.upscaled_image_url);
+                    const latestRender = sortedRenders[0];
+
+                    if (latestUpscaled) {
+                        displayImageUrl = latestUpscaled.upscaled_image_url;
+                        isUpscaled = true;
+                    } else if (!displayImageUrl) {
+                        displayImageUrl = latestRender.rendered_image_url;
+                    }
+                }
+
+                return {
+                    ...project,
+                    rendered_image_url: displayImageUrl,
+                    is_upscaled: isUpscaled
+                };
+            });
+
+            if (isInitial) {
+                setProjects(projectsWithLatestRender);
+            } else {
+                setProjects(prev => [...prev, ...projectsWithLatestRender]);
+            }
+
+            setHasMore(data.length === ITEMS_PER_PAGE);
+        }
+        setLoading(false);
+        setLoadingMore(false);
+    };
+
+    useEffect(() => {
+        fetchProjects(0, true);
     }, [router]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (loading || loadingMore || !hasMore) return;
+
+            const scrollHeight = document.documentElement.scrollHeight;
+            const scrollTop = document.documentElement.scrollTop;
+            const clientHeight = document.documentElement.clientHeight;
+
+            if (scrollTop + clientHeight >= scrollHeight - 800) {
+                const nextPage = page + 1;
+                setPage(nextPage);
+                fetchProjects(nextPage);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [loading, loadingMore, hasMore, page]);
 
     const handleUploadComplete = async (imageUrl: string) => {
         const {data: {user}} = await supabase.auth.getUser();
@@ -83,11 +156,11 @@ export default function Dashboard() {
                 initial={{y: -100, opacity: 0}}
                 animate={{y: 0, opacity: 1}}
                 transition={{duration: 0.8, ease: "easeOut"}}
-                className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-[60]"
+                className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-60"
             />
             <Navbar/>
 
-            <section className={"hero !pt-40"}>
+            <section className={"hero pt-12!"}>
                 <div className={"announce"}>
                     <div className={"dot"}>
                         <div className={"pulse"}></div>
@@ -135,37 +208,63 @@ export default function Dashboard() {
                                 className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-xl bg-white/5">
                                 <p className="text-white/40">No projects found. Upload a floor plan to get started.</p>
                             </div>
-                        ) : projects.map((project: any) => (
-                            <div key={project.id} className={"project-card group"}
-                                 onClick={() => router.push(`/visualizer/${project.id}`)}>
-                                <div className="preview">
-                                    <img src={project.rendered_image_url || project.source_image_url}
-                                         alt="project preview"/>
+                        ) : (
+                            <>
+                                {projects.map((project: any) => (
+                                    <div key={project.id} className={"project-card group"}
+                                         onClick={() => router.push(`/visualizer/${project.id}`)}>
+                                        <div className="preview">
+                                            <img
+                                                src={project.rendered_image_url || project.source_image_url}
+                                                alt={project.name}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    if (project.rendered_image_url && target.src !== project.source_image_url) {
+                                                        target.src = project.source_image_url;
+                                                    } else {
+                                                        target.src = "https://placehold.co/600x400/f3f4f6/94a3b8?text=Floor+Plan";
+                                                    }
+                                                }}
+                                            />
 
-                                    <div className="badge">
-                                        <span>{project.rendered_image_url ? "Rendered" : "Original"}</span>
-                                    </div>
-                                </div>
+                                            <div className="badge">
+                                                <span>{project.rendered_image_url ? (project.is_upscaled ? "4K Render" : "Rendered") : "Original"}</span>
+                                            </div>
+                                            {project.is_upscaled && (
+                                                <div
+                                                    className="absolute top-2 left-2 z-10 flex items-center justify-center w-7 h-7 bg-amber-500 rounded-lg shadow-lg border border-amber-400/50">
+                                                    <span className="text-[10px] font-black text-white">4K</span>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                <div className="card-body">
-                                    <div>
-                                        <h3>{project.name}</h3>
-                                        <div className="meta">
-                                            <Clock size={12}/>
-                                            <span>{new Date(project.created_at).toLocaleDateString()}</span>
-                                            <span>By You</span>
+                                        <div className="card-body">
+                                            <div>
+                                                <h3>{project.name}</h3>
+                                                <div className="meta">
+                                                    <Clock size={12}/>
+                                                    <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                                                    <span>By You</span>
+                                                </div>
+                                            </div>
+                                            <div className={"arrow"}>
+                                                <ArrowUpRight size={18}/>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className={"arrow"}>
-                                        <ArrowUpRight size={18}/>
+                                ))}
+                                {loadingMore && (
+                                    <div className="col-span-full py-8 flex justify-center">
+                                        <div
+                                            className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                                     </div>
-                                </div>
-                            </div>
-                        ))}
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </section>
-            <Footer/>
         </div>
     );
 }
