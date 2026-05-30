@@ -97,7 +97,7 @@ export async function POST(req: Request) {
                     image: image,
                     mask: mask,
                     prompt: masterPrompt,
-                    negative_prompt: "(text, labels, numbers, letters, rug, carpet, furniture, shadows, blurred objects, walls, distorted, messy, human, animal:1.5)",
+                    negative_prompt: ROOMIFY_NEGATIVE_PROMPT,
                     num_outputs: 1,
                     guidance_scale: 15.0,
                     prompt_strength: 0.55,
@@ -116,6 +116,7 @@ export async function POST(req: Request) {
                 input: {
                     image_input: [image],
                     prompt: masterPrompt,
+                    negative_prompt: ROOMIFY_NEGATIVE_PROMPT,
                     aspect_ratio: "match_input_image",
                     output_format: "png",
                 },

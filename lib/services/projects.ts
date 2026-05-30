@@ -1,4 +1,4 @@
-import {SupabaseInstance, Project, ServiceResponse} from "./types";
+import type {SupabaseInstance, Project, ServiceResponse} from "./types";
 
 export const ProjectService = {
     async getUserProjects(

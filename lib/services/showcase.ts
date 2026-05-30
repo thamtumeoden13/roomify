@@ -1,4 +1,4 @@
-import {SupabaseInstance, ShowcaseItem, ServiceResponse} from "./types";
+import type {SupabaseInstance, ShowcaseItem, ServiceResponse} from "./types";
 
 export const ShowcaseService = {
     async getGalleryItems(

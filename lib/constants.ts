@@ -38,19 +38,19 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10MB
 // - Clean continuous surfaces, clutter-free, professional real estate presentation.
 // `.trim();
 export const ROOMIFY_RENDER_PROMPT = `
-A stunning 3D architectural diorama visualization. 
-3D STRUCTURE: Every wall must be a THICK, SOLID, WHITE MONOLITHIC block EXTRUDED upwards from the floor plan. Ensure clear 3D volume, realistic wall height, and deep spatial depth. 
-FURNITURE: Every piece of furniture must be rendered as a solid 3D object with realistic weight, high-fidelity textures, and soft ambient occlusion shadows.
-SURFACE CLEANUP: The floor is a continuous solid monolithic slab. COMPLETELY COVER and HIDE all text, lines, and labels from the original image with the selected flooring material.
-QUALITY: Unreal Engine 5.4 render, 8k resolution, ray-tracing reflections, sharp architectural focus, cinematic photography style.
-FINAL EXECUTION: Focus on 3D EXTRUSION. Walls must pop up from the ground. Ensure ultra-high textures for all surfaces.
+Professional architectural visualization diorama. 
+3D EXTRUSION: Every wall must be a THICK, SOLID, MONOLITHIC architectural structure with precise 90-degree corners and significant depth. Walls should look like heavy physical slabs extruded upwards from the floor plan.
+SURFACE CLEANUP: Aggressively overpaint and completely hide all 2D text, dimensions, labels, and original floor plan lines. Replace them with high-fidelity 3D surfaces and materials. Zero 2D artifacts.
+LIGHTING & RENDERING: Physically Based Rendering (PBR), Global Illumination, Ray-traced reflections, Unreal Engine 5.4 Lumen render. Cinematic lighting with soft ambient occlusion and sharp architectural focus.
+QUALITY: 8k UHD, masterpiece, photorealistic textures, hyper-realistic materials, high-end ArchViz photography style.
 `.trim();
 
 export const ROOMIFY_NEGATIVE_PROMPT = `
-text, words, letters, digits, numbers, labels, dimensions, 3d text, 3d letters, signage, typography, blurry, low quality, distorted, section view, side view, perspective distortion, messy floor, floor markings, architectural symbols, 
-3D typography, alphabet-shaped furniture, word-shaped objects, floor decals, 
-floor stickers, carpet patterns, rugs with text, messy grass, watermark, logo, annotations, measurements, drawing, distorted, perspective tilt, hand-drawn, paper texture, 
-blueprints, black and white lines on floor, cluttered surfaces.
+text, words, letters, digits, numbers, labels, dimensions, 3d text, 3d letters, signage, typography, watermark, logo, annotations, measurements, 
+warped walls, floating furniture, ghosting text, overlapping rooms, distorted perspectives, "alphabet-shaped" furniture, 
+blurry, low quality, distorted, section view, side view, perspective distortion, messy floor, floor markings, architectural symbols, 
+3D typography, word-shaped objects, floor decals, floor stickers, carpet patterns, rugs with text, messy grass, 
+drawing, distorted, perspective tilt, hand-drawn, paper texture, blueprints, black and white lines on floor, cluttered surfaces.
 `.trim();
 
 // 2. PHONG CÁCH NỘI THẤT (Định nghĩa vật liệu và đồ đạc)
@@ -58,22 +58,22 @@ export const ROOM_STYLES = [
     {
         id: "modern",
         name: "Modern",
-        keywords: "ultra-modern minimalist interior, sleek architectural lines, bespoke contemporary furniture blocks, neutral color palette, large glass windows, expansive bright open space, flat uniform surfaces, absolute structural clarity."
+        keywords: "ultra-modern minimalist luxury, sleek architectural lines, bespoke contemporary furniture, neutral high-end color palette, expansive bright open space, flat uniform surfaces, absolute structural clarity, high-end Italian furniture design."
     },
     {
         id: "vintage",
         name: "Vintage",
-        keywords: "sophisticated vintage luxury, rich antique furniture textures, authentic hand-carved wood elements, warm classical tones, ornate architectural details, mid-century modern elegance, rich material depth, nostalgic atmospheric feel."
+        keywords: "sophisticated heritage luxury, rich antique mahogany and oak textures, authentic hand-carved wood elements, warm classical tones, ornate architectural crown molding, mid-century modern elegance, rich material depth, nostalgic atmospheric feel."
     },
     {
         id: "japandi",
         name: "Japandi",
-        keywords: "premium japandi aesthetic, fusion of Japanese zen and Scandinavian functionality, organic natural wood solids, wabi-sabi textures, serene calm atmosphere, clean soft lines, clutter-free spatial volume."
+        keywords: "premium japandi aesthetic, fusion of Japanese zen and Scandinavian functionality, organic natural white oak and cedar solids, wabi-sabi textures, serene calm atmosphere, clean soft lines, clutter-free spatial volume, tatami influences."
     },
     {
         id: "industrial",
         name: "Industrial",
-        keywords: "luxury industrial 3D loft, volumetric dark brick walls, refined black metal structural accents, polished monolithic concrete, factory-style steel windows, raw professional aesthetic, high-contrast material depth."
+        keywords: "luxury industrial 3D loft, volumetric weathered brick walls, refined black powder-coated metal structural accents, polished monolithic concrete, factory-style steel windows, raw professional aesthetic, high-contrast material depth, exposed structural beams."
     }
 ];
 
@@ -82,27 +82,27 @@ export const FLOORING_MATERIALS = [
     {
         id: "light-oak",
         name: "Light Oak",
-        keywords: "solid opaque light oak timber planks, continuous natural wood grain, high-quality scandinavian hardwood flooring, seamless surface coverage, soft satin finish."
+        keywords: "solid opaque light oak timber planks, micro-texture detail, specular highlights, continuous natural wood grain, high-quality scandinavian hardwood, seamless tiling, soft satin finish."
     },
     {
         id: "dark-walnut",
         name: "Dark Walnut",
-        keywords: "premium opaque dark walnut hardwood, rich deep wood grain textures, polished heavy timber slabs, luxury seamless architectural flooring, sophisticated dark wood aesthetic."
+        keywords: "premium opaque dark walnut hardwood, rich deep wood grain textures, specular highlights, polished heavy timber slabs, luxury seamless architectural tiling, sophisticated dark wood aesthetic."
     },
     {
         id: "polished-concrete",
         name: "Polished Concrete",
-        keywords: "industrial solid polished gray concrete slab, seamless monolithic cement texture, architectural monolithic flooring, matte finish with realistic micro-textures."
+        keywords: "industrial solid polished gray concrete slab, seamless monolithic cement texture, specular reflections, architectural monolithic flooring, matte finish with realistic micro-textures."
     },
     {
         id: "white-marble",
         name: "White Marble",
-        keywords: "luxury opaque white carrara marble, elegant gray veining, high-gloss solid stone surface, premium seamless marble tiles, reflective palace-grade finish."
+        keywords: "luxury opaque white carrara marble, elegant gray veining, high-gloss solid stone surface, specular reflections, premium seamless marble tiling, reflective palace-grade finish."
     },
     {
         id: "hexagon-tiles",
         name: "Hexagon Tiles",
-        keywords: "modern solid ceramic hexagon tiles, geometric 3D floor layout, opaque tile textures, clean architectural grouting, stylish designer flooring with depth."
+        keywords: "modern solid ceramic hexagon tiles, geometric 3D floor layout, opaque tile textures, clean architectural grouting, stylish designer flooring with depth, seamless tiling patterns."
     }
 ];
 
@@ -177,4 +177,8 @@ export const CAMERA_VIEWS = [
         keywords: "45-degree angled camera tilt-shift, physical 3D diorama aesthetic, visible wall thickness and spatial volume."
     }
 ];
+
+export const ROOMIFY_INPAINT_PROMPT = `
+seamlessly blend the new texture with the surrounding 3D environment, match lighting and shadows, high-fidelity integration, ArchViz standard, physically based rendering.
+`.trim();
 
