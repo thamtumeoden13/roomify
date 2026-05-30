@@ -74,7 +74,7 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
                                 src={render.source_image_url}
                                 alt="Original 2D Plan"
                                 fill
-                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className="object-contain transition-all duration-500 group-hover:scale-[1.02] group-hover:opacity-80"
                                 placeholder="blur"
                                 blurDataURL={BLUR_DATA_URL}
@@ -92,7 +92,7 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
                                 src={initialImageUrl}
                                 alt={render.project_name || "AI Render"}
                                 fill
-                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className="object-contain transition-all duration-500 group-hover:scale-[1.02]"
                                 priority={index < 4}
                                 placeholder="blur"
@@ -113,7 +113,7 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
                                             src={currentImageUrl}
                                             alt={render.project_name || "AI Render High Res"}
                                             fill
-                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             className="object-contain"
                                         />
                                     </m.div>
