@@ -13,6 +13,7 @@ import Navbar from "@/components/Navbar";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {motion} from "framer-motion";
 import Link from "next/link";
+import NextImage from "next/image";
 import Button from "@/components/ui/Button";
 import {supabase} from "@/lib/supabase";
 import ShowcaseCard from "@/components/ShowcaseCard";
@@ -219,22 +220,28 @@ export default function LandingPage() {
                                     className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full"
                                 >
                                     <ReactCompareSlider
-                                        itemOne={<ReactCompareSliderImage src={showcaseImages[0].before}
-                                                                          alt="2D Floor Plan"
-                                                                          style={{
-                                                                              objectFit: 'contain',
-                                                                              width: '100%',
-                                                                              height: 'auto',
-                                                                              maxHeight: '80vh'
-                                                                          }}/>}
-                                        itemTwo={<ReactCompareSliderImage src={showcaseImages[0].after}
-                                                                          alt="3D Render"
-                                                                          style={{
-                                                                              objectFit: 'contain',
-                                                                              width: '100%',
-                                                                              height: 'auto',
-                                                                              maxHeight: '80vh'
-                                                                          }}/>}
+                                        itemOne={
+                                            <div className="relative w-full h-[50vh] md:h-[80vh]">
+                                                <NextImage
+                                                    src={showcaseImages[0].before}
+                                                    alt="2D Floor Plan"
+                                                    fill
+                                                    priority
+                                                    className="object-contain"
+                                                />
+                                            </div>
+                                        }
+                                        itemTwo={
+                                            <div className="relative w-full h-[50vh] md:h-[80vh]">
+                                                <NextImage
+                                                    src={showcaseImages[0].after}
+                                                    alt="3D Render"
+                                                    fill
+                                                    priority
+                                                    className="object-contain"
+                                                />
+                                            </div>
+                                        }
                                         className="w-full h-auto"
                                     />
                                     <div
@@ -278,10 +285,12 @@ export default function LandingPage() {
                                         key={idx}
                                         className="relative shrink-0 w-80 h-48 rounded-xl overflow-hidden group border border-slate-200 shadow-md"
                                     >
-                                        <img
+                                        <NextImage
                                             src={item.image}
                                             alt={item.label}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            fill
+                                            sizes="320px"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
                                         <div
                                             className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-4">

@@ -16,8 +16,10 @@ import {
     Trash2,
     Edit,
     Check,
-    Eraser
+    Eraser,
+    AlertCircle
 } from "lucide-react";
+import {motion, AnimatePresence} from "framer-motion";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -71,6 +73,8 @@ function VisualizerContent() {
     // New Comparison States for Isometric
     const [isoLeftImage, setIsoLeftImage] = useState<string | null>(null);
     const [isoRightImage, setIsoRightImage] = useState<string | null>(null);
+
+    const [isError, setIsError] = useState(false);
 
     // Edit Mode States
     const [isEditMode, setIsEditMode] = useState(false);
@@ -391,6 +395,8 @@ function VisualizerContent() {
 
         const isPlan = viewIdToUse === 'plan';
 
+        setIsError(false);
+
         try {
             if (isPlan) {
                 setIsPlanProcessing(true);
@@ -497,9 +503,10 @@ function VisualizerContent() {
 
             window.history.replaceState({}, "", `/visualizer/${id}?${params.toString()}`);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Generation failed:", error);
-            toast.error("Failed to generate 3D view. Please try again.");
+            setIsError(true);
+            toast.error(error.message || "Failed to generate 3D view. Please try again.");
             if (isPlan) {
                 setIsPlanProcessing(false);
             } else {
@@ -748,6 +755,7 @@ function VisualizerContent() {
                         setIsPlanProcessing(false);
                         setIsIsoProcessing(false);
                         setIsUpscaling(false);
+                        setIsError(true);
                         // States already updated above
                         toast.error("Generation failed. Please try again.");
                     }
@@ -824,7 +832,7 @@ function VisualizerContent() {
                     </div>
 
                     <div
-                        className={`render-area bg-slate-50 ${(isPlanProcessing || isUpscaling) ? "is-processing" : ""}`}>
+                        className={`render-area bg-slate-50 ${(isPlanProcessing || isUpscaling || isError) ? "is-processing" : ""}`}>
                         {currentImage ? (
                             <div className="relative w-full h-full flex items-center justify-center">
                                 <img src={currentImage} alt={`${selectedStyle.name} style AI architectural render`}
@@ -860,10 +868,135 @@ function VisualizerContent() {
                             </div>
                         )}
 
-                        {isPlanProcessing && (
-                            <div className="render-overlay bg-slate-50/20 backdrop-blur-md">
+                        <AnimatePresence>
+                            {isError && (
+                                <motion.div
+                                    initial={{opacity: 0, scale: 0.9}}
+                                    animate={{opacity: 1, scale: 1}}
+                                    exit={{opacity: 0, scale: 0.9}}
+                                    className="render-overlay bg-slate-50/20 backdrop-blur-md z-50"
+                                >
+                                    <div
+                                        className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-6 max-w-md mx-auto text-center">
+                                        <div
+                                            className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+                                            <AlertCircle className="w-10 h-10 text-red-500"/>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <h3 className="text-slate-900 font-bold tracking-tight text-2xl">Generation
+                                                Failed</h3>
+                                            <p className="text-slate-600 font-medium text-sm leading-relaxed">
+                                                Something went wrong while processing your plan. Don't worry, if the
+                                                process didn't start, your credits might not have been deducted.
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3 w-full">
+                                            <Button
+                                                variant="primary"
+                                                className="flex-1 shadow-lg shadow-indigo-200"
+                                                onClick={() => runGeneration()}
+                                            >
+                                                Try Again
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1"
+                                                onClick={() => {
+                                                    setCurrentImage(null);
+                                                    setIsError(false);
+                                                }}
+                                            >
+                                                Back to Original
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {isPlanProcessing && (
+                                <motion.div
+                                    initial={{opacity: 0}}
+                                    animate={{opacity: 1}}
+                                    exit={{opacity: 0}}
+                                    className="render-overlay bg-slate-50/20 backdrop-blur-md"
+                                >
+                                    <div
+                                        className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4">
+                                        <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
+                                        <div className="flex flex-col items-center">
+                                            <span
+                                                className="text-slate-900 font-semibold tracking-tight text-xl">Rendering...</span>
+                                            <span
+                                                className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
+                                                {getProcessingStatus(planPrediction?.status, elapsed)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {isUpscaling && (
+                                <motion.div
+                                    initial={{opacity: 0}}
+                                    animate={{opacity: 1}}
+                                    exit={{opacity: 0}}
+                                    className="render-overlay bg-slate-50/20 backdrop-blur-md"
+                                >
+                                    <div
+                                        className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4">
+                                        <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
+                                        <div className="flex flex-col items-center">
+                                            <span
+                                                className="text-slate-900 font-semibold tracking-tight text-xl">Enhancing details...</span>
+                                            <span
+                                                className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
+                                                {getProcessingStatus(upscalePrediction?.status, elapsed)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+
+                <div className="panel compare mt-12 relative overflow-hidden">
+                    <AnimatePresence>
+                        {isError && (
+                            <motion.div
+                                initial={{opacity: 0}}
+                                animate={{opacity: 1}}
+                                exit={{opacity: 0}}
+                                className="absolute inset-0 z-[60] bg-slate-50/20 backdrop-blur-md flex items-center justify-center"
+                            >
                                 <div
-                                    className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4">
+                                    className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4 scale-90 max-w-sm text-center">
+                                    <AlertCircle className="w-12 h-12 text-red-500"/>
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-slate-900 font-semibold tracking-tight text-xl">Generation Failed</span>
+                                        <p className="text-slate-500 text-sm mt-1">Please check the main viewport for
+                                            details.</p>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsError(false)}
+                                    >
+                                        Dismiss
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {isPlanProcessing && (
+                            <motion.div
+                                initial={{opacity: 0}}
+                                animate={{opacity: 1}}
+                                exit={{opacity: 0}}
+                                className="absolute inset-0 z-50 bg-slate-50/20 backdrop-blur-md flex items-center justify-center"
+                            >
+                                <div
+                                    className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4 scale-90">
                                     <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
                                     <div className="flex flex-col items-center">
                                         <span
@@ -874,45 +1007,9 @@ function VisualizerContent() {
                                         </span>
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
-
-                        {isUpscaling && (
-                            <div className="render-overlay bg-slate-50/20 backdrop-blur-md">
-                                <div
-                                    className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4">
-                                    <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
-                                    <div className="flex flex-col items-center">
-                                        <span className="text-slate-900 font-semibold tracking-tight text-xl">Enhancing details...</span>
-                                        <span
-                                            className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
-                                            {getProcessingStatus(upscalePrediction?.status, elapsed)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="panel compare mt-12 relative overflow-hidden">
-                    {isPlanProcessing && (
-                        <div
-                            className="absolute inset-0 z-50 bg-slate-50/20 backdrop-blur-md flex items-center justify-center">
-                            <div
-                                className="bg-white/90 rounded-3xl p-8 shadow-2xl border border-white flex flex-col items-center gap-4 scale-90">
-                                <RefreshCcw className="w-12 h-12 text-indigo-600 animate-spin"/>
-                                <div className="flex flex-col items-center">
-                                    <span
-                                        className="text-slate-900 font-semibold tracking-tight text-xl">Rendering...</span>
-                                    <span
-                                        className="text-indigo-600/80 font-medium text-sm text-center max-w-xs mt-1">
-                                        {getProcessingStatus(planPrediction?.status, elapsed)}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    </AnimatePresence>
                     <div className="panel-header flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="panel-meta">
                             <p>Technical Visualization</p>

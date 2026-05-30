@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import {toast} from "sonner";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
+import NextImage from "next/image";
 import {Tooltip} from "@/components/ui/Tooltip";
 import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS} from "@/lib/constants";
 
@@ -150,18 +151,40 @@ export default function SharePageClient({
                             className="bg-slate-50 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative group transition-all w-full h-auto max-h-[80vh]">
                             {selectedPlan ? (
                                 <ReactCompareSlider
-                                    itemOne={<ReactCompareSliderImage src={project.source_image_url} alt="Original Plan"
-                                                                      loading="eager" className="object-contain"/>}
-                                    itemTwo={<ReactCompareSliderImage
-                                        src={getHighResUrl(selectedPlan)}
-                                        alt="3D Render" loading="eager" className="object-contain"/>}
+                                    itemOne={
+                                        <div className="relative w-full h-[60vh] md:h-[80vh]">
+                                            <NextImage
+                                                src={project.source_image_url}
+                                                alt="Original Plan"
+                                                fill
+                                                priority
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    }
+                                    itemTwo={
+                                        <div className="relative w-full h-[60vh] md:h-[80vh]">
+                                            <NextImage
+                                                src={getHighResUrl(selectedPlan)}
+                                                alt="3D Render"
+                                                fill
+                                                priority
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    }
                                     className="w-full h-full"
                                 />
                             ) : (
                                 <div
-                                    className="w-full h-auto max-h-[80vh] bg-slate-50 flex items-center justify-center">
-                                    <img src={project.source_image_url} alt="Original Plan"
-                                         className="max-h-full object-contain" loading="eager"/>
+                                    className="w-full h-[60vh] md:h-[80vh] relative bg-slate-50 flex items-center justify-center">
+                                    <NextImage
+                                        src={project.source_image_url}
+                                        alt="Original Plan"
+                                        fill
+                                        priority
+                                        className="object-contain"
+                                    />
                                 </div>
                             )}
 
@@ -274,10 +297,15 @@ export default function SharePageClient({
                                                     selectedPlan?.id === v.id ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-transparent hover:border-slate-200"
                                                 }`}
                                             >
-                                                <img src={getHighResUrl(v)} alt="Variant"
-                                                     className="w-full h-full object-contain"/>
+                                                <NextImage
+                                                    src={getHighResUrl(v)}
+                                                    alt="Variant"
+                                                    fill
+                                                    sizes="96px"
+                                                    className="object-contain"
+                                                />
                                                 <div
-                                                    className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-lg">
+                                                    className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-lg z-10">
                                                     V{i + 1}
                                                 </div>
                                             </button>
@@ -355,12 +383,26 @@ export default function SharePageClient({
                                 <div
                                     className="bg-slate-50 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative transition-all w-full h-auto max-h-[80vh]">
                                     <ReactCompareSlider
-                                        itemOne={<ReactCompareSliderImage
-                                            src={getHighResUrl(isoLeft)}
-                                            alt="Style A" loading="lazy" className="object-contain"/>}
-                                        itemTwo={<ReactCompareSliderImage
-                                            src={getHighResUrl(isoRight)}
-                                            alt="Style B" loading="lazy" className="object-contain"/>}
+                                        itemOne={
+                                            <div className="relative w-full h-[60vh] md:h-[80vh]">
+                                                <NextImage
+                                                    src={getHighResUrl(isoLeft)}
+                                                    alt="Style A"
+                                                    fill
+                                                    className="object-contain"
+                                                />
+                                            </div>
+                                        }
+                                        itemTwo={
+                                            <div className="relative w-full h-[60vh] md:h-[80vh]">
+                                                <NextImage
+                                                    src={getHighResUrl(isoRight)}
+                                                    alt="Style B"
+                                                    fill
+                                                    className="object-contain"
+                                                />
+                                            </div>
+                                        }
                                         className="w-full h-full"
                                     />
                                 </div>
@@ -390,8 +432,13 @@ export default function SharePageClient({
                                                             isActive ? "border-indigo-600 ring-4 ring-indigo-600/10 scale-[0.98]" : "border-transparent hover:border-slate-200"
                                                         }`}
                                                     >
-                                                        <img src={getHighResUrl(v)} alt="Isometric preview"
-                                                             className="w-full h-full object-contain transition-transform group-hover:scale-110"/>
+                                                        <NextImage
+                                                            src={getHighResUrl(v)}
+                                                            alt="Isometric preview"
+                                                            fill
+                                                            sizes="(max-width: 1024px) 25vw, 15vw"
+                                                            className="object-contain transition-transform group-hover:scale-110"
+                                                        />
                                                         <div
                                                             className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
                                                         <div
