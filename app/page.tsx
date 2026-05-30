@@ -199,11 +199,13 @@ export default function LandingPage() {
                             viewport={{once: true}}
                             transition={{duration: 0.8}}
                         >
-                          <span
-                              className="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 rounded-full">
-                            The Future of Visualization
-                          </span>
-                            <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-6 text-slate-900">
+                            <div className="min-h-[40px] flex items-center justify-center mb-6">
+                            <span
+                                className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 rounded-full">
+                              The Future of Visualization
+                            </span>
+                            </div>
+                            <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-6 text-slate-900 min-h-[1.2em] md:min-h-[2.4em]">
                                 Transform 2D Floor Plans into <br className="hidden md:block"/> Stunning 3D Renders
                                 in
                                 Seconds
@@ -253,32 +255,34 @@ export default function LandingPage() {
                                     whileInView={{opacity: 1, scale: 1}}
                                     viewport={{once: true}}
                                     transition={{duration: 1}}
-                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full min-h-[500px] aspect-video"
+                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full aspect-video min-h-[300px] md:min-h-[600px]"
                                 >
                                     <Suspense fallback={<div
-                                        className="w-full h-[50vh] md:h-[80vh] bg-slate-200 animate-pulse rounded-[2.5rem]"/>}>
+                                        className="w-full h-full bg-slate-200 animate-pulse rounded-[2.5rem]"/>}>
                                         <ReactCompareSlider
                                             itemOne={
-                                                <div className="relative w-full h-[50vh] md:h-[80vh]">
+                                                <div
+                                                    className="relative w-full aspect-video min-h-[300px] md:min-h-[600px]">
                                                     <ReactCompareSliderImage
                                                         src={showcaseImages[0].before}
                                                         alt="2D Floor Plan"
-                                                        sizes="100vw"
-                                                        style={{objectFit: 'contain'}}
+                                                        sizes="(max-width: 1280px) 100vw, 1280px"
+                                                        style={{objectFit: 'cover'}}
                                                     />
                                                 </div>
                                             }
                                             itemTwo={
-                                                <div className="relative w-full h-[50vh] md:h-[80vh]">
+                                                <div
+                                                    className="relative w-full aspect-video min-h-[300px] md:min-h-[600px]">
                                                     <ReactCompareSliderImage
                                                         src={showcaseImages[0].after}
                                                         alt="3D Render"
-                                                        sizes="100vw"
-                                                        style={{objectFit: 'contain'}}
+                                                        sizes="(max-width: 1280px) 100vw, 1280px"
+                                                        style={{objectFit: 'cover'}}
                                                     />
                                                 </div>
                                             }
-                                            className="w-full h-auto"
+                                            className="w-full h-full"
                                         />
                                     </Suspense>
                                     <div
