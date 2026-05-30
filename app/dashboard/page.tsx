@@ -10,6 +10,7 @@ import {toast} from "sonner";
 import {MAX_UPLOAD_BYTES} from "@/lib/constants";
 import {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
+import NextImage from "next/image";
 
 export default function Dashboard() {
     const router = useRouter();
@@ -213,19 +214,13 @@ export default function Dashboard() {
                                 {projects.map((project: any) => (
                                     <div key={project.id} className={"project-card group"}
                                          onClick={() => router.push(`/visualizer/${project.id}`)}>
-                                        <div className="preview">
-                                            <img
-                                                src={project.rendered_image_url || project.source_image_url}
+                                        <div className="preview relative overflow-hidden aspect-[4/3]">
+                                            <NextImage
+                                                src={project.rendered_image_url || project.source_image_url || "https://placehold.co/600x400/f3f4f6/94a3b8?text=Floor+Plan"}
                                                 alt={project.name}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    if (project.rendered_image_url && target.src !== project.source_image_url) {
-                                                        target.src = project.source_image_url;
-                                                    } else {
-                                                        target.src = "https://placehold.co/600x400/f3f4f6/94a3b8?text=Floor+Plan";
-                                                    }
-                                                }}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                className="object-cover"
                                             />
 
                                             <div className="badge">

@@ -4,6 +4,9 @@ import React from "react";
 import {motion, AnimatePresence} from "framer-motion";
 import {Heart, Eye, User, Sparkles} from "lucide-react";
 import Link from "next/link";
+import NextImage from "next/image";
+
+const BLUR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/+ZNPQAIXwM496nefQAAAABJRU5ErkJggg==";
 
 interface ShowcaseCardProps {
     item: any;
@@ -67,11 +70,14 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
 
                         {/* Left Side: Original 2D Plan */}
                         <div className="relative flex-1 bg-slate-50 overflow-hidden border-r border-slate-200/50">
-                            <img
+                            <NextImage
                                 src={render.source_image_url}
                                 alt="Original 2D Plan"
-                                className="w-full h-full object-contain transition-all duration-500 group-hover:scale-[1.02] group-hover:opacity-80"
-                                loading="lazy"
+                                fill
+                                sizes="(max-width: 768px) 50vw, 25vw"
+                                className="object-contain transition-all duration-500 group-hover:scale-[1.02] group-hover:opacity-80"
+                                placeholder="blur"
+                                blurDataURL={BLUR_DATA_URL}
                             />
                             <div
                                 className="absolute bottom-2 left-2 bg-white/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[8px] font-bold text-slate-500 uppercase tracking-wider">
@@ -82,25 +88,35 @@ export default function ShowcaseCard({item, index, isAdminUser, onUnapprove}: Sh
                         {/* Right Side: 3D Render Result */}
                         <div className="relative flex-1 bg-slate-50 overflow-hidden">
                             {/* Base/Standard Quality Image */}
-                            <img
+                            <NextImage
                                 src={initialImageUrl}
                                 alt={render.project_name || "AI Render"}
-                                className="w-full h-full object-contain transition-all duration-500 group-hover:scale-[1.02]"
-                                loading={index < 4 ? "eager" : "lazy"}
+                                fill
+                                sizes="(max-width: 768px) 50vw, 25vw"
+                                className="object-contain transition-all duration-500 group-hover:scale-[1.02]"
+                                priority={index < 4}
+                                placeholder="blur"
+                                blurDataURL={BLUR_DATA_URL}
                             />
 
                             {/* High Quality/Upscaled Image (fades in when ready) */}
                             <AnimatePresence>
                                 {currentImageUrl !== initialImageUrl && (
-                                    <motion.img
+                                    <motion.div
                                         key="high-res"
                                         initial={{opacity: 0}}
                                         animate={{opacity: 1}}
                                         transition={{duration: 0.8}}
-                                        src={currentImageUrl}
-                                        alt={render.project_name || "AI Render High Res"}
-                                        className="absolute inset-0 w-full h-full object-contain"
-                                    />
+                                        className="absolute inset-0"
+                                    >
+                                        <NextImage
+                                            src={currentImageUrl}
+                                            alt={render.project_name || "AI Render High Res"}
+                                            fill
+                                            sizes="(max-width: 768px) 50vw, 25vw"
+                                            className="object-contain"
+                                        />
+                                    </motion.div>
                                 )}
                             </AnimatePresence>
 
