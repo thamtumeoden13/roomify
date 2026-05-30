@@ -14,7 +14,6 @@ import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider"
 import {motion} from "framer-motion";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import Footer from "@/components/Footer";
 import {supabase} from "@/lib/supabase";
 import ShowcaseCard from "@/components/ShowcaseCard";
 
@@ -578,7 +577,6 @@ export default function LandingPage() {
                     </div>
                 </section>
             </main>
-            <Footer/>
         </div>
     );
 }

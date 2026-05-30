@@ -23,6 +23,7 @@ import {
     Lamp,
     Focus,
     Globe,
+    Check,
 } from 'lucide-react';
 import {Select} from '@/components/ui/Select';
 import {Tooltip} from '@/components/ui/Tooltip';
@@ -55,6 +56,7 @@ interface VisualizerToolbarProps {
     hasCurrentImage: boolean;
     isPublic: boolean;
     onTogglePublic: (isPublic: boolean) => void;
+    isUpscaled?: boolean;
     currentPlanExists: boolean;
     customInstructions: string;
     onCustomInstructionsChange: (val: string) => void;
@@ -116,6 +118,7 @@ export default function VisualizerToolbar({
                                               hasCurrentImage,
                                               isPublic,
                                               onTogglePublic,
+                                              isUpscaled,
                                               currentPlanExists,
                                               customInstructions,
                                               onCustomInstructionsChange
@@ -380,21 +383,43 @@ export default function VisualizerToolbar({
                             </motion.div>
                         </Tooltip>
 
-                        <Tooltip content="4K Upscale">
+                        <Tooltip
+                            content={isUpscaled ? "This design is already in Ultra HD resolution" : "Enhance to 4K: Sharpen textures and remove AI noise (Cost: 2 Credits)"}>
                             <motion.div whileHover={{y: -2}}>
                                 <Button
                                     variant="outline"
                                     onClick={onUpscale}
-                                    disabled={isPlanProcessing || isIsoProcessing || isUpscaling || !hasCurrentImage || credits === 0}
-                                    className="px-2.5 lg:px-4 h-11 lg:h-12 rounded-xl lg:rounded-2xl border-slate-200/80 dark:border-slate-700/80 flex items-center gap-2 font-bold text-[10px] lg:text-xs uppercase tracking-wider"
+                                    disabled={isPlanProcessing || isIsoProcessing || isUpscaling || !hasCurrentImage || credits === 0 || isUpscaled}
+                                    className={cn(
+                                        "px-2.5 lg:px-4 h-11 lg:h-12 rounded-xl lg:rounded-2xl flex items-center gap-2 font-bold text-[10px] lg:text-xs uppercase tracking-wider transition-all duration-300",
+                                        isUpscaled
+                                            ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-700 dark:text-emerald-400"
+                                            : "bg-amber-500/10 border-amber-500/50 text-amber-700 dark:text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+                                    )}
                                 >
                                     {isUpscaling ? (
                                         <RefreshCcw className="w-4 h-4 animate-spin"/>
+                                    ) : isUpscaled ? (
+                                        <Check className="w-4 h-4 text-emerald-500"/>
                                     ) : (
-                                        <Zap
-                                            className={cn("w-4 h-4", credits === 0 ? "text-slate-400" : "text-amber-500 fill-amber-500")}/>
+                                        <motion.div
+                                            animate={{
+                                                scale: [1, 1.2, 1],
+                                                opacity: [1, 0.8, 1]
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                ease: "easeInOut"
+                                            }}
+                                        >
+                                            <Zap
+                                                className={cn("w-4 h-4", credits === 0 ? "text-slate-400" : "text-amber-500 fill-amber-500")}/>
+                                        </motion.div>
                                     )}
-                                    <span className="hidden xl:inline">4K Upscale</span>
+                                    <span className="hidden xl:inline">
+                                        {isUpscaled ? "Already 4K" : "4K Upscale"}
+                                    </span>
                                 </Button>
                             </motion.div>
                         </Tooltip>

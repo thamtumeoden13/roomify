@@ -135,7 +135,7 @@ export default function SharePageClient({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col pt-20">
+        <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
             <Navbar minimal={true}/>
 
@@ -270,7 +270,7 @@ export default function SharePageClient({
                                         <Tooltip key={v.id} content={tooltipContent}>
                                             <button
                                                 onClick={() => setSelectedPlan(v)}
-                                                className={`relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all bg-slate-50 ${
+                                                className={`relative shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all bg-slate-50 ${
                                                     selectedPlan?.id === v.id ? "border-indigo-600 ring-4 ring-indigo-600/10" : "border-transparent hover:border-slate-200"
                                                 }`}
                                             >
@@ -375,7 +375,7 @@ export default function SharePageClient({
                                     </h3>
                                     <div className="relative overflow-hidden">
                                         <div
-                                            className="grid grid-cols-2 lg:grid-cols-1 gap-4 overflow-y-auto max-h-[500px] lg:max-h-[60vh] pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+                                            className="grid grid-cols-2 lg:grid-cols-1 gap-4 overflow-y-auto max-h-125 lg:max-h-[60vh] pr-2 scrollbar-thin scrollbar-thumb-slate-200">
                                             {isoVariants.map((v, i) => {
                                                 const isActive = isoLeft?.id === v.id || isoRight?.id === v.id;
                                                 return (
@@ -393,7 +393,7 @@ export default function SharePageClient({
                                                         <img src={getHighResUrl(v)} alt="Isometric preview"
                                                              className="w-full h-full object-contain transition-transform group-hover:scale-110"/>
                                                         <div
-                                                            className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                                            className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
                                                         <div
                                                             className="absolute bottom-3 left-3 flex flex-col items-start">
                                                             <span
@@ -411,7 +411,7 @@ export default function SharePageClient({
                                         </div>
                                         {/* Bottom fade indicator */}
                                         <div
-                                            className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"/>
+                                            className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-white to-transparent pointer-events-none z-10"/>
                                     </div>
                                 </div>
                             </div>
@@ -420,36 +420,6 @@ export default function SharePageClient({
                 )}
             </main>
 
-            {/* Conversion Banner */}
-            <footer className="mt-auto p-6 md:p-12">
-                <div
-                    className="max-w-5xl mx-auto bg-indigo-600 rounded-[3rem] p-8 md:p-16 relative overflow-hidden text-center shadow-2xl border border-indigo-500/50">
-                    <div
-                        className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-800 opacity-90"/>
-                    <div
-                        className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                    <div className="relative z-10">
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">
-                            Inspired by this design?
-                        </h2>
-                        <p className="text-indigo-100 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-                            Transform your own floor plans into stunning photorealistic 3D visualizations in seconds
-                            with Roomify.
-                        </p>
-                        <Link href="/">
-                            <Button
-                                className="bg-white text-indigo-600 hover:bg-indigo-50 px-10 py-5 h-auto text-xl font-bold rounded-[2rem] group shadow-xl transition-all hover:scale-105 active:scale-95">
-                                Create your own design
-                                <ArrowRight
-                                    className="ml-2 w-6 h-6 inline transition-transform group-hover:translate-x-2"/>
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-                <div className="text-center mt-12 text-slate-400 text-sm">
-                    &copy; {new Date().getFullYear()} Roomify AI. All rights reserved.
-                </div>
-            </footer>
         </div>
     );
 }

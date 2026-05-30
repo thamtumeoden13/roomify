@@ -615,10 +615,10 @@
                         @apply relative bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col h-full;
 
                         .preview {
-                            @apply aspect-4/3 overflow-hidden bg-slate-50 relative flex items-center justify-center;
+                            @apply aspect-4/3 overflow-hidden bg-slate-100 relative flex items-center justify-center;
 
                             img {
-                                @apply w-full h-full object-contain group-hover:scale-105 transition-transform duration-700;
+                                @apply w-full h-full object-cover group-hover:scale-105 transition-transform duration-700;
                             }
 
                             .badge {
