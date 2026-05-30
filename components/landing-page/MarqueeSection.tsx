@@ -11,6 +11,8 @@ interface MarqueeSectionProps {
     marqueeItems: MarqueeItem[];
 }
 
+const BLUR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/+ZNPQAIXwM496nefQAAAABJRU5ErkJggg==";
+
 const MarqueeSection = ({marqueeItems}: MarqueeSectionProps) => {
     return (
         <section className="py-20 bg-white border-y border-slate-200 overflow-hidden">
@@ -43,8 +45,10 @@ const MarqueeSection = ({marqueeItems}: MarqueeSectionProps) => {
                                 src={item.image}
                                 alt={item.label}
                                 fill
-                                sizes="320px"
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                 className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                placeholder="blur"
+                                blurDataURL={BLUR_DATA_URL}
                             />
                             <div
                                 className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-4">

@@ -52,6 +52,8 @@ const CTASection = dynamic(() => import('@/components/landing-page/CTASection'),
     loading: () => <div className="py-24 md:py-40 bg-slate-900 h-[400px] animate-pulse"/>
 });
 
+const BLUR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/+ZNPQAIXwM496nefQAAAABJRU5ErkJggg==";
+
 export default function LandingPage() {
     const [user, setUser] = useState<any>(null);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -199,7 +201,7 @@ export default function LandingPage() {
                             viewport={{once: true}}
                             transition={{duration: 0.8}}
                         >
-                            <div className="min-h-[40px] flex items-center justify-center mb-6">
+                            <div className="min-h-10 flex items-center justify-center mb-6">
                             <span
                                 className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 rounded-full">
                               The Future of Visualization
@@ -255,30 +257,37 @@ export default function LandingPage() {
                                     whileInView={{opacity: 1, scale: 1}}
                                     viewport={{once: true}}
                                     transition={{duration: 1}}
-                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full aspect-video min-h-[300px] md:min-h-[600px]"
+                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full aspect-video min-h-75 md:min-h-150"
                                 >
                                     <Suspense fallback={<div
                                         className="w-full h-full bg-slate-200 animate-pulse rounded-[2.5rem]"/>}>
                                         <ReactCompareSlider
                                             itemOne={
                                                 <div
-                                                    className="relative w-full aspect-video min-h-[300px] md:min-h-[600px]">
-                                                    <ReactCompareSliderImage
+                                                    className="relative w-full aspect-video min-h-75 md:min-h-150">
+                                                    <NextImage
                                                         src={showcaseImages[0].before}
                                                         alt="2D Floor Plan"
-                                                        sizes="(max-width: 1280px) 100vw, 1280px"
-                                                        style={{objectFit: 'cover'}}
+                                                        fill
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                                        className="object-cover"
+                                                        priority={true}
+                                                        placeholder="blur"
+                                                        blurDataURL={BLUR_DATA_URL}
                                                     />
                                                 </div>
                                             }
                                             itemTwo={
                                                 <div
-                                                    className="relative w-full aspect-video min-h-[300px] md:min-h-[600px]">
-                                                    <ReactCompareSliderImage
+                                                    className="relative w-full aspect-video min-h-75 md:min-h-150">
+                                                    <NextImage
                                                         src={showcaseImages[0].after}
                                                         alt="3D Render"
-                                                        sizes="(max-width: 1280px) 100vw, 1280px"
-                                                        style={{objectFit: 'cover'}}
+                                                        fill
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                                        className="object-cover"
+                                                        placeholder="blur"
+                                                        blurDataURL={BLUR_DATA_URL}
                                                     />
                                                 </div>
                                             }
@@ -300,22 +309,22 @@ export default function LandingPage() {
 
                 {/* Infinite Marquee Section */}
                 <Suspense
-                    fallback={<div className="py-20 bg-white border-y border-slate-200 h-[400px] animate-pulse"/>}>
+                    fallback={<div className="py-20 bg-white border-y border-slate-200 h-100 animate-pulse"/>}>
                     <MarqueeSection marqueeItems={marqueeItems}/>
                 </Suspense>
 
                 {/* How It Works */}
-                <Suspense fallback={<div className="py-32 md:py-48 bg-white h-[600px] animate-pulse"/>}>
+                <Suspense fallback={<div className="py-32 md:py-48 bg-white h-150 animate-pulse"/>}>
                     <HowItWorksSection/>
                 </Suspense>
 
                 {/* Features Grid */}
-                <Suspense fallback={<div className="py-32 md:py-48 bg-slate-900 h-[800px] animate-pulse"/>}>
+                <Suspense fallback={<div className="py-32 md:py-48 bg-slate-900 h-200 animate-pulse"/>}>
                     <FeaturesSection/>
                 </Suspense>
 
                 {/* Showcase Gallery */}
-                <Suspense fallback={<div className="py-32 md:py-48 bg-white h-[800px] animate-pulse"/>}>
+                <Suspense fallback={<div className="py-32 md:py-48 bg-white h-200 animate-pulse"/>}>
                     <ShowcaseGallerySection
                         isLoading={isLoading}
                         trendingItems={trendingItems}
@@ -325,7 +334,7 @@ export default function LandingPage() {
                 </Suspense>
 
                 {/* CTA Section */}
-                <Suspense fallback={<div className="py-24 md:py-40 bg-slate-900 h-[400px] animate-pulse"/>}>
+                <Suspense fallback={<div className="py-24 md:py-40 bg-slate-900 h-100 animate-pulse"/>}>
                     <CTASection/>
                 </Suspense>
             </main>
