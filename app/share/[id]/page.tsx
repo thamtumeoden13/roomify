@@ -1,6 +1,9 @@
 import type {Metadata} from "next";
 import {supabase} from "@/lib/supabase";
 import SharePageClient from "./SharePageClient";
+import {ShowcaseService} from "@/lib/services/showcase";
+import {ProjectService} from "@/lib/services/projects";
+import {RenderService} from "@/lib/services/renders";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -21,31 +24,15 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
     if (showcaseData) {
         selectedRender = showcaseData.render;
-        const {data: projectData} = await supabase
-            .from("projects")
-            .select("*")
-            .eq("id", selectedRender.project_id)
-            .single();
+        const {data: projectData} = await ProjectService.getProjectDetails(supabase, selectedRender.project_id);
         project = projectData;
     } else {
-        const {data: projectData} = await supabase
-            .from("projects")
-            .select("*")
-            .eq("id", id)
-            .maybeSingle();
+        const {data: projectData} = await ProjectService.getProjectDetails(supabase, id);
         project = projectData;
 
         if (project) {
-            const {data: variantsData} = await supabase
-                .from("renders")
-                .select("*")
-                .eq("project_id", project.id)
-                .eq("status", "succeeded")
-                .order("created_at", {ascending: false})
-                .limit(1);
-            if (variantsData && variantsData.length > 0) {
-                selectedRender = variantsData[0];
-            }
+            const {data: latestRender} = await RenderService.getLatestSuccessfulRender(supabase, project.id);
+            selectedRender = latestRender;
         }
     }
 
@@ -92,23 +79,15 @@ export default async function SharePage({params}: Props) {
         .maybeSingle();
 
     let project = null;
-    let variants = [];
+    let variants: any[] = [];
     let targetProjectId = null;
 
     if (showcaseData) {
         targetProjectId = showcaseData.render.project_id;
-        const {data: projectData} = await supabase
-            .from("projects")
-            .select("*")
-            .eq("id", targetProjectId)
-            .single();
+        const {data: projectData} = await ProjectService.getProjectDetails(supabase, targetProjectId);
         project = projectData;
     } else {
-        const {data: projectData} = await supabase
-            .from("projects")
-            .select("*")
-            .eq("id", id)
-            .maybeSingle();
+        const {data: projectData} = await ProjectService.getProjectDetails(supabase, id);
         if (projectData) {
             project = projectData;
             targetProjectId = id;
@@ -116,13 +95,8 @@ export default async function SharePage({params}: Props) {
     }
 
     if (targetProjectId) {
-        const {data: variantsData} = await supabase
-            .from("renders")
-            .select("*")
-            .eq("project_id", targetProjectId)
-            .eq("status", "succeeded")
-            .order("created_at", {ascending: false});
-        variants = variantsData || [];
+        const {data: variantsData} = await RenderService.getProjectRenders(supabase, targetProjectId);
+        variants = (variantsData || []).filter(r => r.status === 'succeeded');
     }
 
     return (

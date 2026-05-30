@@ -222,23 +222,21 @@ export default function LandingPage() {
                                     <ReactCompareSlider
                                         itemOne={
                                             <div className="relative w-full h-[50vh] md:h-[80vh]">
-                                                <NextImage
+                                                <ReactCompareSliderImage
                                                     src={showcaseImages[0].before}
                                                     alt="2D Floor Plan"
-                                                    fill
-                                                    priority
-                                                    className="object-contain"
+                                                    sizes="100vw"
+                                                    style={{objectFit: 'contain'}}
                                                 />
                                             </div>
                                         }
                                         itemTwo={
                                             <div className="relative w-full h-[50vh] md:h-[80vh]">
-                                                <NextImage
+                                                <ReactCompareSliderImage
                                                     src={showcaseImages[0].after}
                                                     alt="3D Render"
-                                                    fill
-                                                    priority
-                                                    className="object-contain"
+                                                    sizes="100vw"
+                                                    style={{objectFit: 'contain'}}
                                                 />
                                             </div>
                                         }

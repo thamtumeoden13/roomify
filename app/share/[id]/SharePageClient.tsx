@@ -34,25 +34,44 @@ export default function SharePageClient({
     const planVariants = variants.filter(v => v.view_id === 'plan' || !v.view_id);
     const isoVariants = variants.filter(v => v.view_id === 'isometric');
 
-    const [selectedPlan, setSelectedPlan] = useState<any>(
-        initialShowcase?.render?.view_id === 'plan' || !initialShowcase?.render?.view_id
-            ? initialShowcase?.render
-            : (planVariants.length > 0 ? planVariants[0] : null)
-    );
+    const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
-    const [isoLeft, setIsoLeft] = useState<any>(
-        isoVariants.length > 1 ? isoVariants[isoVariants.length - 2] : (isoVariants.length > 0 ? isoVariants[0] : null)
-    );
-    const [isoRight, setIsoRight] = useState<any>(
-        initialShowcase?.render?.view_id === 'isometric'
-            ? initialShowcase?.render
-            : (isoVariants.length > 0 ? isoVariants[isoVariants.length - 1] : null)
-    );
+    useEffect(() => {
+        if (initialShowcase?.render?.view_id === 'plan' || !initialShowcase?.render?.view_id) {
+            if (initialShowcase?.render) {
+                setSelectedPlan(initialShowcase.render);
+            } else if (planVariants.length > 0) {
+                setSelectedPlan(planVariants[0]);
+            }
+        } else if (planVariants.length > 0) {
+            setSelectedPlan(planVariants[0]);
+        }
+    }, [initialShowcase, variants]);
+
+    const [isoLeft, setIsoLeft] = useState<any>(null);
+    const [isoRight, setIsoRight] = useState<any>(null);
+
+    useEffect(() => {
+        if (isoVariants.length > 0) {
+            const left = isoVariants.length > 1 ? isoVariants[isoVariants.length - 2] : isoVariants[0];
+            setIsoLeft(left);
+
+            const right = initialShowcase?.render?.view_id === 'isometric'
+                ? initialShowcase?.render
+                : isoVariants[isoVariants.length - 1];
+            setIsoRight(right);
+        }
+    }, [initialShowcase, variants]);
 
     const [showcase, setShowcase] = useState<any>(initialShowcase);
     const [hasVoted, setHasVoted] = useState(false);
     const [voteCount, setVoteCount] = useState(initialShowcase?.vote_count || 0);
     const [isAdminUser, setIsAdminUser] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const getVariantDetails = (v: any) => {
         if (!v) return null;
@@ -149,27 +168,25 @@ export default function SharePageClient({
                     <div className="lg:col-span-2 space-y-8">
                         <div
                             className="bg-slate-50 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative group transition-all w-full h-auto max-h-[80vh]">
-                            {selectedPlan ? (
+                            {mounted && selectedPlan ? (
                                 <ReactCompareSlider
                                     itemOne={
                                         <div className="relative w-full h-[60vh] md:h-[80vh]">
-                                            <NextImage
+                                            <ReactCompareSliderImage
                                                 src={project.source_image_url}
                                                 alt="Original Plan"
-                                                fill
-                                                priority
-                                                className="object-contain"
+                                                sizes="(max-width: 1024px) 100vw, 66vw"
+                                                style={{objectFit: 'contain'}}
                                             />
                                         </div>
                                     }
                                     itemTwo={
                                         <div className="relative w-full h-[60vh] md:h-[80vh]">
-                                            <NextImage
+                                            <ReactCompareSliderImage
                                                 src={getHighResUrl(selectedPlan)}
                                                 alt="3D Render"
-                                                fill
-                                                priority
-                                                className="object-contain"
+                                                sizes="(max-width: 1024px) 100vw, 66vw"
+                                                style={{objectFit: 'contain'}}
                                             />
                                         </div>
                                     }
@@ -183,6 +200,7 @@ export default function SharePageClient({
                                         alt="Original Plan"
                                         fill
                                         priority
+                                        sizes="(max-width: 1024px) 100vw, 66vw"
                                         className="object-contain"
                                     />
                                 </div>
@@ -382,29 +400,42 @@ export default function SharePageClient({
                             <div className="lg:col-span-3">
                                 <div
                                     className="bg-slate-50 rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 relative transition-all w-full h-auto max-h-[80vh]">
-                                    <ReactCompareSlider
-                                        itemOne={
-                                            <div className="relative w-full h-[60vh] md:h-[80vh]">
-                                                <NextImage
-                                                    src={getHighResUrl(isoLeft)}
-                                                    alt="Style A"
-                                                    fill
-                                                    className="object-contain"
-                                                />
-                                            </div>
-                                        }
-                                        itemTwo={
-                                            <div className="relative w-full h-[60vh] md:h-[80vh]">
-                                                <NextImage
-                                                    src={getHighResUrl(isoRight)}
-                                                    alt="Style B"
-                                                    fill
-                                                    className="object-contain"
-                                                />
-                                            </div>
-                                        }
-                                        className="w-full h-full"
-                                    />
+                                    {mounted && isoLeft && isoRight ? (
+                                        <ReactCompareSlider
+                                            itemOne={
+                                                <div className="relative w-full h-[60vh] md:h-[80vh]">
+                                                    <ReactCompareSliderImage
+                                                        src={getHighResUrl(isoLeft)}
+                                                        alt="Style A"
+                                                        sizes="(max-width: 1024px) 100vw, 75vw"
+                                                        style={{objectFit: 'contain'}}
+                                                    />
+                                                </div>
+                                            }
+                                            itemTwo={
+                                                <div className="relative w-full h-[60vh] md:h-[80vh]">
+                                                    <ReactCompareSliderImage
+                                                        src={getHighResUrl(isoRight)}
+                                                        alt="Style B"
+                                                        sizes="(max-width: 1024px) 100vw, 75vw"
+                                                        style={{objectFit: 'contain'}}
+                                                    />
+                                                </div>
+                                            }
+                                            className="w-full h-full"
+                                        />
+                                    ) : (
+                                        <div
+                                            className="relative w-full h-[60vh] md:h-[80vh] bg-slate-50 flex items-center justify-center">
+                                            <NextImage
+                                                src={isoRight ? getHighResUrl(isoRight) : getHighResUrl(isoLeft)}
+                                                alt="Isometric Render"
+                                                fill
+                                                sizes="(max-width: 1024px) 100vw, 75vw"
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
