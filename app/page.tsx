@@ -19,12 +19,12 @@ import {supabase} from "@/lib/supabase";
 
 // Dynamic imports for heavy client-side components
 const ReactCompareSlider = dynamic(() => import('react-compare-slider').then(mod => mod.ReactCompareSlider), {
-    ssr: false,
+    ssr: true,
     loading: () => <div className="w-full h-[50vh] md:h-[80vh] bg-slate-200 animate-pulse rounded-[2.5rem]"/>
 });
 
 const ReactCompareSliderImage = dynamic(() => import('react-compare-slider').then(mod => mod.ReactCompareSliderImage), {
-    ssr: false
+    ssr: true
 });
 
 const MarqueeSection = dynamic(() => import('@/components/landing-page/MarqueeSection'), {
@@ -203,16 +203,16 @@ export default function LandingPage() {
                         >
                             <div className="min-h-10 flex items-center justify-center mb-6">
                             <span
-                                className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 rounded-full">
+                                className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-slate-700 border border-primary/20 rounded-full">
                               The Future of Visualization
                             </span>
                             </div>
-                            <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-6 text-slate-900 min-h-[1.2em] md:min-h-[2.4em]">
+                            <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-6 text-slate-900">
                                 Transform 2D Floor Plans into <br className="hidden md:block"/> Stunning 3D Renders
                                 in
                                 Seconds
                             </h1>
-                            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+                            <p className="text-lg md:text-xl text-slate-700 max-w-2xl mx-auto mb-10 leading-relaxed">
                                 Empowering architects, real estate agents, and homeowners with AI-driven
                                 architectural
                                 visualization.
@@ -236,7 +236,7 @@ export default function LandingPage() {
                                     </m.div>
                                 </Link>
                                 <Button variant="outline" size="lg"
-                                        className="w-full sm:w-auto h-14 px-8 text-base border-slate-200 text-slate-900 hover:bg-slate-50">
+                                        className="w-full sm:w-auto h-14 px-8 text-base border-slate-200 text-slate-900 hover:bg-slate-50 min-h-[44px]">
                                     Watch Demo
                                 </Button>
                             </div>
@@ -250,9 +250,6 @@ export default function LandingPage() {
                                     className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
 
                                 <m.div
-                                    style={{
-                                        y: typeof window !== 'undefined' ? (window.scrollY * 0.1) : 0
-                                    }}
                                     initial={{opacity: 0, scale: 0.95}}
                                     whileInView={{opacity: 1, scale: 1}}
                                     viewport={{once: true}}
@@ -269,9 +266,10 @@ export default function LandingPage() {
                                                         src={showcaseImages[0].before}
                                                         alt="2D Floor Plan"
                                                         fill
-                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                                        sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
                                                         className="object-cover"
                                                         priority={true}
+                                                        fetchPriority="high"
                                                         placeholder="blur"
                                                         blurDataURL={BLUR_DATA_URL}
                                                     />
@@ -284,7 +282,7 @@ export default function LandingPage() {
                                                         src={showcaseImages[0].after}
                                                         alt="3D Render"
                                                         fill
-                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                                        sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
                                                         className="object-cover"
                                                         placeholder="blur"
                                                         blurDataURL={BLUR_DATA_URL}

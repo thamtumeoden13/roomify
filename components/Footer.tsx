@@ -43,7 +43,7 @@ const Footer = () => {
                                 className="w-8 h-8 text-primary transition-transform group-hover:rotate-12"/>
                             <span className="text-2xl font-bold tracking-tight text-slate-900">Roomify</span>
                         </Link>
-                        <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
+                        <p className="text-slate-700 text-sm leading-relaxed max-w-xs">
                             AI-powered architectural visualization. Transform your 2D plans into stunning 3D renders
                             in seconds.
                         </p>
@@ -57,7 +57,8 @@ const Footer = () => {
                                     href={social.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-primary hover:border-primary transition-all flex items-center justify-center"
+                                    className="p-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-primary hover:border-primary transition-all flex items-center justify-center min-w-[44px] min-h-[44px]"
+                                    aria-label={`Follow us on ${social.name}`}
                                 >
                                     <Image
                                         src={social.url}
@@ -78,7 +79,7 @@ const Footer = () => {
                             {["Visualizer", "Showcase", "Features", "Pricing"].map((item) => (
                                 <li key={item}>
                                     <Link href="#"
-                                          className="text-slate-500 hover:text-primary text-sm transition-colors">
+                                          className="text-slate-700 hover:text-primary text-sm transition-colors min-h-[44px] flex items-center">
                                         {item}
                                     </Link>
                                 </li>
@@ -93,7 +94,7 @@ const Footer = () => {
                             {["FAQ", "Help Center", "Contact Us"].map((item) => (
                                 <li key={item}>
                                     <Link href="#"
-                                          className="text-slate-500 hover:text-primary text-sm transition-colors">
+                                          className="text-slate-700 hover:text-primary text-sm transition-colors min-h-[44px] flex items-center">
                                         {item}
                                     </Link>
                                 </li>
@@ -108,7 +109,7 @@ const Footer = () => {
                             {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((item) => (
                                 <li key={item}>
                                     <Link href="#"
-                                          className="text-slate-500 hover:text-primary text-sm transition-colors">
+                                          className="text-slate-700 hover:text-primary text-sm transition-colors min-h-[44px] flex items-center">
                                         {item}
                                     </Link>
                                 </li>

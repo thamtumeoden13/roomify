@@ -116,10 +116,10 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                         <Link
                                             key={link.name}
                                             href={link.href}
-                                            className={`relative px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 min-w-28  flex items-center justify-center gap-2 group ${
+                                            className={`relative px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 min-w-28 min-h-[44px] flex items-center justify-center gap-2 group ${
                                                 isActive
                                                     ? "text-primary bg-primary/5 shadow-[0_0_20px_rgba(249,115,22,0.05)]"
-                                                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                                                    : "text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
                                             }`}
                                         >
                                             {/*<link.icon*/}
@@ -170,7 +170,8 @@ function Navbar({children, minimal = false}: NavbarProps) {
 
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="flex items-center gap-2 outline-none group">
+                                            <button className="flex items-center gap-2 outline-none group min-h-[44px]"
+                                                    aria-label="User profile menu">
                                                 <Avatar
                                                     className="w-9 h-9 border border-slate-200 transition-all group-hover:ring-2 group-hover:ring-orange-500/20">
                                                     <AvatarImage src={user.user_metadata?.avatar_url}/>
@@ -240,7 +241,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                 <div className="flex items-center gap-4">
                                     <Link href="/login" className="hidden md:block">
                                         <button
-                                            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                                            className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors min-h-[44px]">
                                             Log in
                                         </button>
                                     </Link>
@@ -268,7 +269,8 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                 <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                                     <SheetTrigger asChild>
                                         <button
-                                            className="p-2 text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+                                            className="p-2 text-slate-900 hover:bg-slate-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                                            aria-label="Toggle mobile menu">
                                             <Menu className="w-6 h-6"/>
                                         </button>
                                     </SheetTrigger>
@@ -316,7 +318,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                                 ) : (
                                                     <div
                                                         className="mb-8 p-6 bg-primary/5 rounded-3xl border border-primary/10 text-center">
-                                                        <p className="text-sm text-slate-600 mb-4 font-medium">Log in to
+                                                        <p className="text-sm text-slate-700 mb-4 font-medium">Log in to
                                                             save your designs and unlock 4K upscaling.</p>
                                                         <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                                                             <Button
@@ -337,10 +339,10 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                                                 key={link.name}
                                                                 href={link.href}
                                                                 onClick={() => setMobileMenuOpen(false)}
-                                                                className={`flex items-center justify-between text-base font-semibold px-4 py-3.5 rounded-2xl transition-all ${
+                                                                className={`flex items-center justify-between text-base font-semibold px-4 py-3.5 rounded-2xl transition-all min-h-[44px] ${
                                                                     isActive
                                                                         ? "text-primary bg-primary/5 shadow-sm"
-                                                                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                                                                        : "text-slate-700 hover:text-slate-900 hover:bg-slate-50"
                                                                 }`}
                                                             >
                                                                 <div className="flex items-center gap-4">
@@ -363,7 +365,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                                             <Link
                                                                 href="/dashboard"
                                                                 onClick={() => setMobileMenuOpen(false)}
-                                                                className={`flex items-center gap-4 text-base font-semibold px-4 py-3.5 rounded-2xl transition-all ${pathname === '/dashboard' ? 'text-primary bg-primary/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
+                                                                className={`flex items-center gap-4 text-base font-semibold px-4 py-3.5 rounded-2xl transition-all min-h-[44px] ${pathname === '/dashboard' ? 'text-primary bg-primary/5' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'}`}
                                                             >
                                                                 <LayoutDashboard
                                                                     className={`w-5 h-5 ${pathname === '/dashboard' ? 'text-primary' : 'text-slate-400'}`}/> Dashboard
@@ -371,7 +373,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                                             <Link
                                                                 href="/history"
                                                                 onClick={() => setMobileMenuOpen(false)}
-                                                                className={`flex items-center gap-4 text-base font-semibold px-4 py-3.5 rounded-2xl transition-all ${pathname === '/history' ? 'text-primary bg-primary/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
+                                                                className={`flex items-center gap-4 text-base font-semibold px-4 py-3.5 rounded-2xl transition-all min-h-[44px] ${pathname === '/history' ? 'text-primary bg-primary/5' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'}`}
                                                             >
                                                                 <History
                                                                     className={`w-5 h-5 ${pathname === '/history' ? 'text-primary' : 'text-slate-400'}`}/> History
