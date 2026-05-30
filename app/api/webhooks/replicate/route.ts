@@ -1,5 +1,6 @@
 import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
+import {Webhook} from "standardwebhooks";
 
 // Use service role key for webhooks to bypass RLS
 // Fallback to anon key if service role key is missing to avoid "supabaseKey is required" error
@@ -44,10 +45,43 @@ async function uploadToSupabase(url: string, predictionId: string, folder: strin
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-        const {id, status, output, error: replicateError} = body;
+        const WEBHOOK_SECRET = process.env.REPLICATE_WEBHOOK_SIGNING_SECRET;
 
-        console.log(`Received webhook for prediction ${id} with status ${status}`);
+        if (!WEBHOOK_SECRET) {
+            console.error("REPLICATE_WEBHOOK_SIGNING_SECRET is not set");
+            return NextResponse.json({error: "Webhook secret not configured"}, {status: 500});
+        }
+
+        // Get headers for verification
+        const webhookId = req.headers.get("webhook-id");
+        const webhookTimestamp = req.headers.get("webhook-timestamp");
+        const webhookSignature = req.headers.get("webhook-signature");
+
+        if (!webhookId || !webhookTimestamp || !webhookSignature) {
+            console.error("Missing webhook headers");
+            return NextResponse.json({error: "Missing webhook headers"}, {status: 401});
+        }
+
+        // Get raw body for verification
+        const body = await req.text();
+
+        const wh = new Webhook(WEBHOOK_SECRET);
+        try {
+            wh.verify(body, {
+                "webhook-id": webhookId,
+                "webhook-timestamp": webhookTimestamp,
+                "webhook-signature": webhookSignature,
+            });
+        } catch (err) {
+            console.error("Webhook verification failed:", err);
+            return NextResponse.json({error: "Invalid signature"}, {status: 401});
+        }
+
+        // Parse body after verification
+        const data = JSON.parse(body);
+        const {id, status, output, error: replicateError} = data;
+
+        console.log(`Received verified webhook for prediction ${id} with status ${status}`);
 
         if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
             console.warn("WARNING: SUPABASE_SERVICE_ROLE_KEY is missing. Webhook updates might fail due to RLS.");
