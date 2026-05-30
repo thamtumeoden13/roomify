@@ -10,6 +10,7 @@ import {ContactButton} from "@/components/ContactButton";
 import {ScrollToTop} from "@/components/ScrollToTop";
 import FooterWrapper from "@/components/FooterWrapper";
 import {MotionProvider} from "@/components/MotionProvider";
+import {SpeedInsights} from "@vercel/speed-insights/next"
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'});
 
@@ -84,6 +85,7 @@ export default function RootLayout({
                 <ContactButton/>
                 <ScrollToTop/>
                 <Analytics/>
+                <SpeedInsights/>
                 <Toaster position="bottom-right" richColors/>
             </MotionProvider>
         </CreditProvider>
