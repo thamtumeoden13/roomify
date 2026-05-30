@@ -9,7 +9,7 @@ import Button from "@/components/ui/Button";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import ShowcaseCard from "@/components/ShowcaseCard";
 import {ShowcaseService} from "@/lib/services/showcase";
-import {ShowcaseItem} from "@/lib/services/types";
+import type {ShowcaseItem} from "@/lib/services/types";
 
 const STYLES = [
     "All",

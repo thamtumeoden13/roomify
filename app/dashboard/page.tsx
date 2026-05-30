@@ -12,7 +12,7 @@ import {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import NextImage from "next/image";
 import {ProjectService} from "@/lib/services/projects";
-import {Project} from "@/lib/services/types";
+import type {Project} from "@/lib/services/types";
 
 export default function Dashboard() {
     const router = useRouter();
