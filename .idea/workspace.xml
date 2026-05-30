@@ -6,12 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="7e96b4aa-3362-44f4-9edb-011641672f4b" name="Changes" comment="improve share page">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/admin/moderation/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/moderation/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/gallery/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/gallery/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/share/[id]/SharePageClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/share/[id]/SharePageClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/share/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/share/[id]/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/ShowcaseCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ShowcaseCard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.mjs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,23 +47,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0000000139487288" />
-      <entry key="S30" value="1.029997619783719" />
-      <entry key="S60" value="2.293822437679383" />
-      <entry key="M2" value="10.547281100894175" />
-      <entry key="M5" value="35.56410254350563" />
-      <entry key="M10" value="55.191187791496624" />
-      <entry key="M15" value="64.12200560962626" />
-      <entry key="M30" value="74.62629357472521" />
-      <entry key="H1" value="80.55880143735148" />
-      <entry key="H2" value="83.71302049015078" />
-      <entry key="H4" value="85.33955184960985" />
-      <entry key="D1" value="86.72087178989072" />
-      <entry key="W1" value="86.96006567223439" />
+      <entry key="MS100" value="1.001235218607575" />
+      <entry key="MS500" value="1.6898891341248343" />
+      <entry key="S2" value="6.20290540896585" />
+      <entry key="S5" value="10.236708458997843" />
+      <entry key="S10" value="12.392482813739392" />
+      <entry key="S30" value="14.44124166344877" />
+      <entry key="S60" value="15.944012192928417" />
+      <entry key="M2" value="23.0932273024289" />
+      <entry key="M5" value="47.27772712932146" />
+      <entry key="M10" value="67.61054982197506" />
+      <entry key="M15" value="77.11326077050508" />
+      <entry key="M30" value="88.45111351737897" />
+      <entry key="H1" value="94.92271429859741" />
+      <entry key="H2" value="98.38204883370967" />
+      <entry key="H4" value="100.17072810706347" />
+      <entry key="D1" value="101.69226164882804" />
+      <entry key="W1" value="101.95596680675665" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -84,23 +85,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.17075503209429943" />
-      <entry key="MS500" value="0.7022224378689985" />
-      <entry key="S2" value="0.9154163722962074" />
-      <entry key="S5" value="0.965267024871757" />
-      <entry key="S10" value="0.9824800516927928" />
-      <entry key="S30" value="1.024067179196242" />
-      <entry key="S60" value="2.2899527106308177" />
-      <entry key="M2" value="10.543015977230471" />
-      <entry key="M5" value="35.56006579963172" />
-      <entry key="M10" value="55.18834418617977" />
-      <entry key="M15" value="64.11986875972728" />
-      <entry key="M30" value="74.62508608364041" />
-      <entry key="H1" value="80.55815897662282" />
-      <entry key="H2" value="83.71268904044676" />
-      <entry key="H4" value="85.33938349917753" />
-      <entry key="D1" value="86.72084336066276" />
-      <entry key="W1" value="86.96006160175335" />
+      <entry key="MS100" value="0.9604501603027651" />
+      <entry key="MS500" value="1.6763616522954128" />
+      <entry key="S2" value="6.189324194840468" />
+      <entry key="S5" value="10.227113735211129" />
+      <entry key="S10" value="12.385618142033064" />
+      <entry key="S30" value="14.43668725464134" />
+      <entry key="S60" value="15.940433530890054" />
+      <entry key="M2" value="23.08926447731704" />
+      <entry key="M5" value="47.27381354641802" />
+      <entry key="M10" value="67.60771689638676" />
+      <entry key="M15" value="77.11110984845111" />
+      <entry key="M30" value="88.44988477166042" />
+      <entry key="H1" value="94.92205683210378" />
+      <entry key="H2" value="98.38170866884435" />
+      <entry key="H4" value="100.17055508025564" />
+      <entry key="D1" value="101.6922323945425" />
+      <entry key="W1" value="101.95596261727358" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -128,7 +129,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "enhance-error-fallback-ui",
+    "git-widget-placeholder": "main",
     "javascript.preferred.runtime.type.id": "node",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",

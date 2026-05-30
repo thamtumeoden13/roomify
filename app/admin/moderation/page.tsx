@@ -77,6 +77,7 @@ export default function ModerationPage() {
                                         src={item.render.rendered_image_url}
                                         alt="Render"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, 33vw"
                                         className="object-cover"
                                         loading="eager"
                                     />
@@ -92,6 +93,7 @@ export default function ModerationPage() {
                                         src={item.render.source_image_url}
                                         alt="Original"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, 25vw"
                                         className="object-cover opacity-80"
                                         loading="eager"
                                     />

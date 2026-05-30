@@ -11,17 +11,23 @@ import {MAX_UPLOAD_BYTES} from "@/lib/constants";
 import {useEffect, useState} from "react";
 import {supabase} from "@/lib/supabase";
 import NextImage from "next/image";
+import {ProjectService} from "@/lib/services/projects";
+import {Project} from "@/lib/services/types";
 
 export default function Dashboard() {
     const router = useRouter();
-    const [projects, setProjects] = useState<any[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const ITEMS_PER_PAGE = 12;
 
+    const [isFetching, setIsFetching] = useState(false);
+
     const fetchProjects = async (pageNum: number, isInitial = false) => {
+        if (isFetching) return;
+        setIsFetching(true);
         if (isInitial) setLoading(true);
         else setLoadingMore(true);
 
@@ -32,93 +38,61 @@ export default function Dashboard() {
             return;
         }
 
-        const from = pageNum * ITEMS_PER_PAGE;
-        const to = from + ITEMS_PER_PAGE - 1;
+        const {data, error} = await ProjectService.getUserProjects(supabase, user.id, {
+            page: pageNum,
+            pageSize: ITEMS_PER_PAGE
+        });
 
-        let query = supabase
-            .from("projects")
-            .select(`
-                *,
-                renders!project_id (
-                    rendered_image_url,
-                    upscaled_image_url,
-                    created_at
-                )
-            `)
-            .order("created_at", {ascending: false})
-            .range(from, to);
-
-        query = query.eq("user_id", user.id);
-
-        const {data, error} = await query;
-
-        if (error) {
+        if (error || !data) {
             console.error("Error fetching projects:", error);
             setHasMore(false);
-        } else if (data) {
-            const projectsWithLatestRender = data.map((project: any) => {
-                let displayImageUrl = project.rendered_image_url;
-                let isUpscaled = false;
-
-                if (project.renders && project.renders.length > 0) {
-                    // Sort renders by created_at desc to find the latest
-                    const sortedRenders = [...project.renders].sort(
-                        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                    );
-
-                    // Check if any render has an upscaled version, or just take the latest
-                    const latestUpscaled = sortedRenders.find((r: any) => r.upscaled_image_url);
-                    const latestRender = sortedRenders[0];
-
-                    if (latestUpscaled) {
-                        displayImageUrl = latestUpscaled.upscaled_image_url;
-                        isUpscaled = true;
-                    } else if (!displayImageUrl) {
-                        displayImageUrl = latestRender.rendered_image_url;
-                    }
-                }
-
-                return {
-                    ...project,
-                    rendered_image_url: displayImageUrl,
-                    is_upscaled: isUpscaled
-                };
-            });
-
-            if (isInitial) {
-                setProjects(projectsWithLatestRender);
-            } else {
-                setProjects(prev => [...prev, ...projectsWithLatestRender]);
-            }
-
-            setHasMore(data.length === ITEMS_PER_PAGE);
+            setLoading(false);
+            setLoadingMore(false);
+            setIsFetching(false);
+            return;
         }
+
+        if (isInitial) {
+            setProjects(data);
+        } else {
+            setProjects(prev => {
+                const existingIds = new Set(prev.map(p => p.id));
+                const newProjects = data.filter(p => !existingIds.has(p.id));
+                return [...prev, ...newProjects];
+            });
+        }
+
+        setHasMore(data.length === ITEMS_PER_PAGE);
         setLoading(false);
         setLoadingMore(false);
+        setIsFetching(false);
     };
 
     useEffect(() => {
+        setPage(0);
         fetchProjects(0, true);
     }, [router]);
 
     useEffect(() => {
         const handleScroll = () => {
-            if (loading || loadingMore || !hasMore) return;
+            if (loading || loadingMore || !hasMore || isFetching) return;
 
             const scrollHeight = document.documentElement.scrollHeight;
             const scrollTop = document.documentElement.scrollTop;
             const clientHeight = document.documentElement.clientHeight;
 
             if (scrollTop + clientHeight >= scrollHeight - 800) {
-                const nextPage = page + 1;
-                setPage(nextPage);
-                fetchProjects(nextPage);
+                setPage(prev => {
+                    const nextPage = prev + 1;
+                    fetchProjects(nextPage);
+                    return nextPage;
+                });
             }
         };
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [loading, loadingMore, hasMore, page]);
+    }, [loading, loadingMore, hasMore, page, isFetching]);
 
     const handleUploadComplete = async (imageUrl: string) => {
         const {data: {user}} = await supabase.auth.getUser();
@@ -216,7 +190,7 @@ export default function Dashboard() {
                                          onClick={() => router.push(`/visualizer/${project.id}`)}>
                                         <div className="preview relative overflow-hidden aspect-[4/3]">
                                             <NextImage
-                                                src={project.rendered_image_url || project.source_image_url || "https://placehold.co/600x400/f3f4f6/94a3b8?text=Floor+Plan"}
+                                                src={project.display_image_url || project.source_image_url || "https://placehold.co/600x400/f3f4f6/94a3b8?text=Floor+Plan"}
                                                 alt={project.name}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -224,7 +198,7 @@ export default function Dashboard() {
                                             />
 
                                             <div className="badge">
-                                                <span>{project.rendered_image_url ? (project.is_upscaled ? "4K Render" : "Rendered") : "Original"}</span>
+                                                <span>{project.display_image_url !== project.source_image_url ? (project.is_upscaled ? "4K Render" : "Rendered") : "Original"}</span>
                                             </div>
                                             {project.is_upscaled && (
                                                 <div

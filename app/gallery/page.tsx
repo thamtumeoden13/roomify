@@ -4,11 +4,12 @@ import React, {useState, useEffect, useRef, useCallback} from "react";
 import {supabase} from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import {motion, AnimatePresence} from "framer-motion";
-import {Heart, Eye, Sparkles, User, Loader2} from "lucide-react";
-import Link from "next/link";
+import {Loader2} from "lucide-react";
 import Button from "@/components/ui/Button";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group";
 import ShowcaseCard from "@/components/ShowcaseCard";
+import {ShowcaseService} from "@/lib/services/showcase";
+import {ShowcaseItem} from "@/lib/services/types";
 
 const STYLES = [
     "All",
@@ -23,7 +24,7 @@ const STYLES = [
 const PAGE_SIZE = 12;
 
 export default function GalleryPage() {
-    const [items, setItems] = useState<any[]>([]);
+    const [items, setItems] = useState<ShowcaseItem[]>([]);
     const [selectedStyle, setSelectedStyle] = useState("All");
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -36,26 +37,15 @@ export default function GalleryPage() {
             if (page === 0) setLoading(true);
             else setLoadingMore(true);
 
-            let query = supabase
-                .from("showcase")
-                .select("*, render:renders(*)")
-                .order("created_at", {ascending: false});
-
-            if (style !== "All") {
-                // Since we are filtering by render style_id, we need to handle this.
-                // Supabase allows filtering on joined tables using dot notation.
-                query = query.eq("render.style_id", style.toLowerCase());
-            }
-
-            const from = page * PAGE_SIZE;
-            const to = from + PAGE_SIZE - 1;
-
-            const {data, error} = await query.range(from, to);
+            const {data, error} = await ShowcaseService.getGalleryItems(supabase, {
+                style,
+                page,
+                pageSize: PAGE_SIZE
+            });
 
             if (error) throw error;
 
-            // Filter out items where render join failed (if filtering by style)
-            const validData = data?.filter(item => item.render !== null) || [];
+            const validData = data || [];
 
             if (append) {
                 setItems((prev) => [...prev, ...validData]);
