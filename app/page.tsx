@@ -17,6 +17,9 @@ import NextImage from "next/image";
 import Button from "@/components/ui/Button";
 import {supabase} from "@/lib/supabase";
 
+// Preload the LCP image
+const PRELOAD_IMAGE = "https://klyvifpieepniicfusan.supabase.co/storage/v1/object/public/roomify-assets/inputs/p26t4n95h.webp";
+
 // Dynamic imports for heavy client-side components
 const ReactCompareSlider = dynamic(() => import('react-compare-slider').then(mod => mod.ReactCompareSlider), {
     ssr: false,
@@ -55,6 +58,19 @@ const CTASection = dynamic(() => import('@/components/landing-page/CTASection'),
 const BLUR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/+ZNPQAIXwM496nefQAAAABJRU5ErkJggg==";
 
 export default function LandingPage() {
+    // Add preload link to head
+    useEffect(() => {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = PRELOAD_IMAGE;
+        link.fetchPriority = 'high';
+        document.head.appendChild(link);
+        return () => {
+            document.head.removeChild(link);
+        };
+    }, []);
+
     const [user, setUser] = useState<any>(null);
     const [isScrolled, setIsScrolled] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -182,18 +198,18 @@ export default function LandingPage() {
                     </div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden">
-                        <div
-                            className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full"/>
-                        <div
-                            className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full"/>
+                        {mounted && (
+                            <>
+                                <div
+                                    className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full"/>
+                                <div
+                                    className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full"/>
+                            </>
+                        )}
                     </div>
 
                     <div className="container mx-auto px-6 text-center relative z-10">
-                        <m.div
-                            initial={{opacity: 0, y: 20}}
-                            animate={{opacity: 1, y: 0}}
-                            transition={{duration: 0.5}}
-                        >
+                        <div>
                             <div className="min-h-10 flex items-center justify-center mb-6">
                             <span
                                 className="inline-block px-4 py-1.5 text-xs font-bold tracking-wider uppercase bg-slate-900 text-white rounded-full">
@@ -222,7 +238,7 @@ export default function LandingPage() {
                                     Watch Demo
                                 </Button>
                             </div>
-                        </m.div>
+                        </div>
 
                         {/* Visual Slider with Light Glassmorphism */}
                         <div className="relative mt-12 md:mt-20">
@@ -233,72 +249,67 @@ export default function LandingPage() {
                             <div
                                 className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full aspect-video min-h-75 md:min-h-150"
                             >
-                                {!mounted ? (
-                                    <div className="relative w-full h-full">
-                                        <NextImage
-                                            src={showcaseImages[0].before}
-                                            alt="2D Floor Plan"
-                                            fill
-                                            sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
-                                            className="object-cover"
-                                            priority={true}
-                                            fetchPriority="high"
-                                        />
-                                        <div
-                                            className="absolute z-10 bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 flex justify-between pointer-events-none">
+                                <div className="relative w-full h-full">
+                                    <NextImage
+                                        src={showcaseImages[0].before}
+                                        alt="2D Floor Plan"
+                                        fill
+                                        sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                        className="object-cover"
+                                        priority={true}
+                                        fetchPriority="high"
+                                        loading="eager"
+                                    />
+                                    {mounted && (
+                                        <Suspense fallback={null}>
+                                            <div className="absolute inset-0 z-20">
+                                                <ReactCompareSlider
+                                                    handle={<div
+                                                        className="w-1 h-full bg-white/50 backdrop-blur-sm shadow-xl"/>}
+                                                    itemOne={
+                                                        <div
+                                                            className="relative w-full aspect-video min-h-75 md:min-h-150">
+                                                            <NextImage
+                                                                src={showcaseImages[0].before}
+                                                                alt="2D Floor Plan"
+                                                                fill
+                                                                sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                                                className="object-cover"
+                                                                priority={true}
+                                                                fetchPriority="high"
+                                                                loading="eager"
+                                                                placeholder="blur"
+                                                                blurDataURL={BLUR_DATA_URL}
+                                                            />
+                                                        </div>
+                                                    }
+                                                    itemTwo={
+                                                        <div
+                                                            className="relative w-full aspect-video min-h-75 md:min-h-150">
+                                                            <NextImage
+                                                                src={showcaseImages[0].after}
+                                                                alt="3D Render"
+                                                                fill
+                                                                sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                                                className="object-cover"
+                                                                placeholder="blur"
+                                                                blurDataURL={BLUR_DATA_URL}
+                                                            />
+                                                        </div>
+                                                    }
+                                                    className="w-full h-full"
+                                                />
+                                            </div>
+                                        </Suspense>
+                                    )}
+                                    <div
+                                        className="absolute z-30 bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 flex justify-between pointer-events-none">
                                                <span
                                                    className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-white/20 text-white shadow-lg">Original Plan</span>
-                                            <span
-                                                className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
-                                        </div>
+                                        <span
+                                            className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
                                     </div>
-                                ) : (
-                                    <Suspense fallback={<div
-                                        className="w-full h-full bg-slate-200 animate-pulse rounded-[2.5rem]"/>}>
-                                        <ReactCompareSlider
-                                            handle={<div
-                                                className="w-1 h-full bg-white/50 backdrop-blur-sm shadow-xl"/>}
-                                            itemOne={
-                                                <div
-                                                    className="relative w-full aspect-video min-h-75 md:min-h-150">
-                                                    <NextImage
-                                                        src={showcaseImages[0].before}
-                                                        alt="2D Floor Plan"
-                                                        fill
-                                                        sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
-                                                        className="object-cover"
-                                                        priority={true}
-                                                        fetchPriority="high"
-                                                        placeholder="blur"
-                                                        blurDataURL={BLUR_DATA_URL}
-                                                    />
-                                                </div>
-                                            }
-                                            itemTwo={
-                                                <div
-                                                    className="relative w-full aspect-video min-h-75 md:min-h-150">
-                                                    <NextImage
-                                                        src={showcaseImages[0].after}
-                                                        alt="3D Render"
-                                                        fill
-                                                        sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
-                                                        className="object-cover"
-                                                        placeholder="blur"
-                                                        blurDataURL={BLUR_DATA_URL}
-                                                    />
-                                                </div>
-                                            }
-                                            className="w-full h-full"
-                                        />
-                                        <div
-                                            className="absolute z-10 bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 flex justify-between pointer-events-none">
-                                               <span
-                                                   className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">Original Plan</span>
-                                            <span
-                                                className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
-                                        </div>
-                                    </Suspense>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>
