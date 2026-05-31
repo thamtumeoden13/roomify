@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState, type DragEvent, type ChangeEvent} from 'react'
-import {CheckCircle2, ImageIcon, UploadIcon} from "lucide-react";
+import {CheckCircle2, ImageIcon, Upload as UploadIcon} from "lucide-react";
 import {toast} from "sonner";
 import {PROGRESS_INCREMENT, REDIRECT_DELAY_MS, PROGRESS_INTERVAL_MS} from "../lib/constants";
 

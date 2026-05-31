@@ -287,27 +287,55 @@ export default function LandingPage() {
 
                 {/* How It Works */}
                 <Suspense fallback={<div className="py-32 md:py-48 bg-white h-150 animate-pulse"/>}>
-                    <HowItWorksSection/>
+                    <m.div
+                        initial={{opacity: 0, y: 20}}
+                        whileInView={{opacity: 1, y: 0}}
+                        viewport={{once: true, margin: "-100px"}}
+                        transition={{duration: 0.6}}
+                    >
+                        <HowItWorksSection/>
+                    </m.div>
                 </Suspense>
 
                 {/* Features Grid */}
                 <Suspense fallback={<div className="py-32 md:py-48 bg-slate-900 h-200 animate-pulse"/>}>
-                    <FeaturesSection/>
+                    <m.div
+                        initial={{opacity: 0, y: 20}}
+                        whileInView={{opacity: 1, y: 0}}
+                        viewport={{once: true, margin: "-100px"}}
+                        transition={{duration: 0.6}}
+                    >
+                        <FeaturesSection/>
+                    </m.div>
                 </Suspense>
 
                 {/* Showcase Gallery */}
                 <Suspense fallback={<div className="py-32 md:py-48 bg-white h-200 animate-pulse"/>}>
-                    <ShowcaseGallerySection
-                        isLoading={isLoading}
-                        trendingItems={trendingItems}
-                        isAdminUser={isAdminUser}
-                        setTrendingItems={setTrendingItems}
-                    />
+                    <m.div
+                        initial={{opacity: 0, y: 20}}
+                        whileInView={{opacity: 1, y: 0}}
+                        viewport={{once: true, margin: "-100px"}}
+                        transition={{duration: 0.6}}
+                    >
+                        <ShowcaseGallerySection
+                            isLoading={isLoading}
+                            trendingItems={trendingItems}
+                            isAdminUser={isAdminUser}
+                            setTrendingItems={setTrendingItems}
+                        />
+                    </m.div>
                 </Suspense>
 
                 {/* CTA Section */}
                 <Suspense fallback={<div className="py-24 md:py-40 bg-slate-900 h-100 animate-pulse"/>}>
-                    <CTASection/>
+                    <m.div
+                        initial={{opacity: 0, y: 20}}
+                        whileInView={{opacity: 1, y: 0}}
+                        viewport={{once: true, margin: "-100px"}}
+                        transition={{duration: 0.6}}
+                    >
+                        <CTASection/>
+                    </m.div>
                 </Suspense>
             </main>
         </div>

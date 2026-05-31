@@ -12,13 +12,14 @@ import FooterWrapper from "@/components/FooterWrapper";
 import {MotionProvider} from "@/components/MotionProvider";
 import {SpeedInsights} from "@vercel/speed-insights/next"
 
-const geist = Geist({subsets: ['latin'], variable: '--font-sans', display: 'swap'});
+const geist = Geist({subsets: ['latin'], variable: '--font-sans', display: 'swap', preload: true});
 
 const instrumentSerif = Instrument_Serif({
     variable: "--font-serif",
     weight: "400",
     subsets: ["latin"],
     display: 'swap',
+    preload: true,
 });
 
 export const viewport: Viewport = {

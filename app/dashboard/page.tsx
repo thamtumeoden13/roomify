@@ -2,7 +2,12 @@
 
 import Navbar from "@/components/Navbar";
 import {m} from "framer-motion";
-import {ArrowRight, ArrowUpRight, Clock, Layers} from "lucide-react";
+import {
+    ArrowRight,
+    ArrowUpRight,
+    Clock,
+    Layers
+} from "lucide-react";
 import Button from "@/components/ui/Button";
 import Upload from "@/components/Upload";
 import {useRouter} from "next/navigation";
