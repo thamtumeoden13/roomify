@@ -93,12 +93,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                         : "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md py-4 border-transparent"
                 }`}
             >
-                <m.div
-                    initial={{y: -20, opacity: 0}}
-                    animate={{y: 0, opacity: 1}}
-                    transition={{duration: 0.5}}
-                    className="container mx-auto px-6 flex items-center justify-between"
-                >
+                <div className="container mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-8">
                         <Link href="/" className="flex items-center gap-2 group">
                             <RoomifyLogo
@@ -408,7 +403,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                             </div>
                         )}
                     </div>
-                </m.div>
+                </div>
             </header>
         </div>
     )

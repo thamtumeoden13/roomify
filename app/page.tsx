@@ -156,12 +156,14 @@ export default function LandingPage() {
             <Navbar/>
             <main>
                 {/* Slide Down Animation for Page Load */}
-                <m.div
-                    initial={{y: -100, opacity: 0}}
-                    animate={{y: 0, opacity: 1}}
-                    transition={{duration: 0.8, ease: "easeOut"}}
-                    className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-60"
-                />
+                {mounted && (
+                    <m.div
+                        initial={{y: -100, opacity: 0}}
+                        animate={{y: 0, opacity: 1}}
+                        transition={{duration: 0.8, ease: "easeOut"}}
+                        className="fixed inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent z-60"
+                    />
+                )}
 
                 {/* Hero Section */}
                 <section
@@ -187,7 +189,11 @@ export default function LandingPage() {
                     </div>
 
                     <div className="container mx-auto px-6 text-center relative z-10">
-                        <div>
+                        <m.div
+                            initial={{opacity: 0, y: 20}}
+                            animate={{opacity: 1, y: 0}}
+                            transition={{duration: 0.5}}
+                        >
                             <div className="min-h-10 flex items-center justify-center mb-6">
                             <span
                                 className="inline-block px-4 py-1.5 text-xs font-bold tracking-wider uppercase bg-slate-900 text-white rounded-full">
@@ -216,18 +222,37 @@ export default function LandingPage() {
                                     Watch Demo
                                 </Button>
                             </div>
-                        </div>
+                        </m.div>
 
                         {/* Visual Slider with Light Glassmorphism */}
-                        {mounted && (
-                            <div className="relative mt-12 md:mt-20">
-                                {/* Glowing Aura */}
-                                <div
-                                    className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
+                        <div className="relative mt-12 md:mt-20">
+                            {/* Glowing Aura */}
+                            <div
+                                className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
 
-                                <div
-                                    className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full aspect-video min-h-75 md:min-h-150"
-                                >
+                            <div
+                                className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full aspect-video min-h-75 md:min-h-150"
+                            >
+                                {!mounted ? (
+                                    <div className="relative w-full h-full">
+                                        <NextImage
+                                            src={showcaseImages[0].before}
+                                            alt="2D Floor Plan"
+                                            fill
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                                            className="object-cover"
+                                            priority={true}
+                                            fetchPriority="high"
+                                        />
+                                        <div
+                                            className="absolute z-10 bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 flex justify-between pointer-events-none">
+                                               <span
+                                                   className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-white/20 text-white shadow-lg">Original Plan</span>
+                                            <span
+                                                className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
+                                        </div>
+                                    </div>
+                                ) : (
                                     <Suspense fallback={<div
                                         className="w-full h-full bg-slate-200 animate-pulse rounded-[2.5rem]"/>}>
                                         <ReactCompareSlider
@@ -265,17 +290,17 @@ export default function LandingPage() {
                                             }
                                             className="w-full h-full"
                                         />
+                                        <div
+                                            className="absolute z-10 bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 flex justify-between pointer-events-none">
+                                               <span
+                                                   className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">Original Plan</span>
+                                            <span
+                                                className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
+                                        </div>
                                     </Suspense>
-                                    <div
-                                        className="absolute z-10 bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-8 flex justify-between pointer-events-none">
-                                <span
-                                    className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-white/20 text-white shadow-lg">Original Plan</span>
-                                        <span
-                                            className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </section>
 
