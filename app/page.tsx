@@ -19,12 +19,12 @@ import {supabase} from "@/lib/supabase";
 
 // Dynamic imports for heavy client-side components
 const ReactCompareSlider = dynamic(() => import('react-compare-slider').then(mod => mod.ReactCompareSlider), {
-    ssr: true,
+    ssr: false,
     loading: () => <div className="w-full h-[50vh] md:h-[80vh] bg-slate-200 animate-pulse rounded-[2.5rem]"/>
 });
 
 const ReactCompareSliderImage = dynamic(() => import('react-compare-slider').then(mod => mod.ReactCompareSliderImage), {
-    ssr: true
+    ssr: false
 });
 
 const MarqueeSection = dynamic(() => import('@/components/landing-page/MarqueeSection'), {
@@ -167,25 +167,17 @@ export default function LandingPage() {
                 <section
                     className="relative min-h-[90vh] flex items-center pt-32 pb-20 md:pt-48 md:pb-40">
                     {/* Subtle Grid Pattern - Infinite Scroll */}
-                    <m.div
+                    <div
                         className="absolute inset-0 z-0 pointer-events-none opacity-40"
                         style={{
                             backgroundImage: `linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)`,
                             backgroundSize: '60px 60px',
                             willChange: 'transform',
                         }}
-                        animate={{
-                            y: [0, 60],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "linear"
-                        }}
                     >
                         <div
                             className="absolute inset-0 bg-linear-to-b from-[#F9FAFB]/0 via-[#F9FAFB]/50 to-[#F9FAFB]"/>
-                    </m.div>
+                    </div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden">
                         <div
@@ -195,15 +187,10 @@ export default function LandingPage() {
                     </div>
 
                     <div className="container mx-auto px-6 text-center relative z-10">
-                        <m.div
-                            initial={{opacity: 0, y: 30}}
-                            whileInView={{opacity: 1, y: 0}}
-                            viewport={{once: true}}
-                            transition={{duration: 0.8}}
-                        >
+                        <div>
                             <div className="min-h-10 flex items-center justify-center mb-6">
                             <span
-                                className="inline-block px-4 py-1.5 text-xs font-semibold tracking-wider uppercase bg-primary/10 text-slate-700 border border-primary/20 rounded-full">
+                                className="inline-block px-4 py-1.5 text-xs font-bold tracking-wider uppercase bg-slate-900 text-white rounded-full">
                               The Future of Visualization
                             </span>
                             </div>
@@ -212,35 +199,24 @@ export default function LandingPage() {
                                 in
                                 Seconds
                             </h1>
-                            <p className="text-lg md:text-xl text-slate-700 max-w-2xl mx-auto mb-10 leading-relaxed">
+                            <p className="text-lg md:text-xl text-slate-900 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
                                 Empowering architects, real estate agents, and homeowners with AI-driven
                                 architectural
                                 visualization.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 md:mb-24">
                                 <Link href="/dashboard">
-                                    <m.div
-                                        animate={{
-                                            scale: [1, 1.05, 1],
-                                        }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: Infinity,
-                                            ease: "easeInOut",
-                                        }}
-                                    >
-                                        <Button variant="primary" size="lg"
-                                                className="w-full sm:w-auto h-14 px-8 text-base bg-primary hover:bg-primary-dark shadow-xl shadow-primary/20 transition-all duration-300">
-                                            Get Started <ArrowRight className="ml-2 w-5 h-5"/>
-                                        </Button>
-                                    </m.div>
+                                    <Button variant="primary" size="lg"
+                                            className="w-full sm:w-auto h-14 px-8 text-base bg-primary hover:bg-primary-dark shadow-xl shadow-primary/20 transition-all duration-300 min-h-[44px]">
+                                        Get Started <ArrowRight className="ml-2 w-5 h-5"/>
+                                    </Button>
                                 </Link>
                                 <Button variant="outline" size="lg"
                                         className="w-full sm:w-auto h-14 px-8 text-base border-slate-200 text-slate-900 hover:bg-slate-50 min-h-[44px]">
                                     Watch Demo
                                 </Button>
                             </div>
-                        </m.div>
+                        </div>
 
                         {/* Visual Slider with Light Glassmorphism */}
                         {mounted && (
@@ -249,16 +225,14 @@ export default function LandingPage() {
                                 <div
                                     className="absolute inset-0 -z-10 bg-linear-to-r from-indigo-500/20 to-orange-500/20 blur-[100px] rounded-full scale-110"/>
 
-                                <m.div
-                                    initial={{opacity: 0, scale: 0.95}}
-                                    whileInView={{opacity: 1, scale: 1}}
-                                    viewport={{once: true}}
-                                    transition={{duration: 1}}
+                                <div
                                     className="relative max-w-7xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white/10 bg-slate-100 backdrop-blur-sm w-full aspect-video min-h-75 md:min-h-150"
                                 >
                                     <Suspense fallback={<div
                                         className="w-full h-full bg-slate-200 animate-pulse rounded-[2.5rem]"/>}>
                                         <ReactCompareSlider
+                                            handle={<div
+                                                className="w-1 h-full bg-white/50 backdrop-blur-sm shadow-xl"/>}
                                             itemOne={
                                                 <div
                                                     className="relative w-full aspect-video min-h-75 md:min-h-150">
@@ -299,7 +273,7 @@ export default function LandingPage() {
                                         <span
                                             className="px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest border border-primary/20 text-white shadow-lg">AI Vision</span>
                                     </div>
-                                </m.div>
+                                </div>
                             </div>
                         )}
                     </div>

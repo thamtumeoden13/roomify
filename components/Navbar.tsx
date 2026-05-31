@@ -150,7 +150,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                         <m.button
                                             whileHover={{scale: 1.02}}
                                             whileTap={{scale: 0.98}}
-                                            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs tracking-wider hover:shadow-lg hover:shadow-slate-900/10 transition-all"
+                                            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs tracking-wider hover:shadow-lg hover:shadow-slate-900/10 transition-all min-h-[44px]"
                                         >
                                             <Plus className="w-4 h-4"/>
                                             CREATE
@@ -241,7 +241,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                 <div className="flex items-center gap-4">
                                     <Link href="/login" className="hidden md:block">
                                         <button
-                                            className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors min-h-[44px]">
+                                            className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors min-h-[44px] min-w-[44px]">
                                             Log in
                                         </button>
                                     </Link>
@@ -309,7 +309,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                                         </div>
                                                         <Link href="/" onClick={() => setMobileMenuOpen(false)}>
                                                             <Button
-                                                                className="w-full bg-slate-900 text-white rounded-xl py-3 h-auto font-bold tracking-wide flex items-center justify-center gap-2">
+                                                                className="w-full bg-slate-900 text-white rounded-xl py-3 h-auto font-bold tracking-wide flex items-center justify-center gap-2 min-h-[44px]">
                                                                 <Plus className="w-4 h-4"/>
                                                                 NEW PROJECT
                                                             </Button>
@@ -322,7 +322,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                                             save your designs and unlock 4K upscaling.</p>
                                                         <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                                                             <Button
-                                                                className="w-full bg-primary text-white rounded-xl font-bold">
+                                                                className="w-full bg-primary text-white rounded-xl font-bold min-h-[44px]">
                                                                 GET STARTED
                                                             </Button>
                                                         </Link>
@@ -383,7 +383,7 @@ function Navbar({children, minimal = false}: NavbarProps) {
                                                                     setMobileMenuOpen(false);
                                                                     handleLogout();
                                                                 }}
-                                                                className="flex items-center gap-4 text-base font-semibold text-red-600 px-4 py-3.5 rounded-2xl hover:bg-red-50 transition-all mt-4"
+                                                                className="flex items-center gap-4 text-base font-semibold text-red-600 px-4 py-3.5 rounded-2xl hover:bg-red-50 transition-all mt-4 min-h-[44px]"
                                                             >
                                                                 <div className="p-1 rounded-lg bg-red-100">
                                                                     <LogOut className="w-5 h-5"/>

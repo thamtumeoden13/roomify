@@ -31,9 +31,10 @@ export const ScrollToTop = () => {
         <button
             onClick={scrollToTop}
             className={cn(
-                "fixed bottom-28 md:bottom-6 right-6 z-[100] p-3 rounded-full bg-white shadow-2xl border border-slate-100 transition-all duration-300 hover:scale-110 active:scale-95 group",
+                "fixed bottom-28 md:bottom-6 right-6 z-[100] p-3 rounded-full bg-white shadow-2xl border border-slate-100 transition-all duration-300 hover:scale-110 active:scale-95 group min-h-[44px] min-w-[44px] flex items-center justify-center",
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
             )}
+            aria-label="Scroll to top"
             title="Scroll to Top"
         >
             <ChevronUp
