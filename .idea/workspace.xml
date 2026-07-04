@@ -4,17 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7e96b4aa-3362-44f4-9edb-011641672f4b" name="Changes" comment="improve share page">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/generate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/generate/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/predictions/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/predictions/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/webhooks/replicate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/webhooks/replicate/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/InpaintCanvas.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/InpaintCanvas.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/VisualizerToolbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/VisualizerToolbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/constants.ts" afterDir="false" />
-    </list>
+    <list default="true" id="7e96b4aa-3362-44f4-9edb-011641672f4b" name="Changes" comment="Add batch generation and interior view rendering features to Visualizer Tool" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -48,23 +38,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000000000204374" />
-      <entry key="MS500" value="1.0072792221039435" />
-      <entry key="S2" value="1.2921748537318576" />
-      <entry key="S5" value="1.697542917116459" />
-      <entry key="S10" value="2.662621816524169" />
-      <entry key="S30" value="6.071183609834892" />
-      <entry key="S60" value="8.79940141145829" />
-      <entry key="M2" value="23.42018005401018" />
-      <entry key="M5" value="134.71445817804496" />
-      <entry key="M10" value="344.02149345387835" />
-      <entry key="M15" value="516.9338431632524" />
-      <entry key="M30" value="869.7224373689278" />
-      <entry key="H1" value="1212.0519495327726" />
-      <entry key="H2" value="1466.4712523245703" />
-      <entry key="H4" value="1624.3205745414086" />
-      <entry key="D1" value="1794.23546514288" />
-      <entry key="W1" value="2499.2101976234917" />
+      <entry key="MS100" value="1.440846257273483" />
+      <entry key="MS500" value="4.672477170909667" />
+      <entry key="S2" value="11.873772780120468" />
+      <entry key="S5" value="17.412855748090287" />
+      <entry key="S10" value="20.300397392826206" />
+      <entry key="S30" value="22.665681815925925" />
+      <entry key="S60" value="23.544059904886385" />
+      <entry key="M2" value="27.420129313133323" />
+      <entry key="M5" value="88.71035901152781" />
+      <entry key="M10" value="262.6187819816214" />
+      <entry key="M15" value="429.0876657146593" />
+      <entry key="M30" value="793.9269032890257" />
+      <entry key="H1" value="1164.401484020735" />
+      <entry key="H2" value="1446.467204241733" />
+      <entry key="H4" value="1623.7650256568613" />
+      <entry key="D1" value="1813.6860769821458" />
+      <entry key="W1" value="2522.303969409112" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -76,33 +66,33 @@
       <entry key="S60" value="0.0" />
       <entry key="M2" value="0.0" />
       <entry key="M5" value="0.0" />
-      <entry key="M10" value="2.8202070077325963E-266" />
-      <entry key="M15" value="1.1539415327707495E-177" />
-      <entry key="M30" value="4.775739772503063E-89" />
-      <entry key="H1" value="9.758589763676029E-45" />
-      <entry key="H2" value="1.3965163933237646E-22" />
-      <entry key="H4" value="1.6710804856808172E-11" />
-      <entry key="D1" value="0.0284895492189139" />
-      <entry key="W1" value="1.0895981798129553" />
+      <entry key="M10" value="1.956711505115618E-266" />
+      <entry key="M15" value="9.043731892749878E-178" />
+      <entry key="M30" value="4.2278794074605295E-89" />
+      <entry key="H1" value="9.181804253747568E-45" />
+      <entry key="H2" value="1.3546170026151497E-22" />
+      <entry key="H4" value="1.6458210393527985E-11" />
+      <entry key="D1" value="0.02841732001068462" />
+      <entry key="W1" value="1.0892031153421977" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9592641193404342" />
-      <entry key="MS500" value="0.9985747135321176" />
-      <entry key="S2" value="1.2857768063105721" />
-      <entry key="S5" value="1.6930458757401663" />
-      <entry key="S10" value="2.6597106926550187" />
-      <entry key="S30" value="6.069864448233023" />
-      <entry key="S60" value="8.798643786661641" />
-      <entry key="M2" value="23.419630703627334" />
-      <entry key="M5" value="134.71374612658278" />
-      <entry key="M10" value="344.02067001576955" />
-      <entry key="M15" value="516.9330321368916" />
-      <entry key="M30" value="869.72175907527" />
-      <entry key="H1" value="1212.0514758016282" />
-      <entry key="H2" value="1466.4709650103703" />
-      <entry key="H4" value="1624.3204151671891" />
-      <entry key="D1" value="1794.2639231032426" />
-      <entry key="W1" value="2500.2997780120922" />
+      <entry key="MS100" value="1.4115852229168853" />
+      <entry key="MS500" value="4.655044588464245" />
+      <entry key="S2" value="11.86328070598887" />
+      <entry key="S5" value="17.406680227885975" />
+      <entry key="S10" value="20.296782820230092" />
+      <entry key="S30" value="22.664331087833606" />
+      <entry key="S60" value="23.543345191790902" />
+      <entry key="M2" value="27.41968820282962" />
+      <entry key="M5" value="88.70987385102462" />
+      <entry key="M10" value="262.61813925540224" />
+      <entry key="M15" value="429.0869824384797" />
+      <entry key="M30" value="793.9262789563514" />
+      <entry key="H1" value="1164.40102635813" />
+      <entry key="H2" value="1446.466919580492" />
+      <entry key="H4" value="1623.7648657076754" />
+      <entry key="D1" value="1813.7144622959995" />
+      <entry key="W1" value="2523.393154668636" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -194,8 +184,17 @@
       <workItem from="1778923259378" duration="10370000" />
       <workItem from="1779625064068" duration="11253000" />
       <workItem from="1780125600545" duration="703000" />
-      <workItem from="1782636732493" duration="13512000" />
+      <workItem from="1782636732493" duration="14061000" />
     </task>
+    <task id="LOCAL-00001" summary="Add batch generation and interior view rendering features to Visualizer Tool">
+      <option name="closed" value="true" />
+      <created>1783160869247</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1783160869247</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -223,5 +222,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Enable interior view generation and batch processing features for Visualizer" />
+    <MESSAGE value="Add batch generation and interior view rendering features to Visualizer Tool" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add batch generation and interior view rendering features to Visualizer Tool" />
   </component>
 </project>

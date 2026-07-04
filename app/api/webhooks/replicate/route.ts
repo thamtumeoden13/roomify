@@ -92,7 +92,7 @@ export async function POST(req: Request) {
             // Check if this is an upscale prediction
             const {data: upscaleRecord, error: upscaleFetchError} = await supabaseAdmin
                 .from("renders")
-                .select("id, project_id")
+                .select("id, project_id, view_id")
                 .eq("upscale_prediction_id", id)
                 .maybeSingle();
 
@@ -126,7 +126,7 @@ export async function POST(req: Request) {
                 // Handle normal render success
                 const {data: renderRecord, error: renderFetchError} = await supabaseAdmin
                     .from("renders")
-                    .select("id, project_id")
+                    .select("id, project_id, view_id")
                     .eq("prediction_id", id)
                     .maybeSingle();
 
