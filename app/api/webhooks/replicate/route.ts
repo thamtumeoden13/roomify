@@ -47,37 +47,36 @@ export async function POST(req: Request) {
     try {
         const WEBHOOK_SECRET = process.env.REPLICATE_WEBHOOK_SIGNING_SECRET;
 
-        if (!WEBHOOK_SECRET) {
-            console.error("REPLICATE_WEBHOOK_SIGNING_SECRET is not set");
-            return NextResponse.json({error: "Webhook secret not configured"}, {status: 500});
-        }
-
-        // Get headers for verification
-        const webhookId = req.headers.get("webhook-id");
-        const webhookTimestamp = req.headers.get("webhook-timestamp");
-        const webhookSignature = req.headers.get("webhook-signature");
-
-        if (!webhookId || !webhookTimestamp || !webhookSignature) {
-            console.error("Missing webhook headers");
-            return NextResponse.json({error: "Missing webhook headers"}, {status: 401});
-        }
-
-        // Get raw body for verification
+        // Read raw body first (can only read once)
         const body = await req.text();
 
-        const wh = new Webhook(WEBHOOK_SECRET);
-        try {
-            wh.verify(body, {
-                "webhook-id": webhookId,
-                "webhook-timestamp": webhookTimestamp,
-                "webhook-signature": webhookSignature,
-            });
-        } catch (err) {
-            console.error("Webhook verification failed:", err);
-            return NextResponse.json({error: "Invalid signature"}, {status: 401});
+        if (WEBHOOK_SECRET) {
+            // Verify signature when secret is configured
+            const webhookId = req.headers.get("webhook-id");
+            const webhookTimestamp = req.headers.get("webhook-timestamp");
+            const webhookSignature = req.headers.get("webhook-signature");
+
+            if (!webhookId || !webhookTimestamp || !webhookSignature) {
+                console.error("Missing webhook headers");
+                return NextResponse.json({error: "Missing webhook headers"}, {status: 401});
+            }
+
+            const wh = new Webhook(WEBHOOK_SECRET);
+            try {
+                wh.verify(body, {
+                    "webhook-id": webhookId,
+                    "webhook-timestamp": webhookTimestamp,
+                    "webhook-signature": webhookSignature,
+                });
+            } catch (err) {
+                console.error("Webhook verification failed:", err);
+                return NextResponse.json({error: "Invalid signature"}, {status: 401});
+            }
+        } else {
+            console.warn("REPLICATE_WEBHOOK_SIGNING_SECRET not set — skipping signature verification");
         }
 
-        // Parse body after verification
+        // Parse body
         const data = JSON.parse(body);
         const {id, status, output, error: replicateError} = data;
 
@@ -149,7 +148,9 @@ export async function POST(req: Request) {
 
                     if (updateError) console.error("Error updating render:", updateError);
 
-                    if (renderRecord.project_id) {
+                    // Only update project thumbnail for 3D plan renders (not interior views)
+                    const isInteriorView = renderRecord.view_id?.startsWith('interior-');
+                    if (renderRecord.project_id && !isInteriorView) {
                         const {error: projectUpdateError} = await supabaseAdmin
                             .from("projects")
                             .update({rendered_image_url: finalUrl})

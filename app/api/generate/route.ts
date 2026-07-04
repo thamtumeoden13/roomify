@@ -63,6 +63,8 @@ export async function POST(req: Request) {
         const selectedFlooring = FLOORING_MATERIALS.find(f => f.id === flooringId) || FLOORING_MATERIALS[0];
         const selectedLighting = LIGHTING_MOODS.find(l => l.id === lightingId) || LIGHTING_MOODS[0];
         const selectedView = CAMERA_VIEWS.find(v => v.id === viewId) || CAMERA_VIEWS[0];
+        // viewKeywords từ request takes priority (dùng cho construction stages, v.v.)
+        const effectiveViewKeywords = viewKeywords || selectedView.keywords;
 
         // Split ROOMIFY_RENDER_PROMPT into its structural parts
         // Based on constants.ts, it has sections: 3D STRUCTURE, FURNITURE, SURFACE CLEANUP, QUALITY, FINAL EXECUTION
@@ -71,7 +73,7 @@ export async function POST(req: Request) {
         const qualityCleanup = promptParts.filter(line => line.startsWith('SURFACE CLEANUP:') || line.startsWith('QUALITY:') || line.startsWith('FINAL EXECUTION:')).join(' ');
 
         let masterPrompt = `
-            ${selectedView.keywords}
+            ${effectiveViewKeywords}
             ${structureFurniture}
             STYLE: ${selectedStyle.keywords}
             MATERIALS: The entire floor is a solid slab of ${selectedFlooring.keywords}.

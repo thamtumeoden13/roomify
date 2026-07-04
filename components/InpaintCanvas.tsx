@@ -5,14 +5,16 @@ import React, {useRef, useEffect, useState, forwardRef, useImperativeHandle} fro
 interface InpaintCanvasProps {
     image: string;
     brushSize?: number;
+    onStrokesChange?: (hasStrokes: boolean) => void;
 }
 
 export interface InpaintCanvasHandle {
     getMask: () => { mask: string; width: number; height: number } | null;
+    hasStrokes: () => boolean;
     clear: () => void;
 }
 
-const InpaintCanvas = forwardRef<InpaintCanvasHandle, InpaintCanvasProps>(({image, brushSize = 20}, ref) => {
+const InpaintCanvas = forwardRef<InpaintCanvasHandle, InpaintCanvasProps>(({image, brushSize = 20, onStrokesChange}, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -102,8 +104,15 @@ const InpaintCanvas = forwardRef<InpaintCanvasHandle, InpaintCanvasProps>(({imag
         });
     };
 
+    // Notify parent when strokes change
+    useEffect(() => {
+        onStrokesChange?.(strokes.length > 0);
+    }, [strokes, onStrokesChange]);
+
     useImperativeHandle(ref, () => ({
         getMask: () => {
+            // Return null when nothing is painted
+            if (strokes.length === 0) return null;
             if (!imgElement) return null;
             const mapping = getMapping();
             if (!mapping) return null;
@@ -150,6 +159,7 @@ const InpaintCanvas = forwardRef<InpaintCanvasHandle, InpaintCanvasProps>(({imag
                 height: imgHeight
             };
         },
+        hasStrokes: () => strokes.length > 0,
         clear: () => {
             setStrokes([]);
         }
@@ -160,8 +170,9 @@ const InpaintCanvas = forwardRef<InpaintCanvasHandle, InpaintCanvasProps>(({imag
     }, [strokes]);
 
     const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+        if (!canvasRef.current) return;
         setIsDrawing(true);
-        const rect = canvasRef.current!.getBoundingClientRect();
+        const rect = canvasRef.current.getBoundingClientRect();
         let x, y;
 
         if ('touches' in e) {
