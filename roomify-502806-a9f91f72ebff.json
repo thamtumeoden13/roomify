@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "roomify-502806",
+  "private_key_id": "a9f91f72ebff37552a25dfda1edded30d6e20642",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQClhqCLhfYLHQjA\nfDCM3HuFXZ5ID9A6WqwBrCp0954DZAEEg3MjwA2BHTTXlLn1DSvGB7zjQUBzLgeu\npTmD9ZMBXy66Ri/DhFl2wW5f/dVrOgSvEfLQkS+K3oPnaYyHY74qxHIGSiIFfz6f\nbSEQpNTVJ6OfmBLnjEHQ3023nAMpHmOtcUuYGeLMOjgDYbwvFU36JW/q59kU1UTe\nyKVffpeUxFVAWbWAOJwb1RSlnARQGWAvvREenRbc8IJaq762ZmgjEMa2QA3Z2hSB\nYlEoKkM1G7AF8NhiQarz4YMnrB0FVYtl/FGcG9dIld8XpOgXkzknuKGfqC2kInVi\nCQ08Xu95AgMBAAECggEAB1UCUYvajT15AMW/hM3TbuHpu/lvWNZhXiWZL9s0FaRd\nYyzLcd70+i4oBBCjeBZgRQJcvJhMWY3Fa1gIRy8eluX3dOrc/MUlDVyeHgRparmE\nMZkS72gu+fDHWP3U6r5hUxWmk16/SQ0M4hT8bPdQMizyU4Rx+e29kJoDoEl53l1W\n/TEApOMhppHzWQOE7DSBqNKa38iCxXvjanCzkquc3ChqEJAxOP1O6SFVF3GVqvnN\nR7MSyUaWKXNiMNFcw2XX+W9wE63JI6XHkRvHYhj8uCjKHVGD0Fni9bCh5c1rpmbv\nDGe9+J0/nS9v32g/Li5KvTtZDjokLpYUcL7CQmEZAQKBgQDXwnhzde1R6TpsvZXK\naVVOCGIqRhnmzBuVLI94bRHJsg3+HFhlGK22bSahiV0M49qI1Q/WwNlzkzXerUlB\nJPnay4YrlDup7x+qBXNuEgOC4DFLO/CsPvxnwueu+O7mH3LuXb01KXePosAGyx/O\nlybFNv8o0g7DiHF89BUo6G1M2QKBgQDEZbnOh/V9xudJNBVR1HBhiScJHWg4esGL\nKKUcxsHbC5sSW82oIdRztYnVXiYAGouKD2yLutq0IMNmuVQ91OuBUwH2e1w8/UEO\nE5SK6ax0kXQdLHKJRcb0ZD9EOhY9tC+PEbNkulEDcVxo2OY6LjGkCv7voBQhpPjA\nGE7PU+mToQKBgA8sdQ4hsAP/tAUrvBoVGFO5kTXJ4k5x8kqmbJyahxK5O/SwB6Ns\nfeMDgCECKRIcACV5XnjK7UAMjVBQvYMgV5YElDYCYcPMtlxdr8WA7NBKdg0FdSKX\n92ZQtbx/c0Wp1ope+0x+0xK97mVL6bu8s5RRDtbPFwy3Tsvr2oUa+3zZAoGASSmU\nJEolu6tDMdQDNS6shskvD4gy8QdZ3ltP1v577PvP0vD8Few0Vr6EEEY4ZcV9wfqo\n9wyuuHeUE0prBXWyHcUscAPYgqfdej71ESKnqe0dkliielzSFuzZXLM+4dGj/eoc\nKCP4Vg3+3NggPABFYdTuz5mUpkvslrL3eOjLlMECgYBGEa55113rTtFVne9nH+Cr\npy12fi+1C+C/qca8PVCDgrEG14p7InzmdvpGLpiPTI9GsB1EBSlyxT3Fx1A1VZoT\nsFxdQIwodINUy51b05EstXBqfHxTX2byJ1VImIrZCyD2/jCO4PFm62hX0jNkHTUG\nhLKZhrSiOIUudIgzKNShOw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "roomify@roomify-502806.iam.gserviceaccount.com",
+  "client_id": "101272877827249496529",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/roomify%40roomify-502806.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

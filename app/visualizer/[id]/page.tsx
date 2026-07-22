@@ -37,7 +37,14 @@ import {toast} from "sonner";
 import Button from "@/components/ui/Button";
 import {ReactCompareSlider, ReactCompareSliderImage} from "react-compare-slider";
 import {supabase} from "@/lib/supabase";
-import {ROOM_STYLES, PROJECT_CONTEXTS, FLOORING_MATERIALS, LIGHTING_MOODS, CAMERA_VIEWS, INTERIOR_VIEWS} from "@/lib/constants";
+import {
+    ROOM_STYLES,
+    PROJECT_CONTEXTS,
+    FLOORING_MATERIALS,
+    LIGHTING_MOODS,
+    CAMERA_VIEWS,
+    INTERIOR_VIEWS
+} from "@/lib/constants";
 import VisualizerToolbar from "@/components/VisualizerToolbar";
 import {useCredits} from "@/lib/hooks/useCredits";
 import {Tooltip} from "@/components/ui/Tooltip";
@@ -84,7 +91,11 @@ function VisualizerContent() {
     const [isBatchRunning, setIsBatchRunning] = useState(false);
     const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; label: string } | null>(null);
     const [isInteriorViewsRunning, setIsInteriorViewsRunning] = useState(false);
-    const [interiorViewsProgress, setInteriorViewsProgress] = useState<{ current: number; total: number; label: string } | null>(null);
+    const [interiorViewsProgress, setInteriorViewsProgress] = useState<{
+        current: number;
+        total: number;
+        label: string
+    } | null>(null);
     const [interiorViewVariants, setInteriorViewVariants] = useState<Record<string, Record<string, any>>>({});
     const [selectedPlanVariantIdForInteriorViews, setSelectedPlanVariantIdForInteriorViews] = useState<string | null>(null);
     const [selectedInteriorView, setSelectedInteriorView] = useState<string>("interior-entrance");
@@ -612,7 +623,8 @@ function VisualizerContent() {
                 if (!res.ok) break;
                 const data = await res.json();
                 if (data.status === "succeeded" || data.status === "failed") return;
-            } catch (_) { /* ignore */ }
+            } catch (_) { /* ignore */
+            }
         }
     };
 
@@ -947,6 +959,42 @@ function VisualizerContent() {
     }, [id, currentImage, variants]);
 
     useEffect(() => {
+        if (!selectedVariant) return;
+
+        const trackView = async () => {
+            try {
+                const type = selectedVariant.upscaled_image_url ? 'upscaled' : 'rendered';
+                const response = await fetch(`/api/renders/${selectedVariant.id}/view`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({type}),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.reCached && data.url) {
+                        // Update current image if it was re-cached
+                        setCurrentImage(data.url);
+                        // Update the variant in state
+                        setVariants(prev => prev.map(v =>
+                            v.id === selectedVariant.id
+                                ? {
+                                    ...v,
+                                    [type === 'upscaled' ? 'upscaled_image_url' : 'rendered_image_url']: data.url
+                                }
+                                : v
+                        ));
+                    }
+                }
+            } catch (err) {
+                console.error("Error tracking view:", err);
+            }
+        };
+
+        trackView();
+    }, [selectedVariant?.id]);
+
+    useEffect(() => {
         if (!id) return;
 
         const fetchProject = async () => {
@@ -1168,7 +1216,10 @@ function VisualizerContent() {
                     setIsEditMode(false);
                     return;
                 }
-                if (isError) { setIsError(false); return; }
+                if (isError) {
+                    setIsError(false);
+                    return;
+                }
                 return;
             }
 
@@ -1186,11 +1237,16 @@ function VisualizerContent() {
                 setRightImage(imgUrl);
                 setCurrentImage(imgUrl);
                 setSelectedVariant(next);
-                const s = ROOM_STYLES.find(r => r.id === next.style_id); if (s) setSelectedStyle(s);
-                const f = FLOORING_MATERIALS.find(r => r.id === next.flooring_id); if (f) setSelectedFlooring(f);
-                const l = LIGHTING_MOODS.find(r => r.id === next.lighting_id); if (l) setSelectedLighting(l);
-                const c = PROJECT_CONTEXTS.find(r => r.id === next.project_context); if (c) setSelectedContext(c);
-                const cv = CAMERA_VIEWS.find(r => r.id === (next.view_id || 'plan')); if (cv) setSelectedView(cv);
+                const s = ROOM_STYLES.find(r => r.id === next.style_id);
+                if (s) setSelectedStyle(s);
+                const f = FLOORING_MATERIALS.find(r => r.id === next.flooring_id);
+                if (f) setSelectedFlooring(f);
+                const l = LIGHTING_MOODS.find(r => r.id === next.lighting_id);
+                if (l) setSelectedLighting(l);
+                const c = PROJECT_CONTEXTS.find(r => r.id === next.project_context);
+                if (c) setSelectedContext(c);
+                const cv = CAMERA_VIEWS.find(r => r.id === (next.view_id || 'plan'));
+                if (cv) setSelectedView(cv);
                 setCustomInstructions(next.custom_instructions || "");
                 return;
             }
@@ -1266,7 +1322,8 @@ function VisualizerContent() {
                                 {selectedVariant.custom_instructions && (
                                     <div className="flex flex-col w-full">
                                         <span className="text-[10px] uppercase font-bold text-zinc-400">Custom Instructions</span>
-                                        <span className="text-sm font-medium text-zinc-600 italic">"{selectedVariant.custom_instructions}"</span>
+                                        <span
+                                            className="text-sm font-medium text-zinc-600 italic">"{selectedVariant.custom_instructions}"</span>
                                     </div>
                                 )}
                                 <div className="w-full pt-3 border-t border-zinc-200">
@@ -1293,12 +1350,16 @@ function VisualizerContent() {
                         <div className="flex items-center gap-4 mt-4 flex-wrap">
                             {[
                                 {keys: ['←', '→'], label: 'Navigate variants'},
-                                {keys: [isEditMode ? 'Esc' : '⌘', isEditMode ? '' : '↵'], label: isEditMode ? 'Exit edit' : 'Generate'},
+                                {
+                                    keys: [isEditMode ? 'Esc' : '⌘', isEditMode ? '' : '↵'],
+                                    label: isEditMode ? 'Exit edit' : 'Generate'
+                                },
                                 ...(!isEditMode ? [{keys: ['Esc'], label: 'Clear error'}] : []),
                             ].map(({keys, label}) => (
                                 <div key={label} className="flex items-center gap-1.5 text-[10px] text-zinc-400">
                                     {keys.filter(Boolean).map((k, i) => (
-                                        <kbd key={i} className="px-1.5 py-0.5 bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-slate-400 rounded font-mono text-[9px] border border-zinc-200 dark:border-slate-700 leading-tight">{k}</kbd>
+                                        <kbd key={i}
+                                             className="px-1.5 py-0.5 bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-slate-400 rounded font-mono text-[9px] border border-zinc-200 dark:border-slate-700 leading-tight">{k}</kbd>
                                     ))}
                                     <span>{label}</span>
                                 </div>
@@ -1323,7 +1384,10 @@ function VisualizerContent() {
                                     <button
                                         onClick={() => {
                                             setIsEditMode(true);
-                                            document.querySelector('.panel.compare')?.scrollIntoView({behavior: 'smooth', block: 'start'});
+                                            document.querySelector('.panel.compare')?.scrollIntoView({
+                                                behavior: 'smooth',
+                                                block: 'start'
+                                            });
                                         }}
                                         className="absolute top-3 left-3 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur px-2.5 py-1.5 rounded-xl shadow-md border border-white/30 flex items-center gap-1.5 text-indigo-600 hover:bg-white hover:shadow-lg transition-all font-bold text-[10px] uppercase tracking-wider"
                                     >
@@ -1603,7 +1667,8 @@ function VisualizerContent() {
                                         >
                                             <Check size={16}/>
                                             Apply Changes
-                                            {hasMask && <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>}
+                                            {hasMask &&
+                                                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>}
                                         </button>
                                     </div>
                                 </div>
@@ -1702,21 +1767,26 @@ function VisualizerContent() {
                                 )}
                             </div>
                         ) : planVariants.length === 0 && !isPlanProcessing ? (
-                            <div className="compare-fallback flex flex-col items-center justify-center min-h-[400px] gap-6 text-center p-8">
-                                <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center">
+                            <div
+                                className="compare-fallback flex flex-col items-center justify-center min-h-[400px] gap-6 text-center p-8">
+                                <div
+                                    className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center">
                                     <Sparkles className="w-10 h-10 text-indigo-400"/>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <h3 className="text-slate-800 dark:text-slate-200 font-bold text-xl">Generate your first design</h3>
+                                    <h3 className="text-slate-800 dark:text-slate-200 font-bold text-xl">Generate your
+                                        first design</h3>
                                     <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs leading-relaxed">
                                         Choose your preferred style, flooring, and lighting mood, then hit{" "}
                                         <span className="font-semibold text-indigo-600">Generate 3D Plan</span> below.
                                     </p>
                                 </div>
                                 {project?.source_image_url && (
-                                    <div className="relative w-48 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 opacity-50">
+                                    <div
+                                        className="relative w-48 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 opacity-50">
                                         <img src={project.source_image_url} alt="Your floor plan" className="w-full"/>
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent flex items-end justify-center pb-3">
+                                        <div
+                                            className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent flex items-end justify-center pb-3">
                                             <span className="text-white text-[10px] font-bold uppercase tracking-wider">Your Floor Plan</span>
                                         </div>
                                     </div>
@@ -2198,7 +2268,8 @@ function VisualizerContent() {
                         </div>
                         <div className="flex items-center gap-4 z-50 flex-wrap">
                             {/* Plan Variant Selector */}
-                            <div className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
+                            <div
+                                className="flex items-center bg-zinc-900 text-white h-9 shadow-sm hover:bg-zinc-800 rounded-md px-3 transition-all focus-within:ring-2 focus-within:ring-zinc-400/20 focus-within:border-zinc-400 cursor-pointer">
                                 <span className="text-[10px] uppercase opacity-70 font-bold mr-2 whitespace-nowrap">From Plan</span>
                                 <select
                                     className="bg-transparent border-none text-xs font-bold uppercase tracking-wide text-white focus:ring-0 cursor-pointer outline-none w-full max-w-[200px] pr-2"
@@ -2220,7 +2291,8 @@ function VisualizerContent() {
                             </div>
 
                             {!selectedPlanVariantForInteriorViews && (
-                                <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-700/40">
+                                <span
+                                    className="text-[11px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-700/40">
                                     Generate a 3D plan first
                                 </span>
                             )}
@@ -2279,7 +2351,8 @@ function VisualizerContent() {
                         })() ? (
                             <div className="flex gap-4" style={{minHeight: '400px', maxHeight: 'calc(100vh - 280px)'}}>
                                 {/* Left column: 80% — Large main image */}
-                                <div className="flex-1 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col">
+                                <div
+                                    className="flex-1 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col">
                                     {(() => {
                                         const styleId = selectedPlanVariantForInteriorViews.style_id || 'default';
                                         const viewsForStyle = interiorViewVariants[styleId];
@@ -2288,7 +2361,8 @@ function VisualizerContent() {
                                         const mainImg = mainRender?.upscaled_image_url || mainRender?.rendered_image_url;
 
                                         return (
-                                            <div className="relative w-full h-full group flex items-center justify-center">
+                                            <div
+                                                className="relative w-full h-full group flex items-center justify-center">
                                                 {mainImg ? (
                                                     <>
                                                         <img
@@ -2302,10 +2376,12 @@ function VisualizerContent() {
                                                             download={`${selectedInteriorView}.png`}
                                                             className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 dark:bg-slate-900/80 backdrop-blur p-2.5 rounded-lg shadow"
                                                         >
-                                                            <Download className="w-4 h-4 text-slate-700 dark:text-slate-200"/>
+                                                            <Download
+                                                                className="w-4 h-4 text-slate-700 dark:text-slate-200"/>
                                                         </a>
                                                         {/* View info overlay */}
-                                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 text-white">
+                                                        <div
+                                                            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 text-white">
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-2xl">{selectedView?.emoji}</span>
                                                                 <div>
@@ -2316,9 +2392,11 @@ function VisualizerContent() {
                                                         </div>
                                                     </>
                                                 ) : (
-                                                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-400">
+                                                    <div
+                                                        className="w-full h-full flex flex-col items-center justify-center gap-2 text-slate-400">
                                                         <span className="text-4xl">{selectedView?.emoji}</span>
-                                                        <span className="text-xs font-bold uppercase">{selectedView?.description}</span>
+                                                        <span
+                                                            className="text-xs font-bold uppercase">{selectedView?.description}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -2350,7 +2428,8 @@ function VisualizerContent() {
                                                     )}
                                                 >
                                                     {/* Thumbnail image */}
-                                                    <div className="flex-1 min-h-0 bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
+                                                    <div
+                                                        className="flex-1 min-h-0 bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
                                                         {imgUrl ? (
                                                             <img
                                                                 src={imgUrl}
@@ -2358,11 +2437,14 @@ function VisualizerContent() {
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         ) : isGenerating ? (
-                                                            <div className="w-full h-full flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/20">
-                                                                <RefreshCcw className="w-4 h-4 text-indigo-500 animate-spin"/>
+                                                            <div
+                                                                className="w-full h-full flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/20">
+                                                                <RefreshCcw
+                                                                    className="w-4 h-4 text-indigo-500 animate-spin"/>
                                                             </div>
                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
+                                                            <div
+                                                                className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
                                                                 <span className="text-xl">{view.emoji}</span>
                                                             </div>
                                                         )}
@@ -2378,13 +2460,15 @@ function VisualizerContent() {
                                                                 title="Regenerate this view"
                                                                 className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white p-1.5 rounded-lg shadow-md"
                                                             >
-                                                                <RefreshCcw className={cn("w-3 h-3", isGenerating && "animate-spin")}/>
+                                                                <RefreshCcw
+                                                                    className={cn("w-3 h-3", isGenerating && "animate-spin")}/>
                                                             </button>
                                                         )}
                                                     </div>
 
                                                     {/* Label */}
-                                                    <div className="px-2 py-1 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+                                                    <div
+                                                        className="px-2 py-1 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
                                                         <p className="text-[9px] font-bold truncate text-slate-700 dark:text-slate-300">{view.name}</p>
                                                     </div>
                                                 </div>
@@ -2394,7 +2478,9 @@ function VisualizerContent() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 p-12 text-center flex items-center justify-center" style={{minHeight: '400px', maxHeight: 'calc(100vh - 280px)'}}>
+                            <div
+                                className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 p-12 text-center flex items-center justify-center"
+                                style={{minHeight: '400px', maxHeight: 'calc(100vh - 280px)'}}>
                                 <p className="text-sm text-slate-400">
                                     {selectedPlanVariantForInteriorViews
                                         ? 'No interior views yet. Click "Generate 4 Views" to create perspective walkthroughs.'

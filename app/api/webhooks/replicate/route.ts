@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
 import {Webhook} from "standardwebhooks";
+import {smartUpload} from "@/lib/storage-service";
 
 // Use service role key for webhooks to bypass RLS
 // Fallback to anon key if service role key is missing to avoid "supabaseKey is required" error
@@ -9,34 +10,18 @@ const supabaseAdmin = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-async function uploadToSupabase(url: string, predictionId: string, folder: string = 'outputs') {
+async function handleImageUpload(url: string, predictionId: string) {
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
 
-        const blob = await response.blob();
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
         const fileExt = url.split('.').pop()?.split('?')[0] || 'png';
         const fileName = `${predictionId}.${fileExt}`;
-        const filePath = `${folder}/${fileName}`;
+        const mimeType = `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`;
 
-        const {data, error} = await supabaseAdmin.storage
-            .from('roomify-assets')
-            .upload(filePath, blob, {
-                contentType: blob.type,
-                upsert: true,
-                cacheControl: '3600'
-            });
-
-        if (error) {
-            console.error("Supabase Storage error:", error);
-            return null;
-        }
-
-        const {data: {publicUrl}} = supabaseAdmin.storage
-            .from('roomify-assets')
-            .getPublicUrl(filePath);
-
-        return publicUrl;
+        return await smartUpload(buffer, fileName, mimeType);
     } catch (e) {
         console.error("Upload process error:", e);
         return null;
@@ -101,14 +86,20 @@ export async function POST(req: Request) {
             if (upscaleRecord) {
                 console.log(`Processing upscale success for prediction ${id}, project ${upscaleRecord.project_id}`);
                 // Handle upscale success
-                const permanentUrl = await uploadToSupabase(renderedUrl, id, 'outputs/upscaled');
-                const finalUrl = permanentUrl || renderedUrl;
+                const uploadResult = await handleImageUpload(renderedUrl, id);
+                const displayUrl = uploadResult?.cloudinaryUrl || renderedUrl;
+                const publicId = uploadResult?.cloudinaryId || null;
+                const backupUrl = uploadResult?.driveUrl || null;
+                const driveFileId = uploadResult?.driveId || null;
 
                 const {error: updateError} = await supabaseAdmin
                     .from("renders")
                     .update({
                         status: status,
-                        upscaled_image_url: finalUrl,
+                        upscaled_image_url: displayUrl,
+                        upscaled_cloudinary_public_id: publicId,
+                        upscaled_backup_url: backupUrl,
+                        upscaled_drive_file_id: driveFileId,
                         ...(!process.env.SUPABASE_SERVICE_ROLE_KEY ? {} : {error: null})
                     })
                     .eq("upscale_prediction_id", id);
@@ -118,7 +109,7 @@ export async function POST(req: Request) {
                 if (upscaleRecord.project_id) {
                     const {error: projectUpdateError} = await supabaseAdmin
                         .from("projects")
-                        .update({rendered_image_url: finalUrl})
+                        .update({rendered_image_url: displayUrl})
                         .eq("id", upscaleRecord.project_id);
                     if (projectUpdateError) console.error("Error updating project thumbnail:", projectUpdateError);
                 }
@@ -134,14 +125,20 @@ export async function POST(req: Request) {
 
                 if (renderRecord) {
                     console.log(`Processing render success for prediction ${id}, project ${renderRecord.project_id}`);
-                    const permanentUrl = await uploadToSupabase(renderedUrl, id);
-                    const finalUrl = permanentUrl || renderedUrl;
+                    const uploadResult = await handleImageUpload(renderedUrl, id);
+                    const displayUrl = uploadResult?.cloudinaryUrl || renderedUrl;
+                    const publicId = uploadResult?.cloudinaryId || null;
+                    const backupUrl = uploadResult?.driveUrl || null;
+                    const driveFileId = uploadResult?.driveId || null;
 
                     const {error: updateError} = await supabaseAdmin
                         .from("renders")
                         .update({
                             status: status,
-                            rendered_image_url: finalUrl,
+                            rendered_image_url: displayUrl,
+                            cloudinary_public_id: publicId,
+                            backup_url: backupUrl,
+                            drive_file_id: driveFileId,
                             ...(!process.env.SUPABASE_SERVICE_ROLE_KEY ? {} : {error: null})
                         })
                         .eq("prediction_id", id);
@@ -153,7 +150,7 @@ export async function POST(req: Request) {
                     if (renderRecord.project_id && !isInteriorView) {
                         const {error: projectUpdateError} = await supabaseAdmin
                             .from("projects")
-                            .update({rendered_image_url: finalUrl})
+                            .update({rendered_image_url: displayUrl})
                             .eq("id", renderRecord.project_id);
                         if (projectUpdateError) console.error("Error updating project thumbnail:", projectUpdateError);
                     }

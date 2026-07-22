@@ -7,6 +7,7 @@ export interface Project {
     created_at: string;
     name: string;
     source_image_url: string;
+    rendered_image_url?: string;
     user_id: string;
     user_name?: string;
     renders?: Render[];
@@ -23,6 +24,14 @@ export interface Render {
     upscaled_image_url?: string;
     status: "pending" | "processing" | "succeeded" | "failed";
     style_id?: string;
+    // Hybrid Storage fields
+    cloudinary_public_id?: string;
+    upscaled_cloudinary_public_id?: string;
+    backup_url?: string;
+    upscaled_backup_url?: string;
+    drive_file_id?: string;
+    upscaled_drive_file_id?: string;
+    last_viewed_at?: string;
 }
 
 export interface ShowcaseItem {

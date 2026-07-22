@@ -78,6 +78,21 @@ export const ProjectService = {
         }
     ): Promise<ServiceResponse<Project>> {
         try {
+            // Check project limit (max 20)
+            const {count, error: countError} = await supabase
+                .from("projects")
+                .select("*", {count: "exact", head: true})
+                .eq("user_id", params.user_id);
+
+            if (countError) throw countError;
+
+            if (count !== null && count >= 20) {
+                return {
+                    data: null,
+                    error: new Error("Giới hạn 20 project đã đạt được. Vui lòng xóa bớt project cũ để tạo mới.")
+                };
+            }
+
             const {data, error} = await supabase
                 .from("projects")
                 .insert(params)
@@ -96,6 +111,11 @@ export const ProjectService = {
         let displayImageUrl = project.source_image_url; // Default to source
         let isUpscaled = false;
 
+        // Try to use the project's own rendered_image_url (which should be Cloudinary)
+        if (project.rendered_image_url) {
+            displayImageUrl = project.rendered_image_url;
+        }
+
         if (project.renders && project.renders.length > 0) {
             const successfulRenders = project.renders.filter(r => r.status === 'succeeded' || r.rendered_image_url);
 
@@ -105,7 +125,7 @@ export const ProjectService = {
                     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                 );
 
-                // Check if any render has an upscaled version
+                // Check if any render has an upscaled version (prefer Cloudinary)
                 const latestUpscaled = sortedRenders.find((r) => r.upscaled_image_url);
                 const latestRender = sortedRenders[0];
 

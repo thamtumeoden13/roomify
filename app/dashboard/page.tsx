@@ -102,23 +102,26 @@ export default function Dashboard() {
     const handleUploadComplete = async (imageUrl: string) => {
         const {data: {user}} = await supabase.auth.getUser();
 
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để tạo project.");
+            return;
+        }
+
         const name = `Residence ${Date.now().toString().slice(-4)}`;
 
-        const {data: project, error} = await supabase
-            .from("projects")
-            .insert({
-                name,
-                source_image_url: imageUrl,
-                user_id: user?.id
-            })
-            .select()
-            .single();
+        const {data: project, error} = await ProjectService.createProject(supabase, {
+            name,
+            source_image_url: imageUrl,
+            user_id: user.id
+        });
 
         if (error) {
             console.error("Error creating project:", error);
-            toast.error("Failed to create project. Please try again.");
+            toast.error(error instanceof Error ? error.message : "Failed to create project. Please try again.");
             return;
         }
+
+        if (!project) return;
 
         // Redirect using the real project_id
         router.push(`/visualizer/${project.id}`);
