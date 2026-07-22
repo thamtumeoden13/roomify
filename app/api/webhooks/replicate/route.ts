@@ -94,15 +94,15 @@ export async function POST(req: Request) {
 
                 const {error: updateError} = await supabaseAdmin
                     .from("renders")
-                    .update({
+                    .upsert({
+                        upscale_prediction_id: id,
                         status: status,
                         upscaled_image_url: displayUrl,
                         upscaled_cloudinary_public_id: publicId,
                         upscaled_backup_url: backupUrl,
                         upscaled_drive_file_id: driveFileId,
                         ...(!process.env.SUPABASE_SERVICE_ROLE_KEY ? {} : {error: null})
-                    })
-                    .eq("upscale_prediction_id", id);
+                    }, {onConflict: 'upscale_prediction_id'});
 
                 if (updateError) console.error("Error updating upscale render:", updateError);
 
@@ -123,61 +123,53 @@ export async function POST(req: Request) {
 
                 if (renderFetchError) console.error("Error fetching render record:", renderFetchError);
 
-                if (renderRecord) {
-                    console.log(`Processing render success for prediction ${id}, project ${renderRecord.project_id}`);
-                    const uploadResult = await handleImageUpload(renderedUrl, id);
-                    const displayUrl = uploadResult?.cloudinaryUrl || renderedUrl;
-                    const publicId = uploadResult?.cloudinaryId || null;
-                    const backupUrl = uploadResult?.driveUrl || null;
-                    const driveFileId = uploadResult?.driveId || null;
+                console.log(`Processing render success for prediction ${id}, found record: ${!!renderRecord}`);
+                const uploadResult = await handleImageUpload(renderedUrl, id);
+                const displayUrl = uploadResult?.cloudinaryUrl || renderedUrl;
+                const publicId = uploadResult?.cloudinaryId || null;
+                const backupUrl = uploadResult?.driveUrl || null;
+                const driveFileId = uploadResult?.driveId || null;
 
-                    const {error: updateError} = await supabaseAdmin
-                        .from("renders")
-                        .update({
-                            status: status,
-                            rendered_image_url: displayUrl,
-                            cloudinary_public_id: publicId,
-                            backup_url: backupUrl,
-                            drive_file_id: driveFileId,
-                            ...(!process.env.SUPABASE_SERVICE_ROLE_KEY ? {} : {error: null})
-                        })
-                        .eq("prediction_id", id);
+                const {error: updateError} = await supabaseAdmin
+                    .from("renders")
+                    .upsert({
+                        prediction_id: id,
+                        status: status,
+                        rendered_image_url: displayUrl,
+                        cloudinary_public_id: publicId,
+                        backup_url: backupUrl,
+                        drive_file_id: driveFileId,
+                        ...(!process.env.SUPABASE_SERVICE_ROLE_KEY ? {} : {error: null})
+                    }, {onConflict: 'prediction_id'});
 
-                    if (updateError) console.error("Error updating render:", updateError);
+                if (updateError) console.error("Error updating render:", updateError);
 
-                    // Only update project thumbnail for 3D plan renders (not interior views)
-                    const isInteriorView = renderRecord.view_id?.startsWith('interior-');
-                    if (renderRecord.project_id && !isInteriorView) {
-                        const {error: projectUpdateError} = await supabaseAdmin
-                            .from("projects")
-                            .update({rendered_image_url: displayUrl})
-                            .eq("id", renderRecord.project_id);
-                        if (projectUpdateError) console.error("Error updating project thumbnail:", projectUpdateError);
-                    }
-                } else {
-                    console.warn(`No record found for prediction ID: ${id}`);
+                // Only update project thumbnail for 3D plan renders (not interior views)
+                const isInteriorView = renderRecord?.view_id?.startsWith('interior-');
+                if (renderRecord?.project_id && !isInteriorView) {
+                    const {error: projectUpdateError} = await supabaseAdmin
+                        .from("projects")
+                        .update({rendered_image_url: displayUrl})
+                        .eq("id", renderRecord.project_id);
+                    if (projectUpdateError) console.error("Error updating project thumbnail:", projectUpdateError);
                 }
             }
         } else if (status === "failed") {
-            const updatePayload: any = {
-                status: status
-            };
-
-            if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-                updatePayload.error = replicateError || "Prediction failed";
-            }
-
             const {error: updateError} = await supabaseAdmin
                 .from("renders")
-                .update(updatePayload)
-                .or(`prediction_id.eq.${id},upscale_prediction_id.eq.${id}`);
+                .upsert({
+                    status: status,
+                    error: process.env.SUPABASE_SERVICE_ROLE_KEY ? (replicateError || "Prediction failed") : undefined
+                }, {onConflict: id.startsWith('upscale_') ? 'upscale_prediction_id' : 'prediction_id'});
             if (updateError) console.error("Error updating failed status:", updateError);
         } else {
             // Update status for other states (starting, processing, etc.)
             const {error: updateError} = await supabaseAdmin
                 .from("renders")
-                .update({status: status})
-                .or(`prediction_id.eq.${id},upscale_prediction_id.eq.${id}`);
+                .upsert({
+                    status: status,
+                    ...(id.includes('upscale') ? {upscale_prediction_id: id} : {prediction_id: id})
+                }, {onConflict: id.includes('upscale') ? 'upscale_prediction_id' : 'prediction_id'});
             if (updateError) console.error(`Error updating status to ${status}:`, updateError);
         }
 

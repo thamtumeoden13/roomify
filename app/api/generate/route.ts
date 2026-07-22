@@ -15,6 +15,13 @@ const replicate = new Replicate({
     auth: process.env.REPLICATE_API_TOKEN,
 });
 
+import {createClient} from "@supabase/supabase-js";
+
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export async function POST(req: Request) {
     try {
         const {
@@ -43,17 +50,7 @@ export async function POST(req: Request) {
         const {data: {user}} = await (await import("@/lib/supabase-server")).getServerUser();
         if (!user) return NextResponse.json({error: "Authentication required"}, {status: 401});
 
-        if (!mask && !forceNew && existingRender && existingRender.status === "succeeded") {
-            return NextResponse.json({
-                ...existingRender,
-                id: existingRender.prediction_id,
-                output: existingRender.rendered_image_url,
-                isCacheHit: true
-            }, {status: 200});
-        }
-
-        // 2. Credit Check (giữ nguyên)
-        const {data: profile} = await supabase.from("profiles").select("credits").eq("id", user.id).single();
+        const {data: profile} = await supabaseAdmin.from("profiles").select("credits").eq("id", user.id).single();
         if (!profile || profile.credits < 1) return NextResponse.json({error: "Out of credits"}, {status: 403});
 
         // 3. THIẾT LẬP CHIẾN THUẬT RENDER
@@ -130,10 +127,9 @@ export async function POST(req: Request) {
         if (prediction?.error) return NextResponse.json({error: prediction.error}, {status: 500});
 
         // 6. Database & Credits Update
-        await supabase.rpc("decrement_credits", {target_user_id: user.id, amount: 1});
         const renderData = {
             prediction_id: prediction.id,
-            project_id: project_id,
+            project_id: project_id || null,
             project_name: projectName || "Untitled Project",
             source_image_url: image,
             status: prediction.status,
@@ -149,8 +145,21 @@ export async function POST(req: Request) {
             rendered_image_url: null,
             upscaled_image_url: null
         };
-        if (existingRender) await supabase.from("renders").update(renderData).match({id: existingRender.id});
-        else await supabase.from("renders").insert(renderData);
+
+        let dbResult;
+        if (existingRender) {
+            dbResult = await supabaseAdmin.from("renders").update(renderData).match({id: existingRender.id});
+        } else {
+            dbResult = await supabaseAdmin.from("renders").insert(renderData);
+        }
+
+        if (dbResult.error) {
+            console.error('DB Insert/Update Error:', dbResult.error);
+        } else {
+            console.log('DB Insert/Update Success');
+        }
+
+        await supabaseAdmin.rpc("decrement_credits", {target_user_id: user.id, amount: 1});
 
         return NextResponse.json(prediction, {status: 201});
     } catch (error: any) {

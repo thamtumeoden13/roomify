@@ -120,17 +120,20 @@ export async function GET(
                 const backupUrl = uploadResult?.driveUrl || null;
                 const driveFileId = uploadResult?.driveId || null;
 
-                const {data: updatedRender} = await supabaseAdmin
+                const {data: updatedRender, error: updateError} = await supabaseAdmin
                     .from("renders")
-                    .update({
+                    .upsert({
+                        upscale_prediction_id: id,
+                        status: prediction.status,
                         upscaled_image_url: displayUrl,
                         upscaled_cloudinary_public_id: publicId,
                         upscaled_backup_url: backupUrl,
                         upscaled_drive_file_id: driveFileId,
-                    })
-                    .eq("upscale_prediction_id", id)
+                    }, {onConflict: 'upscale_prediction_id'})
                     .select("project_id")
                     .maybeSingle();
+
+                if (updateError) console.error("Error upserting upscale render:", updateError);
 
                 if (updatedRender?.project_id) {
                     await supabaseAdmin
@@ -146,18 +149,20 @@ export async function GET(
                 const backupUrl = uploadResult?.driveUrl || null;
                 const driveFileId = uploadResult?.driveId || null;
 
-                const {data: updatedRender} = await supabaseAdmin
+                const {data: updatedRender, error: updateError} = await supabaseAdmin
                     .from("renders")
-                    .update({
+                    .upsert({
+                        prediction_id: id,
                         status: prediction.status,
                         rendered_image_url: displayUrl,
                         cloudinary_public_id: publicId,
                         backup_url: backupUrl,
                         drive_file_id: driveFileId,
-                    })
-                    .eq("prediction_id", id)
+                    }, {onConflict: 'prediction_id'})
                     .select("project_id")
                     .maybeSingle();
+
+                if (updateError) console.error("Error upserting render:", updateError);
 
                 if (updatedRender?.project_id) {
                     await supabaseAdmin
@@ -169,18 +174,18 @@ export async function GET(
         } else if (prediction.status === "failed") {
             await supabaseAdmin
                 .from("renders")
-                .update({
+                .upsert({
                     status: prediction.status,
-                })
-                .eq("prediction_id", id);
+                    ...(id.includes('upscale') ? {upscale_prediction_id: id} : {prediction_id: id})
+                }, {onConflict: id.includes('upscale') ? 'upscale_prediction_id' : 'prediction_id'});
         } else {
             // Just update status
             await supabaseAdmin
                 .from("renders")
-                .update({
+                .upsert({
                     status: prediction.status,
-                })
-                .eq("prediction_id", id);
+                    ...(id.includes('upscale') ? {upscale_prediction_id: id} : {prediction_id: id})
+                }, {onConflict: id.includes('upscale') ? 'upscale_prediction_id' : 'prediction_id'});
         }
 
         return NextResponse.json(prediction);

@@ -4,21 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7e96b4aa-3362-44f4-9edb-011641672f4b" name="Changes" comment="Update `.idea` workspace file and add `view_id` support in webhooks">
+    <list default="true" id="7e96b4aa-3362-44f4-9edb-011641672f4b" name="Changes" comment="implement hydrate">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/generate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/generate/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/predictions/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/predictions/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/upload/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/upload/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/webhooks/replicate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/webhooks/replicate/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/visualizer/[id]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/projects.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/projects.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next-env.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.mjs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supabase_migration.sql" beforeDir="false" afterPath="$PROJECT_DIR$/supabase_migration.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,23 +43,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.5152344303746843" />
-      <entry key="MS500" value="3.962300089984071" />
-      <entry key="S2" value="6.993630966435501" />
-      <entry key="S5" value="8.103283566531694" />
-      <entry key="S10" value="8.534060078235228" />
-      <entry key="S30" value="8.84279269976594" />
-      <entry key="S60" value="9.152112443664508" />
-      <entry key="M2" value="11.683679169625925" />
-      <entry key="M5" value="44.20674150626034" />
-      <entry key="M10" value="174.47402072339676" />
-      <entry key="M15" value="324.37124958242623" />
-      <entry key="M30" value="689.6448160485068" />
-      <entry key="H1" value="1087.134833625806" />
-      <entry key="H2" value="1400.8544306714139" />
-      <entry key="H4" value="1601.8167299195572" />
-      <entry key="D1" value="1816.8784383927787" />
-      <entry key="W1" value="2530.148569229976" />
+      <entry key="MS100" value="1.000122937519249" />
+      <entry key="MS500" value="1.2059807769513664" />
+      <entry key="S2" value="2.572309375086949" />
+      <entry key="S5" value="3.9605251774064034" />
+      <entry key="S10" value="4.802646919913311" />
+      <entry key="S30" value="5.551659913204528" />
+      <entry key="S60" value="5.768934617773231" />
+      <entry key="M2" value="5.882681864773215" />
+      <entry key="M5" value="5.952636082554868" />
+      <entry key="M10" value="5.976244572703393" />
+      <entry key="M15" value="5.984146670487771" />
+      <entry key="M30" value="5.992065133304749" />
+      <entry key="H1" value="5.996030513735908" />
+      <entry key="H2" value="5.998014743334541" />
+      <entry key="H4" value="5.99900724324586" />
+      <entry key="D1" value="6.006077484257215" />
+      <entry key="W1" value="425.3569317805516" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -81,37 +71,37 @@
       <entry key="S60" value="0.0" />
       <entry key="M2" value="0.0" />
       <entry key="M5" value="0.0" />
-      <entry key="M10" value="1.2329686030262821E-266" />
-      <entry key="M15" value="6.647083865982248E-178" />
-      <entry key="M30" value="3.6246354280763314E-89" />
-      <entry key="H1" value="8.501565392337622E-45" />
-      <entry key="H2" value="1.3034727528332114E-22" />
-      <entry key="H4" value="1.6144527061110602E-11" />
-      <entry key="D1" value="0.028326325250014012" />
-      <entry key="W1" value="1.0887041839037535" />
+      <entry key="M10" value="0.0" />
+      <entry key="M15" value="0.0" />
+      <entry key="M30" value="0.0" />
+      <entry key="H1" value="6.238121779480255E-176" />
+      <entry key="H2" value="3.5308513323773297E-88" />
+      <entry key="H4" value="2.6571377198900465E-44" />
+      <entry key="D1" value="9.733186096293675E-8" />
+      <entry key="W1" value="0.18044619097387535" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.4850045682674595" />
-      <entry key="MS500" value="3.9481087349909885" />
-      <entry key="S2" value="6.987452738144235" />
-      <entry key="S5" value="8.100417137712643" />
-      <entry key="S10" value="8.53254964821412" />
-      <entry key="S30" value="8.842270724194739" />
-      <entry key="S60" value="9.15184209274288" />
-      <entry key="M2" value="11.683503100561204" />
-      <entry key="M5" value="44.206495826553414" />
-      <entry key="M10" value="174.473589180523" />
-      <entry key="M15" value="324.3707296759104" />
-      <entry key="M30" value="689.6442719429301" />
-      <entry key="H1" value="1087.1344054416122" />
-      <entry key="H2" value="1400.8541545436506" />
-      <entry key="H4" value="1601.8165719118358" />
-      <entry key="D1" value="1816.9067326298405" />
-      <entry key="W1" value="2531.2372555398806" />
+      <entry key="MS100" value="0.9795423857882385" />
+      <entry key="MS500" value="1.2014712243665377" />
+      <entry key="S2" value="2.5701905029505" />
+      <entry key="S5" value="3.9591553042883496" />
+      <entry key="S10" value="4.80179071666044" />
+      <entry key="S30" value="5.551322131346131" />
+      <entry key="S60" value="5.768758020386583" />
+      <entry key="M2" value="5.8825915403219335" />
+      <entry key="M5" value="5.952599453330757" />
+      <entry key="M10" value="5.976226173720909" />
+      <entry key="M15" value="5.984134385665878" />
+      <entry key="M30" value="5.992058981455783" />
+      <entry key="H1" value="5.996027435447931" />
+      <entry key="H2" value="5.9980132035991796" />
+      <entry key="H4" value="5.999006473230273" />
+      <entry key="D1" value="6.006077453122337" />
+      <entry key="W1" value="425.5373749906801" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="AISelfReview" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2,
@@ -199,7 +189,7 @@
       <workItem from="1778923259378" duration="10370000" />
       <workItem from="1779625064068" duration="11253000" />
       <workItem from="1780125600545" duration="703000" />
-      <workItem from="1782636732493" duration="26976000" />
+      <workItem from="1782636732493" duration="28282000" />
     </task>
     <task id="LOCAL-00001" summary="Add batch generation and interior view rendering features to Visualizer Tool">
       <option name="closed" value="true" />
@@ -217,7 +207,15 @@
       <option name="project" value="LOCAL" />
       <updated>1783161579847</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="implement hydrate">
+      <option name="closed" value="true" />
+      <created>1784729657802</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1784729657802</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -250,6 +248,7 @@
     <MESSAGE value="Enable interior view generation and batch processing features for Visualizer" />
     <MESSAGE value="Add batch generation and interior view rendering features to Visualizer Tool" />
     <MESSAGE value="Update `.idea` workspace file and add `view_id` support in webhooks" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update `.idea` workspace file and add `view_id` support in webhooks" />
+    <MESSAGE value="implement hydrate" />
+    <option name="LAST_COMMIT_MESSAGE" value="implement hydrate" />
   </component>
 </project>
